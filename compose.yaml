@@ -1,0 +1,27 @@
+﻿services:
+  webapp:
+    image: cnu_cinema_image
+    build:
+      context: .
+      dockerfile: Web/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=CinemaDb;User Id=sa;Password=Password123!;TrustServerCertificate=True;
+    depends_on:
+      - db
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: cinema_db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Password123!
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+volumes:
+  mssql_data:
