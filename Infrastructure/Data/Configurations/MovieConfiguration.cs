@@ -34,7 +34,8 @@ public class MovieConfiguration : IEntityTypeConfiguration<Movie>
         builder.Property(x => x.ImdbRating)
             .HasPrecision(3, 1);
 
-        builder.Property(x => x.Genre);
+        builder.Property(x => x.Genre)
+            .HasColumnType("bigint");
 
         builder.Property(x => x.DurationMinutes);
 
