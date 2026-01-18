@@ -1,3 +1,5 @@
+using Core.Enums;
+
 namespace Core.Entities;
 
 public class Movie
@@ -7,7 +9,7 @@ public class Movie
     public string Name { get; set; } = null!;
     public byte DurationMinutes { get; set; }
     public byte AgeLimit { get; set; }
-    public ulong Genre { get; set; }
+    public MovieGenre Genre { get; set; }
 
     public string? Description { get; set; }
     public DateOnly ReleaseDate { get; set; }
