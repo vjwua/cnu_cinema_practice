@@ -5,9 +5,9 @@ public class Movie
     public int Id { get; set; }
 
     public string Name { get; set; } = null!;
-    public short DurationMinutes { get; set; }
+    public byte DurationMinutes { get; set; }
     public byte AgeLimit { get; set; }
-    public byte Genre { get; set; }
+    public ulong Genre { get; set; }
 
     public string? Description { get; set; }
     public DateOnly ReleaseDate { get; set; }
