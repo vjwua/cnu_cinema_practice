@@ -58,5 +58,19 @@ public class CinemaDbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        builder.Entity<Movie>()
+            .HasMany(m => m.Actors)
+            .WithMany(a => a.ActedMovies)
+            .UsingEntity<MovieActor>(
+                r => r.HasOne<Person>().WithMany().HasForeignKey(e => e.ActorId),
+                l => l.HasOne<Movie>().WithMany().HasForeignKey(e => e.MovieId));
+
+        builder.Entity<Movie>()
+            .HasMany(m => m.Directors)
+            .WithMany(d => d.DirectedMovies)
+            .UsingEntity<MovieDirector>(
+                r => r.HasOne<Person>().WithMany().HasForeignKey(e => e.DirectorId),
+                l => l.HasOne<Movie>().WithMany().HasForeignKey(e => e.MovieId)
+            );
     }
 }

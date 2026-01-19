@@ -21,4 +21,7 @@ public class Movie
     public string? Country { get; set; }
 
     public ICollection<Session> Sessions { get; set; } = new List<Session>();
+
+    public List<Person> Actors { get; } = new List<Person>();
+    public List<Person> Directors { get; } = new List<Person>();
 }

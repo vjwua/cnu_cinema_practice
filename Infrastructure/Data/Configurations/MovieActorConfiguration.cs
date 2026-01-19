@@ -11,7 +11,7 @@ public class MovieActorConfiguration : IEntityTypeConfiguration<MovieActor>
         builder.ToTable("MovieActor");
         
         builder.HasKey(x => x.Id);
-
+        
         builder.Property(x => x.MovieId);
         builder.Property(x => x.ActorId);
         builder.Property(x => x.Role)
