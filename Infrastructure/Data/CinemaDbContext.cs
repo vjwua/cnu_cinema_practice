@@ -25,6 +25,10 @@ public class CinemaDbContext
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<Payment> Payments => Set<Payment>();
 
+    public DbSet<MovieDirector> MovieDirectors => Set<MovieDirector>();
+    public DbSet<MovieActor> MovieActors => Set<MovieActor>();
+    public DbSet<Person> People => Set<Person>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
