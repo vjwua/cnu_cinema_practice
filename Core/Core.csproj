@@ -9,7 +9,6 @@
     <ItemGroup>
       <Folder Include="Interfaces\Services\" />
       <Folder Include="Resources\" />
-      <Folder Include="Validators\" />
     </ItemGroup>
 
     <ItemGroup>
