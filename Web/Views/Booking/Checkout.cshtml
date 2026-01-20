@@ -1,0 +1,136 @@
+﻿@using cnu_cinema_practice.ViewModels
+@model CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-circle"></i> Customer Information</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="ConfirmBooking" method="post" id="checkout-form">
+                    <input type="hidden" asp-for="MovieId" />
+                    <input type="hidden" asp-for="MovieTitle" />
+                    <input type="hidden" asp-for="PosterUrl" />
+                    <input type="hidden" asp-for="ShowDateTime" />
+                    <input type="hidden" asp-for="Theater" />
+                    <input type="hidden" asp-for="TicketPrice" />
+                    <input type="hidden" asp-for="ServiceFee" />
+
+                    @for (int i = 0; i < Model.SelectedSeats.Count; i++)
+                    {
+                        <input type="hidden" name="SelectedSeats[@i]" value="@Model.SelectedSeats[i]" />
+                    }
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label asp-for="FullName" class="form-label">Full Name *</label>
+                            <input asp-for="FullName" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label">Email Address *</label>
+                            <input asp-for="Email" type="email" class="form-control" required />
+                            <small class="text-muted">Tickets will be sent to this email</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Phone" class="form-label">Phone Number *</label>
+                            <input asp-for="Phone" type="tel" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="mb-3">Payment Information</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">Card Number *</label>
+                        <input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" required />
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Expiry Date *</label>
+                            <input type="text" class="form-control" placeholder="MM/YY" maxlength="5" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">CVV *</label>
+                            <input type="text" class="form-control" placeholder="123" maxlength="4" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Cardholder Name *</label>
+                        <input type="text" class="form-control" required />
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="terms" required>
+                        <label class="form-check-label" for="terms">
+                            I agree to the <a href="#">terms and conditions</a>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        <i class="bi bi-lock"></i> Complete Booking
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-receipt"></i> Order Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex mb-3">
+                    <img src="@Model.PosterUrl" alt="@Model.MovieTitle" class="rounded me-3" style="width: 80px; height: 120px; object-fit: cover;">
+                    <div>
+                        <h6 class="mb-1">@Model.MovieTitle</h6>
+                        <p class="text-muted small mb-0">
+                            <i class="bi bi-calendar"></i> @Model.FormattedShowTime<br>
+                            <i class="bi bi-geo-alt"></i> @Model.Theater
+                        </p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="mb-3">
+                    <h6>Seats:</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var seat in Model.SelectedSeats)
+                        {
+                            <span class="badge bg-primary">@seat</span>
+                        }
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Tickets (@Model.SelectedSeats.Count × $@Model.TicketPrice.ToString("F2"))</span>
+                    <span>$@((Model.SelectedSeats.Count * Model.TicketPrice).ToString("F2"))</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Service Fee</span>
+                    <span>$@Model.ServiceFee.ToString("F2")</span>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between">
+                    <strong>Total:</strong>
+                    <strong class="text-success">$@Model.Total.ToString("F2")</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
