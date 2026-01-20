@@ -16,13 +16,14 @@ public class HallConfiguration : IEntityTypeConfiguration<Hall>
             .HasMaxLength(100)
             .IsRequired();
 
-        // 🔥 16x16, 2 біти на комірку = 64 байти
+        builder.HasIndex(x => x.Name)
+            .IsUnique();
+
         builder.Property(x => x.SeatLayout)
             .HasColumnType("binary(64)")
             .HasMaxLength(64)
             .IsRequired();
 
-        // захист від кривих даних
         builder.HasCheckConstraint(
             "CK_Halls_SeatLayout_Length",
             "DATALENGTH(SeatLayout) = 64");

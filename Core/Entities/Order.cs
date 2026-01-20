@@ -14,7 +14,7 @@ public class Order
     public DateTime CreatedAt { get; set; }
     public OrderStatus Status { get; set; }
     
-    public Payment Payment { get; set; } = null!;
+    public Payment? Payment { get; set; }
 
-    public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
+    public ICollection<Ticket> Tickets { get; private set; } = new List<Ticket>();
 }

@@ -1,4 +1,3 @@
-
 using Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -9,6 +8,8 @@ public class MovieConfiguration : IEntityTypeConfiguration<Movie>
 {
     public void Configure(EntityTypeBuilder<Movie> builder)
     {
+        builder.ToTable("Movies");
+        
         builder.HasKey(x => x.Id);
         
         builder.Property(x => x.Name)
@@ -24,23 +25,30 @@ public class MovieConfiguration : IEntityTypeConfiguration<Movie>
         builder.Property(x => x.TrailerUrl)
             .HasMaxLength(500);
 
-        /*builder.Property(x => x.Director)
-            .HasMaxLength(200);*/
-        // поле Director стане таблицею MovieDirector, оскільки їх може бути декілька
-
         builder.Property(x => x.Country)
             .HasMaxLength(100);
 
         builder.Property(x => x.ImdbRating)
             .HasPrecision(3, 1);
 
+        builder.HasCheckConstraint(
+            "CK_Movies_ImdbRating",
+            "ImdbRating IS NULL OR (ImdbRating >= 0.0 AND ImdbRating <= 10.0)");
+
         builder.Property(x => x.Genre)
             .HasColumnType("bigint");
 
-        builder.Property(x => x.DurationMinutes);
+        builder.Property(x => x.DurationMinutes)
+            .IsRequired();
 
-        builder.Property(x => x.AgeLimit);
+        builder.HasCheckConstraint(
+            "CK_Movies_DurationMinutes",
+            "DurationMinutes > 0 AND DurationMinutes <= 600"); // макс 10 годин
 
-        builder.Property(x => x.ReleaseDate);
+        builder.Property(x => x.AgeLimit)
+            .IsRequired();
+        
+        builder.Property(x => x.ReleaseDate)
+            .IsRequired();
     }
 }

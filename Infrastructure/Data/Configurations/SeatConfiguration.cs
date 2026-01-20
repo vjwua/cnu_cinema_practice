@@ -17,13 +17,15 @@ public class SeatConfiguration : IEntityTypeConfiguration<Seat>
         builder.HasIndex(x => new { x.SessionId, x.RowNum, x.SeatNum })
             .IsUnique();
 
+        // Додано: індекс для швидкого пошуку доступних місць
+        builder.HasIndex(x => new { x.SessionId, x.IsAvailable });
+
         builder.Property(x => x.RowNum)
             .IsRequired();
 
         builder.Property(x => x.SeatNum)
             .IsRequired();
 
-        // 🔥 SeatType → tinyint
         builder.Property(x => x.SeatType)
             .HasConversion<byte>()
             .HasColumnType("tinyint")
@@ -36,14 +38,29 @@ public class SeatConfiguration : IEntityTypeConfiguration<Seat>
         builder.Property(x => x.IsAvailable)
             .IsRequired();
 
+        // Заборона каскадного видалення
         builder.HasOne(x => x.Session)
             .WithMany(s => s.Seats)
             .HasForeignKey(x => x.SessionId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
-        // 🛡 захист від некоректних enum-значень
+        // захист від некоректних enum-значень
         builder.HasCheckConstraint(
             "CK_Seats_SeatType",
             "SeatType IN (0, 1, 2, 3)");
+
+        // валідація координат місць (0-15 для 16x16)
+        builder.HasCheckConstraint(
+            "CK_Seats_RowNum",
+            "RowNum >= 0 AND RowNum < 16");
+
+        builder.HasCheckConstraint(
+            "CK_Seats_SeatNum",
+            "SeatNum >= 0 AND SeatNum < 16");
+
+        // AddedPrice не може бути від'ємною
+        builder.HasCheckConstraint(
+            "CK_Seats_AddedPrice",
+            "AddedPrice >= 0");
     }
 }

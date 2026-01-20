@@ -13,6 +13,9 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
 
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.StartTime)
+            .IsRequired();
+
         builder.Property(x => x.BasePrice)
             .HasPrecision(8, 2)
             .IsRequired();
@@ -25,11 +28,19 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
         builder.HasOne(x => x.Movie)
             .WithMany(x => x.Sessions)
             .HasForeignKey(x => x.MovieId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(x => x.Hall)
             .WithMany(x => x.Sessions)
             .HasForeignKey(x => x.HallId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasCheckConstraint(
+            "CK_Sessions_BasePrice",
+            "BasePrice > 0");
+
+        builder.HasIndex(x => x.StartTime);
+        builder.HasIndex(x => new { x.HallId, x.StartTime });
+        builder.HasIndex(x => new { x.MovieId, x.StartTime });
     }
 }

@@ -1,4 +1,3 @@
-
 using Core.Mapping;
 
 namespace Core.Entities;
@@ -6,15 +5,18 @@ namespace Core.Entities;
 public class Hall
 {
     public int Id { get; private set; }
-    public string Name { get; private set; }
+    public string Name { get; private set; } = null!;
     public byte[] SeatLayout { get; private set; } = null!;
-    public ICollection<Session> Sessions { get; set; } = new List<Session>();
-
+    public ICollection<Session> Sessions { get; private set; } = new List<Session>();
 
     private Hall() { }
 
-    public Hall(SeatLayoutMap layout)
+    public Hall(string name, SeatLayoutMap layout)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Hall name cannot be empty", nameof(name));
+        
+        Name = name;
         SeatLayout = layout.ToByteArray();
     }
 
@@ -28,4 +30,11 @@ public class Hall
         SeatLayout = map.ToByteArray();
     }
 
+    public void UpdateName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Hall name cannot be empty", nameof(name));
+        
+        Name = name;
+    }
 }

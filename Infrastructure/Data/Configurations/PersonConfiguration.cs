@@ -13,6 +13,7 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Name)
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .IsRequired();
     }
 }

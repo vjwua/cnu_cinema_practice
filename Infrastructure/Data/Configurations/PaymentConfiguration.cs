@@ -26,10 +26,18 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasDefaultValueSql("SYSUTCDATETIME()")
             .IsRequired();
 
+        builder.HasOne(p => p.Order)
+            .WithOne(o => o.Payment)
+            .HasForeignKey<Payment>(p => p.OrderId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(); // Payment завжди потребує Order
 
-        // 🛡 захист від некоректних значень enum
         builder.HasCheckConstraint(
             "CK_Payments_PaymentMethod",
             "PaymentMethod IN (0, 1, 2, 3)");
+
+        builder.HasCheckConstraint(
+            "CK_Payments_Amount",
+            "Amount > 0");
     }
 }
