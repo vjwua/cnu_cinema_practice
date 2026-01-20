@@ -1,0 +1,122 @@
+﻿@using cnu_cinema_practice.ViewModels
+@model List<AdminMovieViewModel>
+@{
+    ViewData["Title"] = "Manage Movies";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-5">Movies Management</h1>
+        <p class="text-muted">Manage your cinema's movie catalog</p>
+    </div>
+    <a asp-action="CreateMovie" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Add New Movie
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Poster</th>
+                        <th>Title</th>
+                        <th>Duration</th>
+                        <th>Rating</th>
+                        <th>Genres</th>
+                        <th>Release Date</th>
+                        <th>Status</th>
+                        <th style="width: 200px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var movie in Model)
+                    {
+                        <tr>
+                            <td>
+                                <img src="@movie.PosterUrl" alt="@movie.Name" class="img-thumbnail" style="width: 60px; height: 90px; object-fit: cover;">
+                            </td>
+                            <td>
+                                <strong>@movie.Name</strong><br>
+                                <small class="text-muted">@movie.Director</small>
+                            </td>
+                            <td>@(movie.DurationMinutes / 60)h @(movie.DurationMinutes % 60)m</td>
+                            <td><span class="badge bg-secondary">@movie.ImdbRating</span></td>
+                            <td>@string.Join(", ", movie.Genres)</td>
+                            <td>@movie.ReleaseDate.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                @if (movie.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a asp-action="EditMovie" asp-route-id="@movie.Id" class="btn btn-outline-primary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form asp-action="ToggleMovieStatus" asp-route-id="@movie.Id" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-warning" title="Toggle Status">
+                                            <i class="bi bi-power"></i>
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal@(movie.Id)" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteModal@(movie.Id)" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete <strong>@movie.Name</strong>?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form asp-action="DeleteMovie" asp-route-id="@movie.Id" method="post" class="d-inline">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-film" style="font-size: 4rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">No movies found. Add your first movie!</p>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
