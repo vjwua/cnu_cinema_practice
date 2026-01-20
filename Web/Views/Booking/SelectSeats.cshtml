@@ -8,12 +8,12 @@
     <div class="col-lg-8">
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="bi bi-film"></i> @Model.MovieTitle</h5>
+                <h5 class="mb-0"><i class="bi bi-film"></i> @Model.Name</h5>
             </div>
             <div class="card-body">
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <img src="@Model.PosterUrl" alt="@Model.MovieTitle" class="img-fluid rounded" style="max-height: 200px;">
+                        <img src="@Model.PosterUrl" alt="@Model.Name" class="img-fluid rounded" style="max-height: 200px;">
                     </div>
                     <div class="col-md-6">
                         <h6>Select Showtime:</h6>
@@ -21,10 +21,10 @@
                             @foreach (var showtime in Model.AvailableShowtimes)
                             {
                                 <a asp-action="SelectSeats"
-                                   asp-route-movieId="@Model.MovieId"
+                                   asp-route-movieId="@Model.Id"
                                    asp-route-showtimeId="@showtime.Id"
                                    class="btn btn-outline-primary text-start @(showtime.Id == Model.ShowtimeId ? "active" : "")">
-                                    <strong>@showtime.FormattedTime</strong> - @showtime.Theater
+                                    <strong>@showtime.FormattedTime</strong> - @showtime.Hall
                                 </a>
                             }
                         </div>
@@ -93,11 +93,11 @@
                 <h5 class="mb-0"><i class="bi bi-cart"></i> Booking Summary</h5>
             </div>
             <div class="card-body">
-                <h6>@Model.MovieTitle</h6>
+                <h6>@Model.Name</h6>
                 <p class="text-muted small mb-3">
                     <i class="bi bi-calendar"></i> @Model.ShowDateTime.ToString("MMM dd, yyyy")<br>
                     <i class="bi bi-clock"></i> @Model.ShowDateTime.ToString("h:mm tt")<br>
-                    <i class="bi bi-geo-alt"></i> @Model.Theater
+                    <i class="bi bi-geo-alt"></i> @Model.Hall
                 </p>
 
                 <hr>
@@ -111,7 +111,7 @@
 
                 <div class="d-flex justify-content-between mb-2">
                     <span>Ticket Price:</span>
-                    <span>$@Model.TicketPrice.ToString("F2")</span>
+                    <span>$@Model.BasePrice.ToString("F2")</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span>Quantity:</span>
@@ -123,7 +123,7 @@
                 </div>
 
                 <form asp-action="Checkout" method="post">
-                    <input type="hidden" name="movieId" value="@Model.MovieId" />
+                    <input type="hidden" name="movieId" value="@Model.Id" />
                     <input type="hidden" name="showtimeId" value="@Model.ShowtimeId" />
                     <input type="hidden" id="selected-seats-input" name="selectedSeats" value="" />
                     <button type="submit" class="btn btn-success w-100" id="proceed-btn" disabled>
@@ -137,7 +137,7 @@
 
 @section Scripts {
     <script>
-        const ticketPrice = @Model.TicketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const ticketPrice = @Model.BasePrice.ToString(System.Globalization.CultureInfo.InvariantCulture);
         let selectedSeats = [];
 
         document.querySelectorAll('.seat.available').forEach(seat => {

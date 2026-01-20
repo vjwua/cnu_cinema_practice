@@ -10,19 +10,19 @@ namespace cnu_cinema_practice.Controllers
             // TODO: Fetch actual data from database
             var viewModel = new BookingViewModel
             {
-                MovieId = movieId,
-                MovieTitle = "The Grand Adventure",
+                Id = movieId,
+                Name = "The Grand Adventure",
                 PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
                 ShowtimeId = showtimeId > 0 ? showtimeId : 1,
                 ShowDateTime = DateTime.Now.AddDays(1).Date.AddHours(19).AddMinutes(30),
-                Theater = "Theater 1",
-                TicketPrice = 13.50m,
+                Hall = "Hall 1",
+                BasePrice = 13.50m,
                 AvailableShowtimes = new List<ShowtimeOption>
                 {
-                    new ShowtimeOption { Id = 1, DateTime = DateTime.Now.AddDays(1).Date.AddHours(14).AddMinutes(30), Theater = "Theater 1" },
-                    new ShowtimeOption { Id = 2, DateTime = DateTime.Now.AddDays(1).Date.AddHours(17).AddMinutes(0), Theater = "Theater 1" },
-                    new ShowtimeOption { Id = 3, DateTime = DateTime.Now.AddDays(1).Date.AddHours(19).AddMinutes(30), Theater = "Theater 1" },
-                    new ShowtimeOption { Id = 4, DateTime = DateTime.Now.AddDays(1).Date.AddHours(22).AddMinutes(0), Theater = "Theater 2" }
+                    new ShowtimeOption { Id = 1, DateTime = DateTime.Now.AddDays(1).Date.AddHours(14).AddMinutes(30), Hall = "Hall 1" },
+                    new ShowtimeOption { Id = 2, DateTime = DateTime.Now.AddDays(1).Date.AddHours(17).AddMinutes(0), Hall = "Hall 1" },
+                    new ShowtimeOption { Id = 3, DateTime = DateTime.Now.AddDays(1).Date.AddHours(19).AddMinutes(30), Hall = "Hall 1" },
+                    new ShowtimeOption { Id = 4, DateTime = DateTime.Now.AddDays(1).Date.AddHours(22).AddMinutes(0), Hall = "Hall 2" }
                 },
                 SeatLayout = new SeatLayout
                 {
@@ -49,13 +49,13 @@ namespace cnu_cinema_practice.Controllers
             // TODO: Fetch actual data from database
             var viewModel = new CheckoutViewModel
             {
-                MovieId = movieId,
-                MovieTitle = "The Grand Adventure",
+                Id = movieId,
+                Name = "The Grand Adventure",
                 PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
                 ShowDateTime = DateTime.Now.AddDays(1).Date.AddHours(19).AddMinutes(30),
-                Theater = "Theater 1",
+                Hall = "Hall 1",
                 SelectedSeats = seatList,
-                TicketPrice = 12.50m,
+                BasePrice = 12.50m,
                 ServiceFee = 2.50m
             };
 

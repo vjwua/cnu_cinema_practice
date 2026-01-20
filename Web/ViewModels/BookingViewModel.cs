@@ -2,13 +2,13 @@
 {
     public class BookingViewModel
     {
-        public int MovieId { get; set; }
-        public string MovieTitle { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; }
         public string PosterUrl { get; set; }
         public int ShowtimeId { get; set; }
         public DateTime ShowDateTime { get; set; }
-        public string Theater { get; set; }
-        public decimal TicketPrice { get; set; }
+        public string Hall { get; set; }
+        public decimal BasePrice { get; set; }
         public List<ShowtimeOption> AvailableShowtimes { get; set; }
         public SeatLayout SeatLayout { get; set; }
     }
@@ -17,7 +17,7 @@
     {
         public int Id { get; set; }
         public DateTime DateTime { get; set; }
-        public string Theater { get; set; }
+        public string Hall { get; set; }
         public string FormattedTime => DateTime.ToString("h:mm tt");
     }
 
