@@ -37,19 +37,21 @@ public class CinemaDbContext
             typeof(CinemaDbContext).Assembly
         );
 
-        // звʼязок Order → Identity User (без навігації в Core)
+        // зв'язок Order → Identity User (без навігації в Core)
         builder.Entity<Order>()
             .HasOne<ApplicationUser>()
             .WithMany()
             .HasForeignKey(o => o.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // зв'язок Ticket
         builder.Entity<Ticket>(entity =>
         {
             entity
                 .HasOne(t => t.Order)
                 .WithMany(o => o.Tickets)
                 .HasForeignKey(t => t.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity
                 .HasOne(t => t.Seat)
@@ -58,19 +60,45 @@ public class CinemaDbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // зв'язок Payment → Order
+        builder.Entity<Payment>()
+            .HasOne(p => p.Order)
+            .WithOne(o => o.Payment)
+            .HasForeignKey<Payment>(p => p.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        //  зв'язок багато-до-багатьох: Movie ↔ Actor
         builder.Entity<Movie>()
             .HasMany(m => m.Actors)
             .WithMany(a => a.ActedMovies)
             .UsingEntity<MovieActor>(
-                r => r.HasOne<Person>().WithMany().HasForeignKey(e => e.ActorId),
-                l => l.HasOne<Movie>().WithMany().HasForeignKey(e => e.MovieId));
+                right => right
+                    .HasOne<Person>()
+                    .WithMany()
+                    .HasForeignKey(ma => ma.ActorId)
+                    .OnDelete(DeleteBehavior.Restrict),
+                left => left
+                    .HasOne<Movie>()
+                    .WithMany()
+                    .HasForeignKey(ma => ma.MovieId)
+                    .OnDelete(DeleteBehavior.Restrict)
+            );
 
+        // зв'язок багато-до-багатьох: Movie ↔ Director
         builder.Entity<Movie>()
             .HasMany(m => m.Directors)
             .WithMany(d => d.DirectedMovies)
             .UsingEntity<MovieDirector>(
-                r => r.HasOne<Person>().WithMany().HasForeignKey(e => e.DirectorId),
-                l => l.HasOne<Movie>().WithMany().HasForeignKey(e => e.MovieId)
+                right => right
+                    .HasOne<Person>()
+                    .WithMany()
+                    .HasForeignKey(md => md.DirectorId)
+                    .OnDelete(DeleteBehavior.Restrict),
+                left => left
+                    .HasOne<Movie>()
+                    .WithMany()
+                    .HasForeignKey(md => md.MovieId)
+                    .OnDelete(DeleteBehavior.Restrict)
             );
     }
 }

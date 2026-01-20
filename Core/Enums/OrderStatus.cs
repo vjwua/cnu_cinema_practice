@@ -6,5 +6,6 @@ public enum OrderStatus : byte
     Pending   = 1,
     Paid      = 2,
     Cancelled = 3,
-    Refunded  = 4
+    Refunded  = 4,
+    Expired   = 5 
 }

@@ -8,11 +8,18 @@ public class MovieDirectorConfiguration : IEntityTypeConfiguration<MovieDirector
 {
     public void Configure(EntityTypeBuilder<MovieDirector> builder)
     {
-        builder.ToTable("MovieDirector");
+        builder.ToTable("MovieDirectors");
         
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.MovieId);
-        builder.Property(x => x.DirectorId);
+        // Композитний унікальний індекс для запобігання дублікатів
+        builder.HasIndex(x => new { x.MovieId, x.DirectorId })
+            .IsUnique();
+
+        builder.Property(x => x.MovieId)
+            .IsRequired();
+        
+        builder.Property(x => x.DirectorId)
+            .IsRequired();
     }
 }

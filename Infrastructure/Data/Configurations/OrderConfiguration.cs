@@ -13,20 +13,29 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         builder.HasKey(x => x.Id);
 
+        // ВИПРАВЛЕНО: додано максимальну довжину для UserId
+        builder.Property(x => x.UserId)
+            .HasMaxLength(450)
+            .IsRequired();
+
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("SYSUTCDATETIME()")
             .IsRequired();
 
-        // 🔥 OrderStatus → tinyint
         builder.Property(x => x.Status)
             .HasConversion<byte>()
             .HasColumnType("tinyint")
             .HasDefaultValue(OrderStatus.Created)
             .IsRequired();
 
-        // 🛡 захист від битих значень
         builder.HasCheckConstraint(
             "CK_Orders_Status",
-            "Status IN (0, 1, 2, 3)");
+            "Status IN (0, 1, 2, 3, 4, 5)");
+
+        // ДОДАНО: індекси для швидкого пошуку
+        builder.HasIndex(x => x.UserId);
+        builder.HasIndex(x => new { x.UserId, x.CreatedAt });
+        builder.HasIndex(x => x.Status);
+        builder.HasIndex(x => new { x.SessionId, x.Status });
     }
 }
