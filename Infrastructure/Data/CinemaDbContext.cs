@@ -21,11 +21,7 @@ public class CinemaDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Person> People => Set<Person>();
-
-    // ❌ ВИДАЛИТИ:
-    // public DbSet<MovieDirector> MovieDirectors => Set<MovieDirector>();
-    // public DbSet<MovieActor> MovieActors => Set<MovieActor>();
-
+    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

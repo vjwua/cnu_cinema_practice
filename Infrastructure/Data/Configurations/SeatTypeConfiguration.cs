@@ -26,10 +26,7 @@ public class SeatTypeConfiguration : IEntityTypeConfiguration<SeatType>
 
         builder.Property(x => x.ColorCode)
             .HasMaxLength(7);
-
-        builder.Property(x => x.SortOrder)
-            .HasDefaultValue(0);
-
+        
         builder.Property(x => x.IsActive)
             .HasDefaultValue(true);
 
