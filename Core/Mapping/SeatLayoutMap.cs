@@ -1,25 +1,19 @@
-using Core.Enums;
-
+// 🔄 ОНОВИТИ: Core/Mapping/SeatLayoutMap.cs
 namespace Core.Mapping;
+
 public sealed class SeatLayoutMap
 {
     public const int Size = 16;
     public const int Cells = Size * Size;
-    public const int Bytes = 64; // 256 * 2 bits
+    public const int Bytes = 64;
 
     private readonly byte[] _data;
 
-    /// <summary>
-    /// Порожній layout (усе Empty)
-    /// </summary>
     public SeatLayoutMap()
     {
         _data = new byte[Bytes];
     }
 
-    /// <summary>
-    /// Відновлення з БД
-    /// </summary>
     private SeatLayoutMap(byte[] data)
     {
         if (data.Length != Bytes)
@@ -39,7 +33,9 @@ public sealed class SeatLayoutMap
             throw new ArgumentOutOfRangeException(nameof(col));
     }
 
-    public SeatType Get(int row, int col)
+    // ✅ ЗМІНИТИ: повертає SeatTypeId (int) замість SeatType (enum)
+    // 0 = Empty, 1 = Standard, 2 = Premium, 3 = VIP
+    public int Get(int row, int col)
     {
         Validate(row, col);
 
@@ -48,23 +44,25 @@ public sealed class SeatLayoutMap
         int byteIndex = bitOffset >> 3;
         int shift = bitOffset & 7;
 
-        return (SeatType)((_data[byteIndex] >> shift) & 0b11);
+        return (_data[byteIndex] >> shift) & 0b11;
     }
 
-    public void Set(int row, int col, SeatType type)
+    // ✅ ЗМІНИТИ: приймає SeatTypeId (int) замість SeatType (enum)
+    public void Set(int row, int col, int seatTypeId)
     {
         Validate(row, col);
+
+        if (seatTypeId < 0 || seatTypeId > 3)
+            throw new ArgumentException("SeatTypeId must be 0-3", nameof(seatTypeId));
 
         int index = Index(row, col);
         int bitOffset = index * 2;
         int byteIndex = bitOffset >> 3;
         int shift = bitOffset & 7;
 
-        _data[byteIndex] &= (byte)~(0b11 << shift);     // очистити
-        _data[byteIndex] |= (byte)((byte)type << shift);
+        _data[byteIndex] &= (byte)~(0b11 << shift);
+        _data[byteIndex] |= (byte)(seatTypeId << shift);
     }
-
-    // ===== DB boundary =====
 
     public byte[] ToByteArray() => _data;
 

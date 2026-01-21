@@ -1,13 +1,17 @@
-using Core.Mapping;
-
 namespace Core.Entities;
+
+using Core.Mapping;
 
 public class Hall
 {
     public int Id { get; private set; }
     public string Name { get; private set; } = null!;
     public byte[] SeatLayout { get; private set; } = null!;
-    public ICollection<Session> Sessions { get; private set; } = new List<Session>();
+    
+    // ✅ ДОДАТИ:
+    public ICollection<Seat> Seats { get; set; } = new List<Seat>();
+    
+    public ICollection<Session> Sessions { get; set; } = new List<Session>();
 
     private Hall() { }
 
@@ -22,12 +26,11 @@ public class Hall
 
     public SeatLayoutMap GetLayout()
         => SeatLayoutMap.FromByteArray(SeatLayout);
-    
-    public void UpdateLayout(Action<SeatLayoutMap> update)
+
+    public void UpdateLayout(SeatLayoutMap newLayout)
     {
-        var map = SeatLayoutMap.FromByteArray(SeatLayout);
-        update(map);
-        SeatLayout = map.ToByteArray();
+        ArgumentNullException.ThrowIfNull(newLayout);
+        SeatLayout = newLayout.ToByteArray();
     }
 
     public void UpdateName(string name)

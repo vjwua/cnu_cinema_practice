@@ -1,9 +1,8 @@
+// Infrastructure/Data/Configurations/PaymentConfiguration.cs
+
 using Core.Entities;
-using Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Infrastructure.Data.Configurations;
 
 public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 {
@@ -26,18 +25,14 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasDefaultValueSql("SYSUTCDATETIME()")
             .IsRequired();
 
+        // Order → Payment: RESTRICT (1:1)
         builder.HasOne(p => p.Order)
             .WithOne(o => o.Payment)
             .HasForeignKey<Payment>(p => p.OrderId)
-            .OnDelete(DeleteBehavior.Restrict)
-            .IsRequired(); // Payment завжди потребує Order
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasCheckConstraint(
             "CK_Payments_PaymentMethod",
             "PaymentMethod IN (0, 1, 2, 3)");
-
-        builder.HasCheckConstraint(
-            "CK_Payments_Amount",
-            "Amount > 0");
     }
 }

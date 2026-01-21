@@ -1,8 +1,7 @@
+
 using Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Infrastructure.Data.Configurations;
 
 public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
 {
@@ -12,15 +11,23 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
 
         builder.HasKey(x => x.Id);
 
-        builder.HasIndex(x => new { x.OrderId, x.SeatId })
+        builder.HasIndex(x => new { x.OrderId, x.SeatReservationId })
             .IsUnique();
 
-        builder.Property(x => x.TotalPrice)
+        builder.Property(x => x.Price)
             .HasPrecision(8, 2)
             .IsRequired();
 
-        builder.HasCheckConstraint(
-            "CK_Tickets_TotalPrice",
-            "TotalPrice > 0");
+        // Order → Tickets: RESTRICT
+        builder.HasOne(t => t.Order)
+            .WithMany(o => o.Tickets)
+            .HasForeignKey(t => t.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // SeatReservation → Ticket: RESTRICT
+        builder.HasOne(t => t.SeatReservation)
+            .WithOne(sr => sr.Ticket)
+            .HasForeignKey<Ticket>(t => t.SeatReservationId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

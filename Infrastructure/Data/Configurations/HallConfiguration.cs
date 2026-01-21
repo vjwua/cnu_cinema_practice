@@ -1,8 +1,8 @@
+// Infrastructure/Data/Configurations/HallConfiguration.cs
+
 using Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Infrastructure.Data.Configurations;
 
 public class HallConfiguration : IEntityTypeConfiguration<Hall>
 {
@@ -16,9 +16,6 @@ public class HallConfiguration : IEntityTypeConfiguration<Hall>
             .HasMaxLength(100)
             .IsRequired();
 
-        builder.HasIndex(x => x.Name)
-            .IsUnique();
-
         builder.Property(x => x.SeatLayout)
             .HasColumnType("binary(64)")
             .HasMaxLength(64)
@@ -27,5 +24,7 @@ public class HallConfiguration : IEntityTypeConfiguration<Hall>
         builder.HasCheckConstraint(
             "CK_Halls_SeatLayout_Length",
             "DATALENGTH(SeatLayout) = 64");
+        
+        // Зв'язки налаштовані в інших Configuration класах
     }
 }
