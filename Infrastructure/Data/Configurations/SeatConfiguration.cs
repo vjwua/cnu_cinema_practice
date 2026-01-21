@@ -39,10 +39,10 @@ public class SeatConfiguration : IEntityTypeConfiguration<Seat>
             .IsRequired();
 
         // Заборона каскадного видалення
-        builder.HasOne(x => x.Session)
-            .WithMany(s => s.Seats)
-            .HasForeignKey(x => x.SessionId)
-            .OnDelete(DeleteBehavior.Restrict);
+        // builder.HasOne(x => x.Session)
+        //     .WithMany(s => s.Seats)
+        //     .HasForeignKey(x => x.SessionId)
+        //     .OnDelete(DeleteBehavior.Restrict);
 
         // захист від некоректних enum-значень
         builder.HasCheckConstraint(

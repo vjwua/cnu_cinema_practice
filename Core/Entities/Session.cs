@@ -16,6 +16,6 @@ public class Session
     public decimal BasePrice { get; set; }
     public MovieFormat MovieFormat { get; set; }
 
-    public ICollection<Seat> Seats { get; set; } = new List<Seat>();
+    // public ICollection<Seat> Seats { get; set; } = new List<Seat>()
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }
