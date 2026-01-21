@@ -23,7 +23,7 @@ namespace cnu_cinema_practice.Controllers
                 {
                     Id = 1,
                     Name = "The Grand Adventure",
-                    PosterUrl = "https://via.placeholder.com/150x225/FF6B6B/FFFFFF?text=Movie+1",
+                    PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
                     DurationMinutes = 142,
                     ImdbRating = "12+",
                     ReleaseDate = new DateTime(2026, 1, 15),
@@ -36,7 +36,7 @@ namespace cnu_cinema_practice.Controllers
                 {
                     Id = 2,
                     Name = "Mystery at Midnight",
-                    PosterUrl = "https://via.placeholder.com/150x225/4ECDC4/FFFFFF?text=Movie+2",
+                    PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
                     DurationMinutes = 118,
                     ImdbRating = "18+",
                     ReleaseDate = new DateTime(2026, 1, 10),
@@ -82,7 +82,7 @@ namespace cnu_cinema_practice.Controllers
             {
                 Id = 1,
                 Name = "The Grand Adventure",
-                PosterUrl = "https://via.placeholder.com/300x450/FF6B6B/FFFFFF?text=Movie+1",
+                PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
                 DurationMinutes = 142,
                 ImdbRating = "12+",
                 ReleaseDate = new DateTime(2026, 1, 15),
