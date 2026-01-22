@@ -1,9 +1,7 @@
+
 using Core.Entities;
-using Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Infrastructure.Data.Configurations;
 
 public class SessionConfiguration : IEntityTypeConfiguration<Session>
 {
@@ -12,9 +10,6 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
         builder.ToTable("Sessions");
 
         builder.HasKey(x => x.Id);
-
-        builder.Property(x => x.StartTime)
-            .IsRequired();
 
         builder.Property(x => x.BasePrice)
             .HasPrecision(8, 2)
@@ -34,13 +29,5 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
             .WithMany(x => x.Sessions)
             .HasForeignKey(x => x.HallId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasCheckConstraint(
-            "CK_Sessions_BasePrice",
-            "BasePrice > 0");
-
-        builder.HasIndex(x => x.StartTime);
-        builder.HasIndex(x => new { x.HallId, x.StartTime });
-        builder.HasIndex(x => new { x.MovieId, x.StartTime });
     }
 }

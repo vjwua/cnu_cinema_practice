@@ -1,6 +1,6 @@
 using Core.DTOs.Sessions;
 using Core.Entities;
-using Infrastructure.Repositories.Interfaces;
+using Core.Interfaces.Repositories;
 
 namespace Core.Validators.Sessions;
 

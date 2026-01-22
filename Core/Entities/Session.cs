@@ -16,6 +16,10 @@ public class Session
     public decimal BasePrice { get; set; }
     public MovieFormat MovieFormat { get; set; }
 
-    // public ICollection<Seat> Seats { get; set; } = new List<Seat>()
+        // ❌ ВИДАЛИТИ: public ICollection<Seat> Seats { get; set; }
+    
+    // ✅ ДОДАТИ:
+    public ICollection<SeatReservation> SeatReservations { get; set; } = new List<SeatReservation>();
+    
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }

@@ -3,9 +3,9 @@ using Core.Mappers;
 using Core.Services;
 using Infrastructure;
 using Infrastructure.Repositories;
-using Infrastructure.Repositories.Interfaces;
 using FluentValidation;
 using Core.DTOs.Sessions;
+using Core.Interfaces.Repositories;
 using Core.Validators.Sessions;
 
 namespace cnu_cinema_practice;

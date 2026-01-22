@@ -1,10 +1,8 @@
 using AutoMapper;
-using Core.DTOs.Seats;
 using Core.DTOs.Sessions;
-using Core.Entities;
+using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using FluentValidation;
-using Infrastructure.Repositories.Interfaces;
 using Core.Validators.Sessions;
 
 namespace Core.Services;

@@ -1,6 +1,6 @@
 using Core.Entities;
+using Core.Interfaces.Repositories;
 using FluentValidation;
-using Infrastructure.Repositories.Interfaces;
 
 namespace Core.Validators.Sessions;
 

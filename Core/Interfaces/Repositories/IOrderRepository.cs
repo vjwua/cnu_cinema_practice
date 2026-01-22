@@ -1,7 +1,7 @@
 using Core.Entities;
 using Core.Enums;
 
-namespace Infrastructure.Repositories.Interfaces;
+namespace Core.Interfaces.Repositories;
 
 public interface IOrderRepository
 {

@@ -1,10 +1,11 @@
+// 🔄 ОНОВИТИ: Core/Entities/Person.cs
 namespace Core.Entities;
 
 public class Person
 {
     public int Id { get; set; }
-    public string Name { get; set; } = null!; // Виправлено: додано null!
+    public string Name { get; set; } = null!;
 
-    public List<Movie> ActedMovies { get; private set; } = new List<Movie>();
-    public List<Movie> DirectedMovies { get; private set; } = new List<Movie>();
+    public ICollection<Movie> DirectedMovies { get; set; } = new List<Movie>();
+    public ICollection<Movie> ActedInMovies { get; set; } = new List<Movie>();
 }
