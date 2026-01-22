@@ -4,9 +4,12 @@ using Core.Entities;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
-using Infrastructure.Data;
-using Infrastructure.Repositories;
-using Infrastructure.Repositories.Interfaces;
+
+// Порушення архітектури: Шар бізнес-логіки не повинен знати про деталі реалізації (Infrastructure).
+// Це створює жорстку зв'язність і унеможливлює написання Unit-тестів (неможливо підставити Mock).
+// using Infrastructure.Data;
+// using Infrastructure.Repositories;
+// using Infrastructure.Repositories.Interfaces;
 
 
 namespace Core.Services;
