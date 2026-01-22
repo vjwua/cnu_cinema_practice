@@ -6,14 +6,19 @@ public class Seat
 {
     public int Id { get; set; }
 
-    public int SessionId { get; set; }
-    public Session Session { get; set; } = null!;
+    public int HallId { get; set; }
+    public Hall Hall { get; set; } = null!;
 
     public byte RowNum { get; set; }
     public byte SeatNum { get; set; }
 
-    public SeatType SeatType { get; set; }
-    public decimal AddedPrice { get; set; }
+    // ❌ ВИДАЛИТИ: public SeatType SeatType { get; set; }
+    // ❌ ВИДАЛИТИ: public decimal AddedPrice { get; set; }
+    // ❌ ВИДАЛИТИ: public bool IsAvailable { get; set; }
 
-    public bool IsAvailable { get; set; }
+    // ✅ ДОДАТИ:
+    public int SeatTypeId { get; set; }
+    public SeatType SeatType { get; set; } = null!;
+
+    public ICollection<SeatReservation> Reservations { get; set; } = new List<SeatReservation>();
 }

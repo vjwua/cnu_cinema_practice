@@ -1,14 +1,19 @@
 using Core.Entities;
-using Core.Mapping;
 
-namespace Infrastructure.Repositories.Interfaces;
-
+    
+namespace Core.Interfaces.Repositories;
 public interface IHallRepository
 {
     Task<Hall?> GetByIdAsync(int id);
-    Task<Hall?> GetByIdWithLayoutAsync(int id);
+    Task<Hall?> GetByIdWithSeatsAsync(int id);
     Task<IEnumerable<Hall>> GetAllAsync();
-    Task<Hall> CreateAsync(string name, SeatLayoutMap layout);
-    Task UpdateLayoutAsync(int hallId, Action<SeatLayoutMap> updateAction);
+    Task<IEnumerable<Hall>> GetAllWithSeatsAsync();
+    Task<Hall> CreateAsync(Hall hall);
+    Task UpdateAsync(Hall hall);
+    Task DeleteAsync(int id);
     Task<bool> ExistsAsync(int id);
+    
+    Task AddSeatsAsync(int hallId, IEnumerable<Seat> seats);
+    Task RemoveAllSeatsAsync(int hallId);
+    Task<int> GetSeatCountAsync(int hallId);
 }

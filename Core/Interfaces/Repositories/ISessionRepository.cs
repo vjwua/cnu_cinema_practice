@@ -1,6 +1,6 @@
 using Core.Entities;
 
-namespace Infrastructure.Repositories.Interfaces;
+namespace Core.Interfaces.Repositories;
 
 public interface ISessionRepository
 {

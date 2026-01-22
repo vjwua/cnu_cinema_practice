@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <Folder Include="Interfaces\Services\" />
+      <Folder Include="Mapping\" />
       <Folder Include="Resources\" />
     </ItemGroup>
 

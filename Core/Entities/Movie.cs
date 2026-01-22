@@ -1,13 +1,14 @@
-using Core.Enums;
-
+// 🔄 ОНОВИТИ: Core/Entities/Movie.cs
 namespace Core.Entities;
+
+using Core.Enums;
 
 public class Movie
 {
     public int Id { get; set; }
 
     public string Name { get; set; } = null!;
-    public ushort DurationMinutes { get; set; } // Виправлено: byte → ushort для фільмів >255 хв
+    public byte DurationMinutes { get; set; }
     public byte AgeLimit { get; set; }
     public MovieGenre Genre { get; set; }
 
@@ -19,8 +20,9 @@ public class Movie
     public string? TrailerUrl { get; set; }
     public string? Country { get; set; }
 
-    public ICollection<Session> Sessions { get; private set; } = new List<Session>();
+    // ✅ ДОДАТИ: Many-to-Many навігації
+    public ICollection<Person> Directors { get; set; } = new List<Person>();
+    public ICollection<Person> Actors { get; set; } = new List<Person>();
 
-    public List<Person> Actors { get; private set; } = new List<Person>();
-    public List<Person> Directors { get; private set; } = new List<Person>();
+    public ICollection<Session> Sessions { get; set; } = new List<Session>();
 }
