@@ -113,11 +113,11 @@ public class SessionService(
             excludeSessionId);
     }
 
-    private static List<SeatReservationDTO> MapSeatsWithAvailability(Session session)
+    private static List<SessionSeatDTO> MapSeatsWithAvailability(Session session)
     {
         var now = DateTime.UtcNow;
         return session.Hall.Seats
-            .Select(seat => new SeatReservationDTO
+            .Select(seat => new SessionSeatDTO
             {
                 SeatId = seat.Id,
                 RowNum = seat.RowNum,
