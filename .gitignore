@@ -3,6 +3,15 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+# Build artifacts
+*.dll
+*.exe
+*.pdb
+
+Microsoft.CodeAnalysis.Workspaces.MSBuild.*
+*.deps.json
+*.runtimeconfig.json
+*.exe.config
 
 # Created by https://www.toptal.com/developers/gitignore/api/rider,vs,dotnetcore,windows,macos,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=rider,vs,dotnetcore,windows,macos,linux
