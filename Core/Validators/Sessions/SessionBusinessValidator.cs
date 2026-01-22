@@ -23,7 +23,7 @@ public class SessionBusinessValidator(
 
     public async Task<Session> ValidateSessionExistsAsync(int sessionId)
     {
-        var session = await sessionRepository.GetByIdWithMovieAndHallAsync(sessionId);
+        var session = await sessionRepository.GetByIdAsync(sessionId);
         return session ?? throw new ValidationException($"Session with id {sessionId} was not found");
     }
 
@@ -60,7 +60,7 @@ public class SessionBusinessValidator(
 
         return (from session in sessions
             where !excludeSessionId.HasValue || session.Id != excludeSessionId.Value
-            let existingEnd = session.StartTime.AddMinutes(session.Movie?.DurationMinutes ?? 0)
+            let existingEnd = session.StartTime.AddMinutes(session.Movie.DurationMinutes)
             where startTime < existingEnd && newEnd > session.StartTime
             select session).Any();
     }

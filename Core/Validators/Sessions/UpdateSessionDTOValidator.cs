@@ -7,8 +7,6 @@ public class UpdateSessionDtoValidator : AbstractValidator<UpdateSessionDTO>
 {
     public UpdateSessionDtoValidator()
     {
-        ClassLevelCascadeMode = CascadeMode.Stop;
-
         RuleFor(x => x.Id)
             .GreaterThan(0)
             .WithMessage("Id must be greater than 0.");
@@ -38,7 +36,8 @@ public class UpdateSessionDtoValidator : AbstractValidator<UpdateSessionDTO>
             .When(x => x.MovieFormat.HasValue);
 
         RuleFor(x => x)
-            .Must(dto => dto.MovieId.HasValue || dto.HallId.HasValue || dto.StartTime.HasValue || dto.BasePrice.HasValue || dto.MovieFormat.HasValue)
+            .Must(dto => dto.MovieId.HasValue || dto.HallId.HasValue || dto.StartTime.HasValue ||
+                         dto.BasePrice.HasValue || dto.MovieFormat.HasValue)
             .WithMessage("At least one field must be provided to update.");
     }
 }

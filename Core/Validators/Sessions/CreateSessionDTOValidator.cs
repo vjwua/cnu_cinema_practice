@@ -7,8 +7,6 @@ public class CreateSessionDtoValidator : AbstractValidator<CreateSessionDTO>
 {
     public CreateSessionDtoValidator()
     {
-        ClassLevelCascadeMode = CascadeMode.Stop;
-
         RuleFor(x => x.MovieId)
             .GreaterThan(0)
             .WithMessage("MovieId must be greater than 0.");
