@@ -1,0 +1,84 @@
+﻿@using cnu_cinema_practice.ViewModels
+@model MovieFormViewModel
+@{
+    ViewData["Title"] = Model.Id > 0 ? "Edit Movie" : "Add New Movie";
+}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">@ViewData["Title"]</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="@(Model.Id > 0 ? "EditMovie" : "CreateMovie")" method="post">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">Movie Title *</label>
+                        <input asp-for="Name" class="form-control" required />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Director" class="form-label">Director *</label>
+                            <input asp-for="Director" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ImdbRating" class="form-label">Rating *</label>
+                            <select asp-for="ImdbRating" class="form-select" required>
+                                <option value="">Select Rating</option>
+                                <option value="GA">ЗА</option>
+                                <option value="12">12+</option>
+                                <option value="16">16+</option>
+                                <option value="18">18+</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Description *</label>
+                        <textarea asp-for="Description" class="form-control" rows="4" required></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DurationMinutes" class="form-label">Duration (minutes) *</label>
+                            <input asp-for="DurationMinutes" type="number" class="form-control" min="1" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ReleaseDate" class="form-label">Release Date *</label>
+                            <input asp-for="ReleaseDate" type="date" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="GenresString" class="form-label">Genres (comma-separated) *</label>
+                        <input asp-for="GenresString" class="form-control" placeholder="e.g., Action, Adventure, Sci-Fi" required />
+                        <small class="text-muted">Separate multiple genres with commas</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="PosterUrl" class="form-label">Poster URL *</label>
+                        <input asp-for="PosterUrl" type="url" class="form-control" required />
+                        <small class="text-muted">Enter the URL of the movie poster image</small>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="IsActive" type="checkbox" class="form-check-input" />
+                        <label asp-for="IsActive" class="form-check-label">Active (show on website)</label>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> @(Model.Id > 0 ? "Update Movie" : "Create Movie")
+                        </button>
+                        <a asp-action="Movies" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

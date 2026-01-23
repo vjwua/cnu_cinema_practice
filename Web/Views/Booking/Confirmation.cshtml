@@ -1,0 +1,29 @@
+﻿@{
+    ViewData["Title"] = "Booking Confirmed";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow text-center">
+            <div class="card-body p-5">
+                <div class="mb-4">
+                    <i class="bi bi-check-circle text-success" style="font-size: 5rem;"></i>
+                </div>
+                <h2 class="mb-3">Booking Confirmed!</h2>
+                <p class="lead mb-4">Your booking ID is: <strong>#@ViewBag.BookingId</strong></p>
+                <p class="text-muted mb-4">
+                    A confirmation email with your e-tickets has been sent to your email address.
+                    Please present your e-tickets at the cinema entrance.
+                </p>
+                <div class="d-grid gap-2">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                        Back to Home
+                    </a>
+                    <button class="btn btn-outline-secondary" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print Confirmation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
