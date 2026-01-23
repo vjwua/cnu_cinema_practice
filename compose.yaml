@@ -18,6 +18,7 @@
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=Password123!
+      # use env for sensitive data!
     ports:
       - "1433:1433"
     volumes:

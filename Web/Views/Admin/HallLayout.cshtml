@@ -1,0 +1,175 @@
+﻿@using cnu_cinema_practice.ViewModels
+@model HallLayoutViewModel
+@{
+    ViewData["Title"] = "Hall Layout - " + Model.HallName;
+}
+
+<div class="mb-4">
+    <h1 class="display-5">@Model.HallName Layout</h1>
+    <p class="text-muted">Configure seat availability and disabled seats</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-9">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-grid-3x3"></i> Seat Configuration</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    Click on seats to toggle their disabled status. Disabled seats cannot be booked by customers.
+                </div>
+
+                <!-- Screen -->
+                <div class="text-center mb-4">
+                    <div class="screen">SCREEN</div>
+                </div>
+
+                <!-- Seat Map -->
+                <div class="seat-map">
+                    @{
+                        var rows = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".Substring(0, Model.Rows).ToCharArray();
+                        for (int i = 0; i < Model.Rows; i++)
+                        {
+                            <div class="seat-row">
+                                <span class="row-label">@rows[i]</span>
+                                @for (int j = 1; j <= Model.SeatsPerRow; j++)
+                                {
+                                    var seatId = $"{rows[i]}{j}";
+                                    var isDisabled = Model.DisabledSeats.Contains(seatId);
+
+                                    <div class="seat @(isDisabled ? "disabled-seat" : "enabled-seat")"
+                                         data-seat="@seatId"
+                                         title="Seat @seatId - Click to toggle">
+                                        @j
+                                    </div>
+                                }
+                                <span class="row-label">@rows[i]</span>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- Legend -->
+                <div class="seat-legend mt-4">
+                    <div class="legend-item">
+                        <div class="seat enabled-seat"></div>
+                        <span>Available for Booking</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="seat disabled-seat"></div>
+                        <span>Disabled (Cannot be Booked)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="card shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-tools"></i> Configuration</h5>
+            </div>
+            <div class="card-body">
+                <h6>Disabled Seats:</h6>
+                <p id="disabled-seats-display" class="text-muted small">
+                    @(Model.DisabledSeats.Any() ? string.Join(", ", Model.DisabledSeats) : "None")
+                </p>
+
+                <hr>
+
+                <div class="mb-3">
+                    <strong>Total Seats:</strong> @(Model.Rows* Model.SeatsPerRow)<br>
+                    <strong>Disabled:</strong> <span id="disabled-count">@Model.DisabledSeats.Count</span><br>
+                    <strong>Available:</strong> <span id="available-count">@(Model.Rows* Model.SeatsPerRow - Model.DisabledSeats.Count)</span>
+                </div>
+
+                <hr>
+
+                <form asp-action="UpdateHallLayout" method="post">
+                    <input type="hidden" name="hallId" value="@Model.HallId" />
+                    <input type="hidden" id="disabled-seats-input" name="disabledSeats" value="@string.Join(",", Model.DisabledSeats)" />
+
+                    <button type="submit" class="btn btn-success w-100 mb-2">
+                        <i class="bi bi-save"></i> Save Layout
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary w-100 mb-2" id="reset-btn">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset Changes
+                    </button>
+                    <a asp-action="Halls" class="btn btn-outline-dark w-100">
+                        <i class="bi bi-arrow-left"></i> Back to Halls
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let disabledSeats = [@Html.Raw(string.Join(",", Model.DisabledSeats.Select(s => $"'{s}'")))];
+            const originalDisabledSeats = [...disabledSeats];
+            const totalSeats = @(Model.Rows* Model.SeatsPerRow);
+
+            // Add click handlers to all seats
+            document.querySelectorAll('.seat').forEach(seat => {
+                seat.addEventListener('click', function() {
+                    const seatId = this.getAttribute('data-seat');
+
+                    if (this.classList.contains('disabled-seat')) {
+                        // Enable the seat
+                        this.classList.remove('disabled-seat');
+                        this.classList.add('enabled-seat');
+                        disabledSeats = disabledSeats.filter(s => s !== seatId);
+                    } else {
+                        // Disable the seat
+                        this.classList.remove('enabled-seat');
+                        this.classList.add('disabled-seat');
+                        disabledSeats.push(seatId);
+                    }
+
+                    updateSummary();
+                });
+
+                seat.style.cursor = 'pointer';
+            });
+
+            // Reset button
+            document.getElementById('reset-btn').addEventListener('click', function() {
+                disabledSeats = [...originalDisabledSeats];
+
+                // Reset all seats
+                document.querySelectorAll('.seat').forEach(seat => {
+                    const seatId = seat.getAttribute('data-seat');
+                    if (originalDisabledSeats.includes(seatId)) {
+                        seat.classList.remove('enabled-seat');
+                        seat.classList.add('disabled-seat');
+                    } else {
+                        seat.classList.remove('disabled-seat');
+                        seat.classList.add('enabled-seat');
+                    }
+                });
+
+                updateSummary();
+            });
+
+            function updateSummary() {
+                const disabledCount = disabledSeats.length;
+                const availableCount = totalSeats - disabledCount;
+
+                document.getElementById('disabled-count').textContent = disabledCount;
+                document.getElementById('available-count').textContent = availableCount;
+                document.getElementById('disabled-seats-input').value = disabledSeats.join(',');
+
+                if (disabledSeats.length > 0) {
+                    disabledSeats.sort();
+                    document.getElementById('disabled-seats-display').textContent = disabledSeats.join(', ');
+                } else {
+                    document.getElementById('disabled-seats-display').textContent = 'None';
+                }
+            }
+        });
+    </script>
+}

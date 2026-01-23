@@ -1,0 +1,178 @@
+﻿@using cnu_cinema_practice.ViewModels
+@model BookingViewModel
+@{
+    ViewData["Title"] = "Select Seats";
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-film"></i> @Model.Name</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <img src="@Model.PosterUrl" alt="@Model.Name" class="img-fluid rounded" style="max-height: 200px;">
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Select Showtime:</h6>
+                        <div class="btn-group-vertical w-100" role="group">
+                            @foreach (var showtime in Model.AvailableShowtimes)
+                            {
+                                <a asp-action="SelectSeats"
+                                   asp-route-movieId="@Model.Id"
+                                   asp-route-showtimeId="@showtime.Id"
+                                   class="btn btn-outline-primary text-start @(showtime.Id == Model.ShowtimeId ? "active" : "")">
+                                    <strong>@showtime.FormattedTime</strong> - @showtime.Hall
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-grid-3x3"></i> Select Your Seats</h5>
+            </div>
+            <div class="card-body">
+                <!-- Screen -->
+                <div class="text-center mb-4">
+                    <div class="screen">SCREEN</div>
+                </div>
+
+                <!-- Seat Map -->
+                <div class="seat-map">
+                    @{
+                        var rows = "ABCDEFGH".ToCharArray();
+                        for (int i = 0; i < Model.SeatLayout.Rows; i++)
+                        {
+                            <div class="seat-row">
+                                <span class="row-label">@rows[i]</span>
+                                @for (int j = 1; j <= Model.SeatLayout.SeatsPerRow; j++)
+                                {
+                                    var seatId = $"{rows[i]}{j}";
+                                    var isOccupied = Model.SeatLayout.OccupiedSeats.Contains(seatId);
+
+                                    <div class="seat @(isOccupied ? "occupied" : "available")"
+                                         data-seat="@seatId"
+                                         title="Seat @seatId">
+                                        @j
+                                    </div>
+                                }
+                                <span class="row-label">@rows[i]</span>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- Legend -->
+                <div class="seat-legend mt-4">
+                    <div class="legend-item">
+                        <div class="seat available"></div>
+                        <span>Available</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="seat selected"></div>
+                        <span>Selected</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="seat occupied"></div>
+                        <span>Occupied</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-cart"></i> Booking Summary</h5>
+            </div>
+            <div class="card-body">
+                <h6>@Model.Name</h6>
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-calendar"></i> @Model.ShowDateTime.ToString("MMM dd, yyyy")<br>
+                    <i class="bi bi-clock"></i> @Model.ShowDateTime.ToString("h:mm tt")<br>
+                    <i class="bi bi-geo-alt"></i> @Model.Hall
+                </p>
+
+                <hr>
+
+                <div id="selected-seats-container">
+                    <h6>Selected Seats:</h6>
+                    <p id="selected-seats-display" class="text-muted">No seats selected</p>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Ticket Price:</span>
+                    <span>$@Model.BasePrice.ToString("F2")</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Quantity:</span>
+                    <span id="ticket-quantity">0</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <strong>Subtotal:</strong>
+                    <strong id="subtotal">$0.00</strong>
+                </div>
+
+                <form asp-action="Checkout" method="post">
+                    <input type="hidden" name="movieId" value="@Model.Id" />
+                    <input type="hidden" name="showtimeId" value="@Model.ShowtimeId" />
+                    <input type="hidden" id="selected-seats-input" name="selectedSeats" value="" />
+                    <button type="submit" class="btn btn-success w-100" id="proceed-btn" disabled>
+                        Proceed to Checkout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const ticketPrice = @Model.BasePrice.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        let selectedSeats = [];
+
+        document.querySelectorAll('.seat.available').forEach(seat => {
+            seat.addEventListener('click', function() {
+                const seatId = this.getAttribute('data-seat');
+
+                if (this.classList.contains('selected')) {
+                    // Deselect
+                    this.classList.remove('selected');
+                    selectedSeats = selectedSeats.filter(s => s !== seatId);
+                } else {
+                    // Select
+                    this.classList.add('selected');
+                    selectedSeats.push(seatId);
+                }
+
+                updateSummary();
+            });
+        });
+
+        function updateSummary() {
+            const quantity = selectedSeats.length;
+            const subtotal = quantity * ticketPrice;
+
+            document.getElementById('ticket-quantity').textContent = quantity;
+            document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('selected-seats-input').value = selectedSeats.join(',');
+            document.getElementById('proceed-btn').disabled = quantity === 0;
+
+            if (quantity > 0) {
+                selectedSeats.sort();
+                document.getElementById('selected-seats-display').textContent = selectedSeats.join(', ');
+            } else {
+                document.getElementById('selected-seats-display').textContent = 'No seats selected';
+            }
+        }
+    </script>
+}
