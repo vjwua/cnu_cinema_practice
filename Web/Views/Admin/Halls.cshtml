@@ -1,0 +1,106 @@
+﻿@using cnu_cinema_practice.ViewModels
+@model List<AdminHallViewModel>
+@{
+    ViewData["Title"] = "Manage Halls";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-5">Hall Management</h1>
+        <p class="text-muted">Configure your cinema's hall halls</p>
+    </div>
+    <a asp-action="CreateHall" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Add New Hall
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-4">
+    @foreach (var hall in Model)
+    {
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">@hall.Name</h5>
+                        @if (hall.IsAvailable)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="mb-2">
+                            <i class="bi bi-grid-3x3"></i>
+                            <strong>Layout:</strong> @hall.Rows rows × @hall.SeatsPerRow seats
+                        </p>
+                        <p class="mb-0">
+                            <i class="bi bi-people"></i>
+                            <strong>Total Capacity:</strong> @hall.TotalSeats seats
+                        </p>
+                    </div>
+
+                    <div class="btn-group w-100" role="group">
+                        <a asp-action="HallLayout" asp-route-id="@hall.Id" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-grid"></i> Layout
+                        </a>
+                        <a asp-action="EditHall" asp-route-id="@hall.Id" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteHallModal@(hall.Id)">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Confirmation Modal -->
+            <div class="modal fade" id="deleteHallModal@(hall.Id)" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirm Delete</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure you want to delete <strong>@hall.Name</strong>?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form asp-action="DeleteHall" asp-route-id="@hall.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-building" style="font-size: 4rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">No halls found. Add your first hall!</p>
+        </div>
+    </div>
+}
+
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
