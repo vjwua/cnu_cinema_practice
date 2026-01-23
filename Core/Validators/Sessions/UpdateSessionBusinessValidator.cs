@@ -8,9 +8,9 @@ public class UpdateSessionBusinessValidator(
     SessionBusinessValidator businessValidator,
     IMovieRepository movieRepository)
 {
-    public async Task<Session> ValidateAsync(UpdateSessionDTO dto)
+    public async Task<Session> ValidateAsync(int id, UpdateSessionDTO dto)
     {
-        var existingSession = await businessValidator.ValidateSessionExistsAsync(dto.Id);
+        var existingSession = await businessValidator.ValidateSessionExistsAsync(id);
 
         if (dto.MovieId.HasValue)
             await businessValidator.ValidateMovieExistsAsync(dto.MovieId.Value);
@@ -18,12 +18,12 @@ public class UpdateSessionBusinessValidator(
         if (dto.HallId.HasValue)
             await businessValidator.ValidateHallExistsAsync(dto.HallId.Value);
 
-        await ValidateScheduleIfNeededAsync(dto, existingSession);
+        await ValidateScheduleIfNeededAsync(id, dto, existingSession);
 
         return existingSession;
     }
 
-    private async Task ValidateScheduleIfNeededAsync(UpdateSessionDTO dto, Session existingSession)
+    private async Task ValidateScheduleIfNeededAsync(int id, UpdateSessionDTO dto, Session existingSession)
     {
         bool needsScheduleCheck = dto.HallId.HasValue || dto.StartTime.HasValue || dto.MovieId.HasValue;
         if (!needsScheduleCheck)
@@ -38,6 +38,6 @@ public class UpdateSessionBusinessValidator(
 
         var duration = movie?.DurationMinutes ?? 0;
 
-        await businessValidator.ValidateNoScheduleConflictAsync(hallId, startTime, duration, dto.Id);
+        await businessValidator.ValidateNoScheduleConflictAsync(hallId, startTime, duration, id);
     }
 }

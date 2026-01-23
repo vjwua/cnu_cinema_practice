@@ -17,6 +17,6 @@ public interface ISessionService
 
     Task DeleteSessionAsync(int id);
 
-    Task UpdateSessionAsync(UpdateSessionDTO dto);
+    Task UpdateSessionAsync(int id, UpdateSessionDTO dto);
     Task<SessionDetailDTO> CreateSessionAsync(CreateSessionDTO dto);
 }
