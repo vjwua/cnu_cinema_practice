@@ -1,7 +1,6 @@
 using AutoMapper;
 using Core.DTOs.Halls;
 using Core.Entities;
-using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 

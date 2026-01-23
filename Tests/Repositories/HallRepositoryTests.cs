@@ -63,7 +63,7 @@ public class HallRepositoryTests
         }
     }
     
-    [Fact(Skip = "BUG: CreateSeatsAsync падає з InvalidOperationException (рядок 74) через використання .First() замість .FirstOrDefault(). Потрібен фікс.")]
+    [Fact]
     public async Task CreateSeatsAsync_ShouldSkipSeat_WhenSeatTypeDoesNotExist()
     {
         var dbName = Guid.NewGuid().ToString();

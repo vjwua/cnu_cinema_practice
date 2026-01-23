@@ -4,9 +4,9 @@ namespace Core.DTOs.Halls;
 
 public class HallDetailDTO
 {
-    public string Name { get; private set; } = null!;
+    public string Name { get; set; } = null!;
     public byte Rows { get; set; }
     public byte Columns { get; set; } 
-    public ICollection<Seat> Seats { get; private set; }
-    public ICollection<Session> Sessions { get; private set; }
+    public ICollection<Seat> Seats { get; set; }
+    public ICollection<Session> Sessions { get; set; }
 }

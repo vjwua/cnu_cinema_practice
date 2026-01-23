@@ -97,7 +97,7 @@ public class SeatRepositoryTests
         }
     }
 
-    [Fact(Skip = "BUG: Логіка GetAvailableSeatsAsync інвертована (шукає в резерваціях замість вільних місць)")]
+    [Fact]
     public async Task GetAvailableSeatsAsync_ShouldReturnOnlyUnreservedSeats()
     {
         var dbName = Guid.NewGuid().ToString();
@@ -142,7 +142,7 @@ public class SeatRepositoryTests
         }
     }
 
-    [Fact(Skip = "BUG: IsSeatAvailableAsync повертає false для вільного місця через помилку в GetAvailableSeatsAsync")]
+    [Fact]
     public async Task IsSeatAvailableAsync_ShouldReturnTrue_WhenSeatIsFree()
     {
         var dbName = Guid.NewGuid().ToString();
@@ -220,7 +220,7 @@ public class SeatRepositoryTests
         }
     }
 
-    [Fact(Skip = "BUG: Неможливо забронювати місце, бо GetAvailableSeatsAsync завжди повертає пустоту")]
+    [Fact]
     public async Task ReserveSeatAsync_ShouldReturnTrue_WhenSeatIsAvailable()
     {
         var dbName = Guid.NewGuid().ToString();
