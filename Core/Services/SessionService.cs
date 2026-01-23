@@ -79,10 +79,10 @@ public class SessionService(
             : mapper.Map<SessionDetailDTO>(fullSession);
     }
 
-    public async Task UpdateSessionAsync(UpdateSessionDTO dto)
+    public async Task UpdateSessionAsync(int id, UpdateSessionDTO dto)
     {
         await updateValidator.ValidateAndThrowAsync(dto);
-        var existing = await updateBusinessValidator.ValidateAsync(dto);
+        var existing = await updateBusinessValidator.ValidateAsync(id, dto);
 
         existing.MovieId = dto.MovieId ?? existing.MovieId;
         existing.HallId = dto.HallId ?? existing.HallId;

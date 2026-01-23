@@ -1,18 +1,17 @@
 using AutoMapper;
 using Core.DTOs.Seats;
 using Core.Entities;
-using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 
-namespace Infrastructure.Services;
+namespace Core.Services;
 
 public class SeatService : ISeatService
 {
     private readonly IMapper _mapper;
     private readonly ISeatRepository _seatRepository;
 
-    SeatService(IMapper mapper, ISeatRepository seatRepo)
+    public SeatService(IMapper mapper, ISeatRepository seatRepo)
     {
         _mapper = mapper;
         _seatRepository = seatRepo;
