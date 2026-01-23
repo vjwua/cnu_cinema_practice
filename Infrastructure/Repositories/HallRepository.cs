@@ -48,13 +48,12 @@ public class HallRepository : IHallRepository
     {
         var halls = await this._halls.ToListAsync();
         return halls.AsEnumerable();
-        // вони вже всі є, то чи потрібно тут async functionality?
-        return this._halls.AsEnumerable();
     }
 
     public async Task<Hall> CreateAsync(Hall hall)
     {
         var addResult = await _halls.AddAsync(hall);
+        await _context.SaveChangesAsync();
         return addResult.Entity;
     }
 
@@ -65,42 +64,49 @@ public class HallRepository : IHallRepository
         Hall? hall = await GetByIdAsync(hallId);
         if (hall == null) return;
         hall.UpdateDimensions(rows, columns);
+        List<SeatType> seatTList = await _seatTypes.ToListAsync();
+        List<Seat> seatList = new List<Seat>();
         for (byte r = 0; r < rows; r++)
         {
             for (byte c = 0; c < columns; c++)
             {
                 if (layout[r, c] != 0)
                 {
-                    Seat newSeat = new Seat()
+                    SeatType? seatT = seatTList
+                        .FirstOrDefault(st => st.Id == layout[r, c]);
+                    if (seatT != null)
                     {
-                        RowNum = r,
-                        SeatNum = c,
-                        Hall = hall,
-                        HallId = hall.Id,
-                        SeatTypeId = layout[r, c],
-                        SeatType = _seatTypes
-                            .Where(st => st.Id == layout[r, c])
-                            .ToList()
-                            .First(),
-                    };
-                    _seats.Add(newSeat);
-                    hall.Seats.Add(newSeat);
+                        Seat newSeat = new Seat()
+                        {
+                            RowNum = r,
+                            SeatNum = c,
+                            Hall = hall,
+                            HallId = hall.Id,
+                            SeatTypeId = layout[r, c],
+                            SeatType = seatT,
+                        };
+                        seatList.Add(newSeat);
+                    }
                 }
                 
             }
         }
+        await _seats.AddRangeAsync(seatList);
+        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateSeatLayoutAsync(int hallId, byte[,] seatLayout)
     {
         await RemoveAllSeatsAsync(hallId);
         await CreateSeatsAsync(hallId, seatLayout);
+        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateNameAsync(int hallId, string name)
     {
         Hall? hall = await GetByIdAsync(hallId);
         if (hall != null) hall.UpdateName(name);
+        await _context.SaveChangesAsync();
     }
 
     public async Task RemoveAllSeatsAsync(int hallId)
@@ -108,19 +114,16 @@ public class HallRepository : IHallRepository
         var seatsByHall = await _seats
             .Where(s => s.HallId == hallId)
             .ToListAsync();
-        foreach (var seat in seatsByHall)
-        {
-            _seats.Remove(seat);
-        }
-
-        Hall? hall = await GetByIdAsync(hallId);
-        hall.Seats = new List<Seat>();
+        _seats.RemoveRange(seatsByHall);
+        await _context.SaveChangesAsync();
     }
 
     public async Task<int> GetSeatCountAsync(int hallId)
     {
-        var seatsByHall = await GetSeatsByHallIdAsync(hallId);
-        return seatsByHall.Count();
+        int seatsByHall = await _seats
+            .Where(s => s.HallId == hallId)
+            .CountAsync();
+        return seatsByHall;
     }
 
     public async Task<bool> ExistsAsync(int id)
@@ -136,6 +139,7 @@ public class HallRepository : IHallRepository
         {
             await RemoveAllSeatsAsync(id);
             _halls.Remove(hall);
+            await _context.SaveChangesAsync();
         }
     }
 }
