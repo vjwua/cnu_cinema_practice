@@ -1,7 +1,7 @@
 ﻿using cnu_cinema_practice.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace cnu_cinema_practice.Controllers
+namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
 {
     public class BookingController : Controller
     {
