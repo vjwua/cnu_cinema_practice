@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
 {
+    [Area("Admin")]
     public class AdminController : Controller
     {
         // Dashboard
