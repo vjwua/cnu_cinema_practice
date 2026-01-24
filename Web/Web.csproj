@@ -30,7 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Areas\Admin\Pages\" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Views\Admin\Sessions\Index.cshtml" />
     </ItemGroup>
 
 </Project>
