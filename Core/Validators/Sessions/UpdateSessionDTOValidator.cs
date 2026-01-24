@@ -7,10 +7,6 @@ public class UpdateSessionDtoValidator : AbstractValidator<UpdateSessionDTO>
 {
     public UpdateSessionDtoValidator()
     {
-        RuleFor(x => x.Id)
-            .GreaterThan(0)
-            .WithMessage("Id must be greater than 0.");
-
         RuleFor(x => x.MovieId)
             .GreaterThan(0)
             .WithMessage("MovieId must be greater than 0.")

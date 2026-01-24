@@ -44,12 +44,17 @@ public class SeatRepository : ISeatRepository
     
     public async Task<IEnumerable<Seat>> GetAvailableSeatsAsync(int sessionId)
     {
-        var seatsBySession = await GetBySessionIdAsync(sessionId);
-        var seatIds = seatsBySession.Select(s => s.Id);
-        List<Seat> availiableSeats = await _seatReservations
-            .Where(sr => !(seatIds.Contains(sr.SeatId)))
-            .Select(sr => sr.Seat)
+        IEnumerable<Seat> seatEnumerable = await GetBySessionIdAsync(sessionId);
+        List<Seat> seatsBySession = seatEnumerable.ToList();
+        List<int> allSeatIds = seatsBySession.Select(s => s.Id).ToList();
+        List<int> reservedSeatIds = await _seatReservations
+            .Where(sr => sr.SessionId == sessionId)
+            .Select(sr => sr.SeatId)
             .ToListAsync();
+        List<int> availiableSeatIds = allSeatIds.Where(si => reservedSeatIds.Contains(si) == false).ToList();
+        List<Seat> availiableSeats = seatsBySession
+            .Where(s => availiableSeatIds.Contains(s.Id))
+            .ToList();
         return availiableSeats.AsEnumerable();
     } // перегляд доступних місць
     
@@ -64,6 +69,7 @@ public class SeatRepository : ISeatRepository
             SeatId = seatId,
             Status = ReservationStatus.Reserved,
         });
+        await _context.SaveChangesAsync();
         return true;
     } // для покупки
     
