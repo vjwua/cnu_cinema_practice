@@ -5,10 +5,6 @@ using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 
-// using Infrastructure.Data;
-// using Infrastructure.Repositories;
-// using Infrastructure.Repositories.Interfaces;
-
 
 namespace Core.Services;
 

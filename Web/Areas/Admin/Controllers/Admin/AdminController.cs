@@ -1,8 +1,9 @@
 ﻿using cnu_cinema_practice.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace cnu_cinema_practice.Controllers
+namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
 {
+    [Area("Admin")]
     public class AdminController : Controller
     {
         // Dashboard

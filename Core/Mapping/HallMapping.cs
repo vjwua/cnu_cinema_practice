@@ -15,6 +15,7 @@ public class HallMapping : Profile
             .ForMember(hl => hl.Columns, opt => opt.MapFrom(h => h.Columns));
 
         CreateMap<Hall, HallDetailDTO>()
+            .ForMember(hd => hd.Id, opt => opt.MapFrom(h => h.Id))
             .ForMember(hd => hd.Name, opt => opt.MapFrom(h => h.Name))
             .ForMember(hd => hd.Rows, opt => opt.MapFrom(h => h.Rows))
             .ForMember(hd => hd.Columns, opt => opt.MapFrom(h => h.Columns))
