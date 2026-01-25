@@ -1,4 +1,5 @@
 using AutoMapper;
+using cnu_cinema_practice.ViewModels.Halls;
 using cnu_cinema_practice.ViewModels.Sessions;
 using Core.DTOs.Sessions;
 using Core.Interfaces.Services;
@@ -24,6 +25,29 @@ public class SessionsController(
         return View(viewModels);
     }
 
+    public async Task<IActionResult> Schedule(DateTime? date)
+    {
+        var selectedDate = date ?? DateTime.Today;
+
+        // Get sessions for a week range (or adjust as needed)
+        var startDate = selectedDate.Date;
+        var endDate = startDate.AddDays(7);
+
+        var sessions = await sessionService.GetSessionsByDateRangeAsync(startDate, endDate);
+        var halls = await hallService.GetAllAsync();
+
+        var viewModel = new SessionScheduleViewModel
+        {
+            SelectedDate = selectedDate,
+            StartDate = startDate,
+            EndDate = endDate,
+            Sessions = mapper.Map<IEnumerable<AdminSessionViewModel>>(sessions),
+            Halls = mapper.Map<IEnumerable<HallListViewModel>>(halls)
+        };
+
+        return View(viewModel);
+    }
+
     public async Task<IActionResult> Details(int id)
     {
         var session = await sessionService.GetSessionByIdWithSeatsAsync(id);
@@ -39,6 +63,21 @@ public class SessionsController(
     {
         await PopulateDropdownsAsync();
         return View(new CreateSessionViewModel());
+    }
+
+    // Can create with pre-filled date and hall (useful from schedule view)
+    [HttpGet]
+    public async Task<IActionResult> CreateFromSchedule(DateTime? startTime, int? hallId)
+    {
+        await PopulateDropdownsAsync();
+
+        var model = new CreateSessionViewModel();
+        if (startTime.HasValue)
+            model.StartTime = startTime.Value;
+        if (hallId.HasValue)
+            model.HallId = hallId.Value;
+
+        return View("Create", model);
     }
 
     [HttpPost]
@@ -141,7 +180,6 @@ public class SessionsController(
         return RedirectToAction(nameof(Index));
     }
 
-    //can be used for checking for sessions conflicts in real time (using AJAX)
     [HttpGet]
     public async Task<IActionResult> CheckConflict(
         int hallId,
