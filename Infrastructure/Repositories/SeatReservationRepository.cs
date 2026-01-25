@@ -18,8 +18,15 @@ public class SeatReservationRepository(CinemaDbContext context) : ISeatReservati
 
     public async Task MarkAsSoldAsync(List<int> ids)
     {
-        await context.SeatReservations
+        var reservations = await context.SeatReservations
             .Where(sr => ids.Contains(sr.Id))
-            .ExecuteUpdateAsync(s => s.SetProperty(r => r.Status, ReservationStatus.Sold));
+            .ToListAsync();
+
+        foreach (var reservation in reservations)
+        {
+            reservation.Status = ReservationStatus.Sold;
+        }
+
+        await context.SaveChangesAsync();
     }
 }
