@@ -9,14 +9,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
+      <Content Include="../.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Core\Core.csproj" />
-      <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+      <ProjectReference Include="../Core/Core.csproj" />
+      <ProjectReference Include="../Infrastructure/Infrastructure.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -30,7 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <_ContentIncludedByDefault Remove="Areas\Admin\Views\Admin\Sessions\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas/Admin/Views/Admin/Sessions/Index.cshtml" />
     </ItemGroup>
 
 </Project>
