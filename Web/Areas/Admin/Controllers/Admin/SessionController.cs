@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin;
 
 [Area("Admin")]
-public class SessionsController(
+public class SessionController(
     ISessionService sessionService,
     IMovieService movieService,
     IHallService hallService,
