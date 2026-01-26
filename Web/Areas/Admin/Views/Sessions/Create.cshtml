@@ -1,8 +1,235 @@
 @model cnu_cinema_practice.ViewModels.Sessions.CreateSessionViewModel
-
 @{
-    ViewBag.Title = "title";
+    ViewBag.Title = "Create Session";
     Layout = "_Layout";
 }
 
-<h2>title</h2>
+<div class="create-session-container">
+    <div class="page-header">
+        <h2>
+            <i class="bi bi-plus-circle"></i> Create New Session
+        </h2>
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form asp-action="Create" method="post" id="createSessionForm">
+                        @Html.AntiForgeryToken()
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="MovieId" class="form-label">
+                                    <i class="bi bi-film"></i> Movie *
+                                </label>
+                                <select asp-for="MovieId"
+                                        class="form-select"
+                                        asp-items="ViewBag.Movies"
+                                        id="movieSelect">
+                                    <option value="">-- Select Movie --</option>
+                                </select>
+                                <span asp-validation-for="MovieId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="HallId" class="form-label">
+                                    <i class="bi bi-building"></i> Hall *
+                                </label>
+                                <select asp-for="HallId"
+                                        class="form-select"
+                                        asp-items="ViewBag.Halls"
+                                        id="hallSelect">
+                                    <option value="">-- Select Hall --</option>
+                                </select>
+                                <span asp-validation-for="HallId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="StartTime" class="form-label">
+                                    <i class="bi bi-clock"></i> Start Time *
+                                </label>
+                                <input asp-for="StartTime"
+                                       type="datetime-local"
+                                       class="form-control"
+                                       id="startTimeInput" />
+                                <span asp-validation-for="StartTime" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    <i class="bi bi-info-circle"></i> Session will be scheduled at this time
+                                </small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="MovieFormat" class="form-label">
+                                    <i class="bi bi-badge-3d"></i> Format *
+                                </label>
+                                <select asp-for="MovieFormat" class="form-select">
+                                    <option value="0">Standard 2D</option>
+                                    <option value="1">3D</option>
+                                    <option value="2">IMAX</option>
+                                    <option value="3">IMAX 3D</option>
+                                </select>
+                                <span asp-validation-for="MovieFormat" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="BasePrice" class="form-label">
+                                    <i class="bi bi-currency-dollar"></i> Base Price *
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="BasePrice"
+                                           type="number"
+                                           step="0.01"
+                                           class="form-control"
+                                           placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="BasePrice" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    <i class="bi bi-info-circle"></i> Base ticket price (excluding seat type premiums)
+                                </small>
+                            </div>
+                        </div>
+
+                        <div id="conflictAlert" class="alert alert-warning" style="display: none;">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Schedule Conflict!</strong>
+                            <p id="conflictMessage" class="mb-0 mt-2"></p>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="bi bi-check-circle"></i> Create Session
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="button" class="btn btn-outline-info" onclick="checkConflict()">
+                                <i class="bi bi-search"></i> Check Conflicts
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card info-card">
+                <div class="card-header bg-info text-white">
+                    <i class="bi bi-info-circle"></i> Tips
+                </div>
+                <div class="card-body">
+                    <h6>Creating a Session</h6>
+                    <ul class="tips-list">
+                        <li>Select a movie from your available catalog</li>
+                        <li>Choose an appropriate hall based on expected audience</li>
+                        <li>Set start time considering cleaning time between sessions</li>
+                        <li>Base price can be adjusted for special screenings</li>
+                        <li>Format selection affects ticket pricing</li>
+                    </ul>
+
+                    <hr>
+
+                    <h6>Scheduling Guidelines</h6>
+                    <ul class="tips-list">
+                        <li>Maintain 30 minutes between sessions in same hall</li>
+                        <li>Consider peak hours (evenings, weekends)</li>
+                        <li>Check for existing sessions to avoid conflicts</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-secondary text-white">
+                    <i class="bi bi-lightbulb"></i> Quick Actions
+                </div>
+                <div class="card-body">
+                    <a href="@Url.Action("Schedule")" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="bi bi-calendar-week"></i> View Schedule
+                    </a>
+                    <a href="@Url.Action("Index", "Movies")" class="btn btn-outline-success w-100 mb-2">
+                        <i class="bi bi-film"></i> Manage Movies
+                    </a>
+                    <a href="@Url.Action("Index", "Halls")" class="btn btn-outline-info w-100">
+                        <i class="bi bi-building"></i> Manage Halls
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function checkConflict() {
+        const movieId = document.getElementById('movieSelect').value;
+        const hallId = document.getElementById('hallSelect').value;
+        const startTime = document.getElementById('startTimeInput').value;
+
+        if (!movieId || !hallId || !startTime) {
+            alert('Please fill in Movie, Hall, and Start Time first.');
+            return;
+        }
+
+        const url = '@Url.Action("CheckConflict")';
+        const params = new URLSearchParams({
+            movieId: movieId,
+            hallId: hallId,
+            startTime: startTime
+        });
+
+        try {
+            const response = await fetch(`${url}?${params}`);
+            const data = await response.json();
+
+            const alert = document.getElementById('conflictAlert');
+            const message = document.getElementById('conflictMessage');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (data.hasConflict) {
+                alert.style.display = 'block';
+                message.textContent = data.message;
+                submitBtn.disabled = true;
+                alert.classList.remove('alert-success');
+                alert.classList.add('alert-warning');
+            } else {
+                alert.style.display = 'block';
+                message.textContent = data.message;
+                submitBtn.disabled = false;
+                alert.classList.remove('alert-warning');
+                alert.classList.add('alert-success');
+            }
+        } catch (error) {
+            console.error('Error checking conflict:', error);
+        }
+    }
+
+    // Auto-check conflict when key fields change
+    document.addEventListener('DOMContentLoaded', function() {
+        const movieSelect = document.getElementById('movieSelect');
+        const hallSelect = document.getElementById('hallSelect');
+        const startTimeInput = document.getElementById('startTimeInput');
+
+        [movieSelect, hallSelect, startTimeInput].forEach(element => {
+            element.addEventListener('change', function() {
+                if (movieSelect.value && hallSelect.value && startTimeInput.value) {
+                    checkConflict();
+                }
+            });
+        });
+    });
+</script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
