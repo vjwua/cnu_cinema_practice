@@ -22,6 +22,31 @@ public class MovieRepository : IMovieRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Movie>> GetAllWithUpcomingSessionsAsync()
+    {
+        var now = DateTime.UtcNow;
+        return await _context.Movies
+            .AsNoTracking()
+            .Include(m => m.Sessions.Where(s => s.StartTime >= now))
+            .OrderByDescending(m => m.ReleaseDate)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Movie>> GetUpcomingMoviesAsync()
+    {
+        var now = DateTime.UtcNow;
+        var futureDate = DateOnly.FromDateTime(now.AddMonths(3));
+        
+        // Get movies releasing soon that don't have any upcoming sessions
+        return await _context.Movies
+            .AsNoTracking()
+            .Where(m => m.ReleaseDate >= DateOnly.FromDateTime(now) && 
+                       m.ReleaseDate <= futureDate &&
+                       !m.Sessions.Any(s => s.StartTime >= now))
+            .OrderBy(m => m.ReleaseDate)
+            .ToListAsync();
+    }
+
     public async Task<Movie?> GetByIdAsync(int id)
     {
         return await  _context.Movies

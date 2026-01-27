@@ -30,6 +30,9 @@ public class SessionMapping : Profile
 
         CreateMap<Session, SessionPreviewDTO>()
             .ForMember(d => d.MovieTitle, o => o.MapFrom(s => s.Movie.Name))
-            .ForMember(d => d.HallName, o => o.MapFrom(s => s.Hall.Name));
+            .ForMember(d => d.HallName, o => o.MapFrom(s => s.Hall.Name))
+            .ForMember(d => d.MoviePosterUrl, o => o.MapFrom(s => s.Movie.PosterUrl))
+            .ForMember(d => d.MovieDurationMinutes, o => o.MapFrom(s => s.Movie.DurationMinutes))
+            .ForMember(d => d.MovieGenre, o => o.MapFrom(s => s.Movie.Genre.ToString()));
     }
 }
