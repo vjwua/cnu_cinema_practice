@@ -3,442 +3,442 @@
     ViewBag.Title = "Session Schedule";
     Layout = "_Layout";
 }
-
-<div class="schedule-container">
-    <div class="schedule-header">
-        <h2>Session Schedule</h2>
-        <div class="schedule-controls">
-            <button type="button" class="btn btn-primary" onclick="location.href='@Url.Action("Create")'">
-                <i class="bi bi-plus-circle"></i> New Session
-            </button>
-            <div class="date-navigation">
-                <a href="@Url.Action("Schedule", new { date = Model.SelectedDate.AddDays(-7) })" class="btn btn-outline-secondary">
-                    <i class="bi bi-chevron-left"></i> Previous Week
-                </a>
-                <span class="current-week">
-                    @Model.StartDate.ToString("MMM dd") - @Model.EndDate.AddDays(-1).ToString("MMM dd, yyyy")
-                </span>
-                <a href="@Url.Action("Schedule", new { date = Model.SelectedDate.AddDays(7) })" class="btn btn-outline-secondary">
-                    Next Week <i class="bi bi-chevron-right"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Movie Selector Panel -->
-    <div class="movie-selector-panel">
-        <h5>Available Movies</h5>
-        <div class="movie-list" id="movieList">
-            @foreach (var movie in ViewBag.Movies as IEnumerable<SelectListItem>)
-            {
-                <div class="movie-item draggable"
-                     draggable="true"
-                     data-movie-id="@movie.Value"
-                     data-movie-name="@movie.Text">
-                    <i class="bi bi-film"></i>
-                    <span>@movie.Text</span>
-                </div>
-            }
-        </div>
-    </div>
-
-    <!-- Timeline Grid -->
-    <div class="timeline-wrapper">
-        <div class="timeline-grid">
-            <!-- Time Header -->
-            <div class="timeline-header">
-                <div class="hall-label-cell">Hall / Time</div>
-                @for (int hour = 8; hour <= 23; hour++)
-                {
-                    <div class="time-cell">@hour:00</div>
-                }
-            </div>
-
-            <!-- Hall Rows -->
-            @foreach (var hall in Model.Halls)
-            {
-                <div class="hall-row" data-hall-id="@hall.Id">
-                    <div class="hall-label">
-                        <strong>@hall.Name</strong>
-                        <small class="text-muted">Capacity: @hall.Rows * @hall.Columns</small>
-                    </div>
-
-                    @foreach (var date in Model.GetDatesInRange())
-                    {
-                        <div class="day-section" data-date="@date.ToString("yyyy-MM-dd")">
-                            <div class="date-header">@date.ToString("ddd, MMM dd")</div>
-                            <div class="timeline-slots drop-zone"
-                                 data-hall-id="@hall.Id"
-                                 data-date="@date.ToString("yyyy-MM-dd")">
-
-                                @foreach (var session in Model.GetSessionsForHallAndDate(hall.Id, date))
-                                {
-                                    var startHour = session.StartTime.Hour;
-                                    var startMinute = session.StartTime.Minute;
-                                    var leftPosition = ((startHour - 8) * 60 + startMinute) * 100 / (16 * 60);
-                                    var movie = await movieService.GetByIdAsync(session.Id); //Link to Services/MovieService
-                                    var width = (movie.DurationMinutes * 100) / (16 * 60);
-
-                                    <div class="session-block"
-                                         style="left: @(leftPosition)%; width: @(width)%;"
-                                         data-session-id="@session.Id"
-                                         onclick="location.href='@Url.Action("Details", new { id = session.Id })'">
-                                        <div class="session-info">
-                                            <strong>@session.MovieName</strong>
-                                            <small>@session.StartTime.ToString("HH:mm")</small>
-                                            <small>@session.MovieFormat</small>
-                                        </div>
-                                        <div class="session-occupancy">
-                                            <div class="occupancy-bar" style="width: 65%"></div>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-        </div>
-    </div>
-</div>
-
-<!-- Quick Create Modal -->
-<div class="modal fade" id="quickCreateModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Create Session</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Creating session for: <strong id="modalMovieName"></strong></p>
-                <p>Hall: <strong id="modalHallName"></strong></p>
-                <p>Date & Time: <strong id="modalDateTime"></strong></p>
-                <form id="quickCreateForm">
-                    <input type="hidden" id="modalMovieId" name="MovieId" />
-                    <input type="hidden" id="modalHallId" name="HallId" />
-                    <input type="hidden" id="modalStartTime" name="StartTime" />
-
-                    <div class="mb-3">
-                        <label class="form-label">Base Price</label>
-                        <input type="number" step="0.01" class="form-control" name="BasePrice" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Format</label>
-                        <select class="form-select" name="MovieFormat" required>
-                            <option value="0">Standard 2D</option>
-                            <option value="1">3D</option>
-                            <option value="2">IMAX</option>
-                            <option value="3">IMAX 3D</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="submitQuickCreate()">Create Session</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    .schedule-container {
-        padding: 20px;
-    }
-
-    .schedule-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 30px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #dee2e6;
-    }
-
-    .schedule-controls {
-        display: flex;
-        gap: 20px;
-        align-items: center;
-    }
-
-    .date-navigation {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .current-week {
-        font-weight: 600;
-        padding: 0 15px;
-    }
-
-    .movie-selector-panel {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 20px;
-    }
-
-    .movie-selector-panel h5 {
-        margin-bottom: 15px;
-        color: #495057;
-    }
-
-    .movie-list {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .movie-item {
-        background: white;
-        border: 2px solid #007bff;
-        border-radius: 6px;
-        padding: 8px 15px;
-        cursor: move;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-    }
-
-    .movie-item:hover {
-        background: #007bff;
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,123,255,0.3);
-    }
-
-    .movie-item.dragging {
-        opacity: 0.5;
-    }
-
-    .timeline-wrapper {
-        overflow-x: auto;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        background: white;
-    }
-
-    .timeline-grid {
-        min-width: 1400px;
-    }
-
-    .timeline-header {
-        display: grid;
-        grid-template-columns: 150px repeat(16, 1fr);
-        background: #343a40;
-        color: white;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-
-    .hall-label-cell {
-        padding: 15px;
-        font-weight: 600;
-        border-right: 1px solid #495057;
-    }
-
-    .time-cell {
-        padding: 15px 5px;
-        text-align: center;
-        font-size: 0.85rem;
-        border-right: 1px solid #495057;
-    }
-
-    .hall-row {
-        display: grid;
-        grid-template-columns: 150px 1fr;
-        border-bottom: 1px solid #dee2e6;
-        min-height: 120px;
-    }
-
-    .hall-label {
-        padding: 20px 15px;
-        background: #f8f9fa;
-        border-right: 2px solid #dee2e6;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .day-section {
-        border-right: 1px solid #e9ecef;
-    }
-
-    .date-header {
-        background: #e9ecef;
-        padding: 5px;
-        text-align: center;
-        font-size: 0.8rem;
-        font-weight: 600;
-        border-bottom: 1px solid #dee2e6;
-    }
-
-    .timeline-slots {
-        position: relative;
-        height: 100px;
-        background: linear-gradient(90deg, #f8f9fa 0%, transparent 1%);
-        background-size: 6.25% 100%;
-    }
-
-    .timeline-slots.drag-over {
-        background-color: #e7f3ff;
-        border: 2px dashed #007bff;
-    }
-
-    .session-block {
-        position: absolute;
-        top: 10px;
-        height: 80px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 6px;
-        padding: 8px;
-        color: white;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        transition: transform 0.2s, box-shadow 0.2s;
-        overflow: hidden;
-    }
-
-    .session-block:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-
-    .session-info {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        font-size: 0.75rem;
-    }
-
-    .session-info strong {
-        font-size: 0.85rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .session-occupancy {
-        position: absolute;
-        bottom: 5px;
-        left: 8px;
-        right: 8px;
-        height: 4px;
-        background: rgba(255,255,255,0.3);
-        border-radius: 2px;
-        overflow: hidden;
-    }
-
-    .occupancy-bar {
-        height: 100%;
-        background: #28a745;
-        border-radius: 2px;
-        transition: width 0.3s;
-    }
-</style>
-
-<script>
-    let draggedMovie = null;
-
-    // Drag and drop for movies
-    document.addEventListener('DOMContentLoaded', function() {
-        const movieItems = document.querySelectorAll('.movie-item');
-        const dropZones = document.querySelectorAll('.drop-zone');
-
-        movieItems.forEach(item => {
-            item.addEventListener('dragstart', function(e) {
-                draggedMovie = {
-                    id: this.dataset.movieId,
-                    name: this.dataset.movieName
-                };
-                this.classList.add('dragging');
-            });
-
-            item.addEventListener('dragend', function() {
-                this.classList.remove('dragging');
-            });
-        });
-
-        dropZones.forEach(zone => {
-            zone.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.classList.add('drag-over');
-            });
-
-            zone.addEventListener('dragleave', function() {
-                this.classList.remove('drag-over');
-            });
-
-            zone.addEventListener('drop', function(e) {
-                e.preventDefault();
-                this.classList.remove('drag-over');
-
-                if (!draggedMovie) return;
-
-                const hallId = this.dataset.hallId;
-                const date = this.dataset.date;
-                const hallName = this.closest('.hall-row').querySelector('.hall-label strong').textContent;
-
-                // Calculate approximate time based on drop position
-                const rect = this.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const percentage = x / rect.width;
-                const minutes = Math.round(percentage * 16 * 60);
-                const hour = Math.floor(minutes / 60) + 8;
-                const minute = Math.round((minutes % 60) / 15) * 15;
-
-                const startTime = new Date(date);
-                startTime.setHours(hour, minute, 0);
-
-                showQuickCreateModal(draggedMovie, hallId, hallName, startTime);
-            });
-        });
-    });
-
-    function showQuickCreateModal(movie, hallId, hallName, startTime) {
-        document.getElementById('modalMovieName').textContent = movie.name;
-        document.getElementById('modalHallName').textContent = hallName;
-        document.getElementById('modalDateTime').textContent = startTime.toLocaleString();
-        document.getElementById('modalMovieId').value = movie.id;
-        document.getElementById('modalHallId').value = hallId;
-        document.getElementById('modalStartTime').value = startTime.toISOString();
-
-        const modal = new bootstrap.Modal(document.getElementById('quickCreateModal'));
-        modal.show();
-    }
-
-    function submitQuickCreate() {
-        const form = document.getElementById('quickCreateForm');
-        const formData = new FormData(form);
-
-        const data = {
-            MovieId: parseInt(formData.get('MovieId')),
-            HallId: parseInt(formData.get('HallId')),
-            StartTime: formData.get('StartTime'),
-            BasePrice: parseFloat(formData.get('BasePrice')),
-            MovieFormat: parseInt(formData.get('MovieFormat'))
-        };
-
-        fetch('@Url.Action("Create")', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (response.ok) {
-                location.reload();
-            } else {
-                alert('Error creating session');
-            }
-        });
-    }
-</script>
+@* *@
+@* <div class="schedule-container"> *@
+@*     <div class="schedule-header"> *@
+@*         <h2>Session Schedule</h2> *@
+@*         <div class="schedule-controls"> *@
+@*             <button type="button" class="btn btn-primary" onclick="location.href='@Url.Action("Create")'"> *@
+@*                 <i class="bi bi-plus-circle"></i> New Session *@
+@*             </button> *@
+@*             <div class="date-navigation"> *@
+@*                 <a href="@Url.Action("Schedule", new { date = Model.SelectedDate.AddDays(-7) })" class="btn btn-outline-secondary"> *@
+@*                     <i class="bi bi-chevron-left"></i> Previous Week *@
+@*                 </a> *@
+@*                 <span class="current-week"> *@
+@*                     @Model.StartDate.ToString("MMM dd") - @Model.EndDate.AddDays(-1).ToString("MMM dd, yyyy") *@
+@*                 </span> *@
+@*                 <a href="@Url.Action("Schedule", new { date = Model.SelectedDate.AddDays(7) })" class="btn btn-outline-secondary"> *@
+@*                     Next Week <i class="bi bi-chevron-right"></i> *@
+@*                 </a> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@* *@
+@*     <!-- Movie Selector Panel --> *@
+@*     <div class="movie-selector-panel"> *@
+@*         <h5>Available Movies</h5> *@
+@*         <div class="movie-list" id="movieList"> *@
+@*             @foreach (var movie in ViewBag.Movies as IEnumerable<SelectListItem>) *@
+@*             { *@
+@*                 <div class="movie-item draggable" *@
+@*                      draggable="true" *@
+@*                      data-movie-id="@movie.Value" *@
+@*                      data-movie-name="@movie.Text"> *@
+@*                     <i class="bi bi-film"></i> *@
+@*                     <span>@movie.Text</span> *@
+@*                 </div> *@
+@*             } *@
+@*         </div> *@
+@*     </div> *@
+@* *@
+@*     <!-- Timeline Grid --> *@
+@*     <div class="timeline-wrapper"> *@
+@*         <div class="timeline-grid"> *@
+@*             <!-- Time Header --> *@
+@*             <div class="timeline-header"> *@
+@*                 <div class="hall-label-cell">Hall / Time</div> *@
+@*                 @for (int hour = 8; hour <= 23; hour++) *@
+@*                 { *@
+@*                     <div class="time-cell">@hour:00</div> *@
+@*                 } *@
+@*             </div> *@
+@* *@
+@*             <!-- Hall Rows --> *@
+@*             @foreach (var hall in Model.Halls) *@
+@*             { *@
+@*                 <div class="hall-row" data-hall-id="@hall.Id"> *@
+@*                     <div class="hall-label"> *@
+@*                         <strong>@hall.Name</strong> *@
+@*                         <small class="text-muted">Capacity: @hall.Rows * @hall.Columns</small> *@
+@*                     </div> *@
+@* *@
+@*                     @foreach (var date in Model.GetDatesInRange()) *@
+@*                     { *@
+@*                         <div class="day-section" data-date="@date.ToString("yyyy-MM-dd")"> *@
+@*                             <div class="date-header">@date.ToString("ddd, MMM dd")</div> *@
+@*                             <div class="timeline-slots drop-zone" *@
+@*                                  data-hall-id="@hall.Id" *@
+@*                                  data-date="@date.ToString("yyyy-MM-dd")"> *@
+@* *@
+@*                                 @foreach (var session in Model.GetSessionsForHallAndDate(hall.Id, date)) *@
+@*                                 { *@
+@*                                     var startHour = session.StartTime.Hour; *@
+@*                                     var startMinute = session.StartTime.Minute; *@
+@*                                     var leftPosition = ((startHour - 8) * 60 + startMinute) * 100 / (16 * 60); *@
+@*                                     var movie = await movieService.GetByIdAsync(session.Id); //Link to Services/MovieService *@
+@*                                     var width = (movie.DurationMinutes * 100) / (16 * 60); *@
+@* *@
+@*                                     <div class="session-block" *@
+@*                                          style="left: @(leftPosition)%; width: @(width)%;" *@
+@*                                          data-session-id="@session.Id" *@
+@*                                          onclick="location.href='@Url.Action("Details", new { id = session.Id })'"> *@
+@*                                         <div class="session-info"> *@
+@*                                             <strong>@session.MovieName</strong> *@
+@*                                             <small>@session.StartTime.ToString("HH:mm")</small> *@
+@*                                             <small>@session.MovieFormat</small> *@
+@*                                         </div> *@
+@*                                         <div class="session-occupancy"> *@
+@*                                             <div class="occupancy-bar" style="width: 65%"></div> *@
+@*                                         </div> *@
+@*                                     </div> *@
+@*                                 } *@
+@*                             </div> *@
+@*                         </div> *@
+@*                     } *@
+@*                 </div> *@
+@*             } *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+@* *@
+@* <!-- Quick Create Modal --> *@
+@* <div class="modal fade" id="quickCreateModal" tabindex="-1"> *@
+@*     <div class="modal-dialog"> *@
+@*         <div class="modal-content"> *@
+@*             <div class="modal-header"> *@
+@*                 <h5 class="modal-title">Create Session</h5> *@
+@*                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button> *@
+@*             </div> *@
+@*             <div class="modal-body"> *@
+@*                 <p>Creating session for: <strong id="modalMovieName"></strong></p> *@
+@*                 <p>Hall: <strong id="modalHallName"></strong></p> *@
+@*                 <p>Date & Time: <strong id="modalDateTime"></strong></p> *@
+@*                 <form id="quickCreateForm"> *@
+@*                     <input type="hidden" id="modalMovieId" name="MovieId" /> *@
+@*                     <input type="hidden" id="modalHallId" name="HallId" /> *@
+@*                     <input type="hidden" id="modalStartTime" name="StartTime" /> *@
+@* *@
+@*                     <div class="mb-3"> *@
+@*                         <label class="form-label">Base Price</label> *@
+@*                         <input type="number" step="0.01" class="form-control" name="BasePrice" required /> *@
+@*                     </div> *@
+@* *@
+@*                     <div class="mb-3"> *@
+@*                         <label class="form-label">Format</label> *@
+@*                         <select class="form-select" name="MovieFormat" required> *@
+@*                             <option value="0">Standard 2D</option> *@
+@*                             <option value="1">3D</option> *@
+@*                             <option value="2">IMAX</option> *@
+@*                             <option value="3">IMAX 3D</option> *@
+@*                         </select> *@
+@*                     </div> *@
+@*                 </form> *@
+@*             </div> *@
+@*             <div class="modal-footer"> *@
+@*                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button> *@
+@*                 <button type="button" class="btn btn-primary" onclick="submitQuickCreate()">Create Session</button> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+@* *@
+@* <style> *@
+@*     .schedule-container { *@
+@*         padding: 20px; *@
+@*     } *@
+@* *@
+@*     .schedule-header { *@
+@*         display: flex; *@
+@*         justify-content: space-between; *@
+@*         align-items: center; *@
+@*         margin-bottom: 30px; *@
+@*         padding-bottom: 15px; *@
+@*         border-bottom: 2px solid #dee2e6; *@
+@*     } *@
+@* *@
+@*     .schedule-controls { *@
+@*         display: flex; *@
+@*         gap: 20px; *@
+@*         align-items: center; *@
+@*     } *@
+@* *@
+@*     .date-navigation { *@
+@*         display: flex; *@
+@*         gap: 10px; *@
+@*         align-items: center; *@
+@*     } *@
+@* *@
+@*     .current-week { *@
+@*         font-weight: 600; *@
+@*         padding: 0 15px; *@
+@*     } *@
+@* *@
+@*     .movie-selector-panel { *@
+@*         background: #f8f9fa; *@
+@*         border: 1px solid #dee2e6; *@
+@*         border-radius: 8px; *@
+@*         padding: 15px; *@
+@*         margin-bottom: 20px; *@
+@*     } *@
+@* *@
+@*     .movie-selector-panel h5 { *@
+@*         margin-bottom: 15px; *@
+@*         color: #495057; *@
+@*     } *@
+@* *@
+@*     .movie-list { *@
+@*         display: flex; *@
+@*         gap: 10px; *@
+@*         flex-wrap: wrap; *@
+@*     } *@
+@* *@
+@*     .movie-item { *@
+@*         background: white; *@
+@*         border: 2px solid #007bff; *@
+@*         border-radius: 6px; *@
+@*         padding: 8px 15px; *@
+@*         cursor: move; *@
+@*         display: flex; *@
+@*         align-items: center; *@
+@*         gap: 8px; *@
+@*         transition: all 0.2s; *@
+@*     } *@
+@* *@
+@*     .movie-item:hover { *@
+@*         background: #007bff; *@
+@*         color: white; *@
+@*         transform: translateY(-2px); *@
+@*         box-shadow: 0 4px 8px rgba(0,123,255,0.3); *@
+@*     } *@
+@* *@
+@*     .movie-item.dragging { *@
+@*         opacity: 0.5; *@
+@*     } *@
+@* *@
+@*     .timeline-wrapper { *@
+@*         overflow-x: auto; *@
+@*         border: 1px solid #dee2e6; *@
+@*         border-radius: 8px; *@
+@*         background: white; *@
+@*     } *@
+@* *@
+@*     .timeline-grid { *@
+@*         min-width: 1400px; *@
+@*     } *@
+@* *@
+@*     .timeline-header { *@
+@*         display: grid; *@
+@*         grid-template-columns: 150px repeat(16, 1fr); *@
+@*         background: #343a40; *@
+@*         color: white; *@
+@*         position: sticky; *@
+@*         top: 0; *@
+@*         z-index: 10; *@
+@*     } *@
+@* *@
+@*     .hall-label-cell { *@
+@*         padding: 15px; *@
+@*         font-weight: 600; *@
+@*         border-right: 1px solid #495057; *@
+@*     } *@
+@* *@
+@*     .time-cell { *@
+@*         padding: 15px 5px; *@
+@*         text-align: center; *@
+@*         font-size: 0.85rem; *@
+@*         border-right: 1px solid #495057; *@
+@*     } *@
+@* *@
+@*     .hall-row { *@
+@*         display: grid; *@
+@*         grid-template-columns: 150px 1fr; *@
+@*         border-bottom: 1px solid #dee2e6; *@
+@*         min-height: 120px; *@
+@*     } *@
+@* *@
+@*     .hall-label { *@
+@*         padding: 20px 15px; *@
+@*         background: #f8f9fa; *@
+@*         border-right: 2px solid #dee2e6; *@
+@*         display: flex; *@
+@*         flex-direction: column; *@
+@*         justify-content: center; *@
+@*     } *@
+@* *@
+@*     .day-section { *@
+@*         border-right: 1px solid #e9ecef; *@
+@*     } *@
+@* *@
+@*     .date-header { *@
+@*         background: #e9ecef; *@
+@*         padding: 5px; *@
+@*         text-align: center; *@
+@*         font-size: 0.8rem; *@
+@*         font-weight: 600; *@
+@*         border-bottom: 1px solid #dee2e6; *@
+@*     } *@
+@* *@
+@*     .timeline-slots { *@
+@*         position: relative; *@
+@*         height: 100px; *@
+@*         background: linear-gradient(90deg, #f8f9fa 0%, transparent 1%); *@
+@*         background-size: 6.25% 100%; *@
+@*     } *@
+@* *@
+@*     .timeline-slots.drag-over { *@
+@*         background-color: #e7f3ff; *@
+@*         border: 2px dashed #007bff; *@
+@*     } *@
+@* *@
+@*     .session-block { *@
+@*         position: absolute; *@
+@*         top: 10px; *@
+@*         height: 80px; *@
+@*         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); *@
+@*         border-radius: 6px; *@
+@*         padding: 8px; *@
+@*         color: white; *@
+@*         cursor: pointer; *@
+@*         box-shadow: 0 2px 8px rgba(0,0,0,0.2); *@
+@*         transition: transform 0.2s, box-shadow 0.2s; *@
+@*         overflow: hidden; *@
+@*     } *@
+@* *@
+@*     .session-block:hover { *@
+@*         transform: translateY(-2px); *@
+@*         box-shadow: 0 4px 12px rgba(0,0,0,0.3); *@
+@*     } *@
+@* *@
+@*     .session-info { *@
+@*         display: flex; *@
+@*         flex-direction: column; *@
+@*         gap: 2px; *@
+@*         font-size: 0.75rem; *@
+@*     } *@
+@* *@
+@*     .session-info strong { *@
+@*         font-size: 0.85rem; *@
+@*         white-space: nowrap; *@
+@*         overflow: hidden; *@
+@*         text-overflow: ellipsis; *@
+@*     } *@
+@* *@
+@*     .session-occupancy { *@
+@*         position: absolute; *@
+@*         bottom: 5px; *@
+@*         left: 8px; *@
+@*         right: 8px; *@
+@*         height: 4px; *@
+@*         background: rgba(255,255,255,0.3); *@
+@*         border-radius: 2px; *@
+@*         overflow: hidden; *@
+@*     } *@
+@* *@
+@*     .occupancy-bar { *@
+@*         height: 100%; *@
+@*         background: #28a745; *@
+@*         border-radius: 2px; *@
+@*         transition: width 0.3s; *@
+@*     } *@
+@* </style> *@
+@* *@
+@* <script> *@
+@*     let draggedMovie = null; *@
+@* *@
+@*     // Drag and drop for movies *@
+@*     document.addEventListener('DOMContentLoaded', function() { *@
+@*         const movieItems = document.querySelectorAll('.movie-item'); *@
+@*         const dropZones = document.querySelectorAll('.drop-zone'); *@
+@* *@
+@*         movieItems.forEach(item => { *@
+@*             item.addEventListener('dragstart', function(e) { *@
+@*                 draggedMovie = { *@
+@*                     id: this.dataset.movieId, *@
+@*                     name: this.dataset.movieName *@
+@*                 }; *@
+@*                 this.classList.add('dragging'); *@
+@*             }); *@
+@* *@
+@*             item.addEventListener('dragend', function() { *@
+@*                 this.classList.remove('dragging'); *@
+@*             }); *@
+@*         }); *@
+@* *@
+@*         dropZones.forEach(zone => { *@
+@*             zone.addEventListener('dragover', function(e) { *@
+@*                 e.preventDefault(); *@
+@*                 this.classList.add('drag-over'); *@
+@*             }); *@
+@* *@
+@*             zone.addEventListener('dragleave', function() { *@
+@*                 this.classList.remove('drag-over'); *@
+@*             }); *@
+@* *@
+@*             zone.addEventListener('drop', function(e) { *@
+@*                 e.preventDefault(); *@
+@*                 this.classList.remove('drag-over'); *@
+@* *@
+@*                 if (!draggedMovie) return; *@
+@* *@
+@*                 const hallId = this.dataset.hallId; *@
+@*                 const date = this.dataset.date; *@
+@*                 const hallName = this.closest('.hall-row').querySelector('.hall-label strong').textContent; *@
+@* *@
+@*                 // Calculate approximate time based on drop position *@
+@*                 const rect = this.getBoundingClientRect(); *@
+@*                 const x = e.clientX - rect.left; *@
+@*                 const percentage = x / rect.width; *@
+@*                 const minutes = Math.round(percentage * 16 * 60); *@
+@*                 const hour = Math.floor(minutes / 60) + 8; *@
+@*                 const minute = Math.round((minutes % 60) / 15) * 15; *@
+@* *@
+@*                 const startTime = new Date(date); *@
+@*                 startTime.setHours(hour, minute, 0); *@
+@* *@
+@*                 showQuickCreateModal(draggedMovie, hallId, hallName, startTime); *@
+@*             }); *@
+@*         }); *@
+@*     }); *@
+@* *@
+@*     function showQuickCreateModal(movie, hallId, hallName, startTime) { *@
+@*         document.getElementById('modalMovieName').textContent = movie.name; *@
+@*         document.getElementById('modalHallName').textContent = hallName; *@
+@*         document.getElementById('modalDateTime').textContent = startTime.toLocaleString(); *@
+@*         document.getElementById('modalMovieId').value = movie.id; *@
+@*         document.getElementById('modalHallId').value = hallId; *@
+@*         document.getElementById('modalStartTime').value = startTime.toISOString(); *@
+@* *@
+@*         const modal = new bootstrap.Modal(document.getElementById('quickCreateModal')); *@
+@*         modal.show(); *@
+@*     } *@
+@* *@
+@*     function submitQuickCreate() { *@
+@*         const form = document.getElementById('quickCreateForm'); *@
+@*         const formData = new FormData(form); *@
+@* *@
+@*         const data = { *@
+@*             MovieId: parseInt(formData.get('MovieId')), *@
+@*             HallId: parseInt(formData.get('HallId')), *@
+@*             StartTime: formData.get('StartTime'), *@
+@*             BasePrice: parseFloat(formData.get('BasePrice')), *@
+@*             MovieFormat: parseInt(formData.get('MovieFormat')) *@
+@*         }; *@
+@* *@
+@*         fetch('@Url.Action("Create")', { *@
+@*             method: 'POST', *@
+@*             headers: { *@
+@*                 'Content-Type': 'application/json', *@
+@*                 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value *@
+@*             }, *@
+@*             body: JSON.stringify(data) *@
+@*         }) *@
+@*         .then(response => { *@
+@*             if (response.ok) { *@
+@*                 location.reload(); *@
+@*             } else { *@
+@*                 alert('Error creating session'); *@
+@*             } *@
+@*         }); *@
+@*     } *@
+@* </script> *@

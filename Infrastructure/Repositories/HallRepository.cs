@@ -3,7 +3,6 @@ using Core.Entities;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Infrastructure.Data;
-using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;

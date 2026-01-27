@@ -57,12 +57,14 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    SeatLayout = table.Column<byte[]>(type: "binary(64)", maxLength: 64, nullable: false)
+                    Rows = table.Column<byte>(type: "tinyint", nullable: false),
+                    Columns = table.Column<byte>(type: "tinyint", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Halls", x => x.Id);
-                    table.CheckConstraint("CK_Halls_SeatLayout_Length", "DATALENGTH(SeatLayout) = 64");
+                    table.CheckConstraint("CK_Halls_Columns", "Columns > 0 AND Columns <= 50");
+                    table.CheckConstraint("CK_Halls_Rows", "Rows > 0 AND Rows <= 50");
                 });
 
             migrationBuilder.CreateTable(
@@ -72,7 +74,7 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    DurationMinutes = table.Column<int>(type: "int", nullable: false),
+                    DurationMinutes = table.Column<byte>(type: "tinyint", nullable: false),
                     AgeLimit = table.Column<byte>(type: "tinyint", nullable: false),
                     Genre = table.Column<long>(type: "bigint", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
@@ -85,8 +87,6 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Movies", x => x.Id);
-                    table.CheckConstraint("CK_Movies_DurationMinutes", "DurationMinutes > 0 AND DurationMinutes <= 600");
-                    table.CheckConstraint("CK_Movies_ImdbRating", "ImdbRating IS NULL OR (ImdbRating >= 0.0 AND ImdbRating <= 10.0)");
                 });
 
             migrationBuilder.CreateTable(
@@ -100,6 +100,23 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Person", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SeatTypes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    AddedPrice = table.Column<decimal>(type: "decimal(6,2)", precision: 6, scale: 2, nullable: false, defaultValue: 0m),
+                    Description = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    ColorCode = table.Column<string>(type: "nvarchar(7)", maxLength: 7, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SeatTypes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -223,7 +240,6 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Sessions", x => x.Id);
-                    table.CheckConstraint("CK_Sessions_BasePrice", "BasePrice > 0");
                     table.ForeignKey(
                         name: "FK_Sessions_Halls_HallId",
                         column: x => x.HallId,
@@ -239,26 +255,23 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MovieActors",
+                name: "MovieActor",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
                     MovieId = table.Column<int>(type: "int", nullable: false),
-                    ActorId = table.Column<int>(type: "int", nullable: false),
-                    Role = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
+                    ActorId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MovieActors", x => x.Id);
+                    table.PrimaryKey("PK_MovieActor", x => new { x.MovieId, x.ActorId });
                     table.ForeignKey(
-                        name: "FK_MovieActors_Movies_MovieId",
+                        name: "FK_MovieActor_Movies_MovieId",
                         column: x => x.MovieId,
                         principalTable: "Movies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_MovieActors_Person_ActorId",
+                        name: "FK_MovieActor_Person_ActorId",
                         column: x => x.ActorId,
                         principalTable: "Person",
                         principalColumn: "Id",
@@ -266,27 +279,53 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MovieDirectors",
+                name: "MovieDirector",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
                     MovieId = table.Column<int>(type: "int", nullable: false),
                     DirectorId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MovieDirectors", x => x.Id);
+                    table.PrimaryKey("PK_MovieDirector", x => new { x.MovieId, x.DirectorId });
                     table.ForeignKey(
-                        name: "FK_MovieDirectors_Movies_MovieId",
+                        name: "FK_MovieDirector_Movies_MovieId",
                         column: x => x.MovieId,
                         principalTable: "Movies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_MovieDirectors_Person_DirectorId",
+                        name: "FK_MovieDirector_Person_DirectorId",
                         column: x => x.DirectorId,
                         principalTable: "Person",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Seats",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    HallId = table.Column<int>(type: "int", nullable: false),
+                    RowNum = table.Column<byte>(type: "tinyint", nullable: false),
+                    SeatNum = table.Column<byte>(type: "tinyint", nullable: false),
+                    SeatTypeId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Seats", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Seats_Halls_HallId",
+                        column: x => x.HallId,
+                        principalTable: "Halls",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Seats_SeatTypes_SeatTypeId",
+                        column: x => x.SeatTypeId,
+                        principalTable: "SeatTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -297,7 +336,7 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     SessionId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "SYSUTCDATETIME()"),
                     Status = table.Column<byte>(type: "tinyint", nullable: false, defaultValue: (byte)0)
@@ -305,7 +344,7 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Orders", x => x.Id);
-                    table.CheckConstraint("CK_Orders_Status", "Status IN (0, 1, 2, 3, 4, 5)");
+                    table.CheckConstraint("CK_Orders_Status", "Status IN (0, 1, 2, 3, 4)");
                     table.ForeignKey(
                         name: "FK_Orders_AspNetUsers_UserId",
                         column: x => x.UserId,
@@ -321,27 +360,32 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Seats",
+                name: "SeatReservations",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SessionId = table.Column<int>(type: "int", nullable: false),
-                    RowNum = table.Column<byte>(type: "tinyint", nullable: false),
-                    SeatNum = table.Column<byte>(type: "tinyint", nullable: false),
-                    SeatType = table.Column<byte>(type: "tinyint", nullable: false),
-                    AddedPrice = table.Column<decimal>(type: "decimal(6,2)", precision: 6, scale: 2, nullable: false),
-                    IsAvailable = table.Column<bool>(type: "bit", nullable: false)
+                    SeatId = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<byte>(type: "tinyint", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(8,2)", precision: 8, scale: 2, nullable: false),
+                    ReservedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ReservedByUserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TicketId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Seats", x => x.Id);
-                    table.CheckConstraint("CK_Seats_AddedPrice", "AddedPrice >= 0");
-                    table.CheckConstraint("CK_Seats_RowNum", "RowNum >= 0 AND RowNum < 16");
-                    table.CheckConstraint("CK_Seats_SeatNum", "SeatNum >= 0 AND SeatNum < 16");
-                    table.CheckConstraint("CK_Seats_SeatType", "SeatType IN (0, 1, 2, 3)");
+                    table.PrimaryKey("PK_SeatReservations", x => x.Id);
+                    table.CheckConstraint("CK_SeatReservations_Status", "Status IN (1, 2)");
                     table.ForeignKey(
-                        name: "FK_Seats_Sessions_SessionId",
+                        name: "FK_SeatReservations_Seats_SeatId",
+                        column: x => x.SeatId,
+                        principalTable: "Seats",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SeatReservations_Sessions_SessionId",
                         column: x => x.SessionId,
                         principalTable: "Sessions",
                         principalColumn: "Id",
@@ -362,7 +406,6 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Payments", x => x.Id);
-                    table.CheckConstraint("CK_Payments_Amount", "Amount > 0");
                     table.CheckConstraint("CK_Payments_PaymentMethod", "PaymentMethod IN (0, 1, 2, 3)");
                     table.ForeignKey(
                         name: "FK_Payments_Orders_OrderId",
@@ -379,13 +422,12 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OrderId = table.Column<int>(type: "int", nullable: false),
-                    SeatId = table.Column<int>(type: "int", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "decimal(8,2)", precision: 8, scale: 2, nullable: false)
+                    SeatReservationId = table.Column<int>(type: "int", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(8,2)", precision: 8, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tickets", x => x.Id);
-                    table.CheckConstraint("CK_Tickets_TotalPrice", "TotalPrice > 0");
                     table.ForeignKey(
                         name: "FK_Tickets_Orders_OrderId",
                         column: x => x.OrderId,
@@ -393,9 +435,9 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Tickets_Seats_SeatId",
-                        column: x => x.SeatId,
-                        principalTable: "Seats",
+                        name: "FK_Tickets_SeatReservations_SeatReservationId",
+                        column: x => x.SeatReservationId,
+                        principalTable: "SeatReservations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -446,46 +488,24 @@ namespace Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_MovieActors_ActorId",
-                table: "MovieActors",
+                name: "IX_MovieActor_ActorId",
+                table: "MovieActor",
                 column: "ActorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MovieActors_MovieId_ActorId",
-                table: "MovieActors",
-                columns: new[] { "MovieId", "ActorId" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MovieDirectors_DirectorId",
-                table: "MovieDirectors",
+                name: "IX_MovieDirector_DirectorId",
+                table: "MovieDirector",
                 column: "DirectorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MovieDirectors_MovieId_DirectorId",
-                table: "MovieDirectors",
-                columns: new[] { "MovieId", "DirectorId" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Orders_SessionId_Status",
+                name: "IX_Orders_SessionId",
                 table: "Orders",
-                columns: new[] { "SessionId", "Status" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Orders_Status",
-                table: "Orders",
-                column: "Status");
+                column: "SessionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_UserId",
                 table: "Orders",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Orders_UserId_CreatedAt",
-                table: "Orders",
-                columns: new[] { "UserId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_OrderId",
@@ -494,41 +514,54 @@ namespace Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Seats_SessionId_IsAvailable",
-                table: "Seats",
-                columns: new[] { "SessionId", "IsAvailable" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Seats_SessionId_RowNum_SeatNum",
-                table: "Seats",
-                columns: new[] { "SessionId", "RowNum", "SeatNum" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Sessions_HallId_StartTime",
-                table: "Sessions",
-                columns: new[] { "HallId", "StartTime" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Sessions_MovieId_StartTime",
-                table: "Sessions",
-                columns: new[] { "MovieId", "StartTime" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Sessions_StartTime",
-                table: "Sessions",
-                column: "StartTime");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tickets_OrderId_SeatId",
-                table: "Tickets",
-                columns: new[] { "OrderId", "SeatId" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tickets_SeatId",
-                table: "Tickets",
+                name: "IX_SeatReservations_SeatId",
+                table: "SeatReservations",
                 column: "SeatId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SeatReservations_SessionId_SeatId",
+                table: "SeatReservations",
+                columns: new[] { "SessionId", "SeatId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Seats_HallId_RowNum_SeatNum",
+                table: "Seats",
+                columns: new[] { "HallId", "RowNum", "SeatNum" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Seats_SeatTypeId",
+                table: "Seats",
+                column: "SeatTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SeatTypes_Name",
+                table: "SeatTypes",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sessions_HallId",
+                table: "Sessions",
+                column: "HallId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sessions_MovieId",
+                table: "Sessions",
+                column: "MovieId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tickets_OrderId_SeatReservationId",
+                table: "Tickets",
+                columns: new[] { "OrderId", "SeatReservationId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tickets_SeatReservationId",
+                table: "Tickets",
+                column: "SeatReservationId",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -550,10 +583,10 @@ namespace Infrastructure.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "MovieActors");
+                name: "MovieActor");
 
             migrationBuilder.DropTable(
-                name: "MovieDirectors");
+                name: "MovieDirector");
 
             migrationBuilder.DropTable(
                 name: "Payments");
@@ -571,13 +604,19 @@ namespace Infrastructure.Migrations
                 name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "Seats");
+                name: "SeatReservations");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
+                name: "Seats");
+
+            migrationBuilder.DropTable(
                 name: "Sessions");
+
+            migrationBuilder.DropTable(
+                name: "SeatTypes");
 
             migrationBuilder.DropTable(
                 name: "Halls");
