@@ -13,8 +13,7 @@ public class SessionScheduleViewModel
     public IEnumerable<AdminSessionViewModel> GetSessionsForHallAndDate(int hallId, DateTime date)
     {
         return Sessions
-            .Where(s => s.HallName == Halls.FirstOrDefault(h => h.Id == hallId)?.Name
-                        && s.StartTime.Date == date.Date)
+            .Where(s => s.HallId == hallId && s.StartTime.Date == date.Date)
             .OrderBy(s => s.StartTime);
     }
 

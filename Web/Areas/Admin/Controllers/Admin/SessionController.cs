@@ -29,7 +29,6 @@ public class SessionController(
     {
         var selectedDate = date ?? DateTime.Today;
 
-        // Get sessions for a week range (or adjust as needed)
         var startDate = selectedDate.Date;
         var endDate = startDate.AddDays(7);
 

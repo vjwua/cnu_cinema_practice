@@ -100,10 +100,14 @@
                             </div>
                         </div>
 
-                        <div id="conflictAlert" class="alert alert-warning" style="display: none;">
-                            <i class="bi bi-exclamation-triangle"></i>
-                            <strong>Schedule Conflict!</strong>
-                            <p id="conflictMessage" class="mb-0 mt-2"></p>
+                        <div id="conflictAlert" class="alert" style="display: none;">
+                            <div class="d-flex align-items-start">
+                                <i id="conflictIcon" class="bi bi-exclamation-triangle-fill me-3" style="font-size: 1.5rem;"></i>
+                                <div class="flex-grow-1">
+                                    <h5 id="conflictTitle" class="alert-heading mb-2">Schedule Conflict!</h5>
+                                    <p id="conflictMessage" class="mb-0"></p>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-actions">
@@ -192,20 +196,26 @@
 
             const alert = document.getElementById('conflictAlert');
             const message = document.getElementById('conflictMessage');
+            const title = document.getElementById('conflictTitle');
+            const icon = document.getElementById('conflictIcon');
             const submitBtn = document.getElementById('submitBtn');
 
             if (data.hasConflict) {
                 alert.style.display = 'block';
+                alert.classList.remove('alert-success');
+                alert.classList.add('alert-danger');
+                title.textContent = 'Schedule Conflict!';
+                icon.className = 'bi bi-exclamation-triangle-fill me-3';
                 message.textContent = data.message;
                 submitBtn.disabled = true;
-                alert.classList.remove('alert-success');
-                alert.classList.add('alert-warning');
             } else {
                 alert.style.display = 'block';
-                message.textContent = data.message;
-                submitBtn.disabled = false;
-                alert.classList.remove('alert-warning');
+                alert.classList.remove('alert-danger');
                 alert.classList.add('alert-success');
+                title.textContent = 'No Conflicts Found!';
+                icon.className = 'bi bi-check-circle-fill me-3';
+                message.textContent = data.message || 'This time slot is available. You can proceed with creating the session.';
+                submitBtn.disabled = false;
             }
         } catch (error) {
             console.error('Error checking conflict:', error);

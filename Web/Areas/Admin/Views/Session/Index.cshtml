@@ -43,10 +43,10 @@
             <div class="col-md-3">
                 <select id="formatFilter" class="form-select">
                     <option value="">All Formats</option>
-                    <option value="Standard2D">Standard 2D</option>
-                    <option value="ThreeD">3D</option>
+                    <option value="2D">2D</option>
+                    <option value="3D">3D</option>
                     <option value="IMAX">IMAX</option>
-                    <option value="IMAX3D">IMAX 3D</option>
+                    <option value="4DX">4DX</option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -353,7 +353,8 @@
             const movie = card.dataset.movie;
             const hall = card.dataset.hall;
             const format = card.dataset.format;
-            const sessionDate = new Date(parseInt(card.dataset.timestamp) / 10000);
+            const dateStr = card.dataset.date; // yyyy-MM-dd format
+            const sessionDate = new Date(dateStr);
             sessionDate.setHours(0, 0, 0, 0);
 
             let show = true;

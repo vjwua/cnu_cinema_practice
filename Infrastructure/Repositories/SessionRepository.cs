@@ -12,6 +12,8 @@ public class SessionRepository(CinemaDbContext context) : ISessionRepository
         return await context.Sessions
             .Include(s => s.Movie)
             .Include(s => s.Hall)
+                .ThenInclude(h => h.Seats)
+            .Include(s => s.SeatReservations)
             .ToListAsync();
     }
 
@@ -28,6 +30,8 @@ public class SessionRepository(CinemaDbContext context) : ISessionRepository
         return await context.Sessions
             .Include(s => s.Movie)
             .Include(s => s.Hall)
+                .ThenInclude(h => h.Seats)
+            .Include(s => s.SeatReservations)
             .Where(s => s.MovieId == movieId)
             .ToListAsync();
     }
@@ -37,6 +41,8 @@ public class SessionRepository(CinemaDbContext context) : ISessionRepository
         return await context.Sessions
             .Include(s => s.Movie)
             .Include(s => s.Hall)
+                .ThenInclude(h => h.Seats)
+            .Include(s => s.SeatReservations)
             .Where(s => s.HallId == hallId)
             .ToListAsync();
     }
@@ -57,6 +63,8 @@ public class SessionRepository(CinemaDbContext context) : ISessionRepository
         return await context.Sessions
             .Include(s => s.Movie)
             .Include(s => s.Hall)
+                .ThenInclude(h => h.Seats)
+            .Include(s => s.SeatReservations)
             .Where(s => s.StartTime >= start && s.StartTime <= end)
             .ToListAsync();
     }
@@ -67,6 +75,8 @@ public class SessionRepository(CinemaDbContext context) : ISessionRepository
         return await context.Sessions
             .Include(s => s.Movie)
             .Include(s => s.Hall)
+                .ThenInclude(h => h.Seats)
+            .Include(s => s.SeatReservations)
             .Where(s => s.StartTime > now)
             .OrderBy(s => s.StartTime)
             .ToListAsync();

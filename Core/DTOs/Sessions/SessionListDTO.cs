@@ -13,4 +13,7 @@ public class SessionListDTO
     public DateTime StartTime { get; set; }
     public decimal BasePrice { get; set; }
     public MovieFormat MovieFormat { get; set; }
+    public int MovieDurationMinutes { get; set; }
+    public int TotalSeats { get; set; }
+    public int OccupiedSeats { get; set; }
 }

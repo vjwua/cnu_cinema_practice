@@ -23,7 +23,10 @@ public class SessionMapping : Profile
         CreateMap<Session, SessionListDTO>()
             .ForMember(d => d.MovieName, o => o.MapFrom(s => s.Movie.Name))
             .ForMember(d => d.MoviePosterUrl, o => o.MapFrom(s => s.Movie.PosterUrl))
-            .ForMember(d => d.HallName, o => o.MapFrom(s => s.Hall.Name));
+            .ForMember(d => d.HallName, o => o.MapFrom(s => s.Hall.Name))
+            .ForMember(d => d.MovieDurationMinutes, o => o.MapFrom(s => s.Movie.DurationMinutes))
+            .ForMember(d => d.TotalSeats, o => o.MapFrom(s => s.Hall.Seats.Count))
+            .ForMember(d => d.OccupiedSeats, o => o.MapFrom(s => s.SeatReservations.Count));
 
         CreateMap<Session, SessionPreviewDTO>()
             .ForMember(d => d.MovieTitle, o => o.MapFrom(s => s.Movie.Name))

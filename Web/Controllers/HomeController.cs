@@ -1,7 +1,5 @@
 using cnu_cinema_practice.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-// using cnu_cinema_practice.Models;
 
 namespace cnu_cinema_practice.Controllers;
 
@@ -38,7 +36,7 @@ public class HomeController : Controller
                     PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
                     DurationMinutes = 95,
                     Genres = new List<string> { "Comedy", "Romance" },
-                    ImdbRating = "ÇÀ",
+                    ImdbRating = "ï¿½ï¿½",
                     ReleaseDate = new DateTime(2025, 12, 20)
                 },
                 new MovieOverviewViewModel
@@ -60,10 +58,4 @@ public class HomeController : Controller
     {
         return View();
     }
-
-    public IActionResult Reverse()
-    {
-        return View();
-    }
-    // ...
 }
