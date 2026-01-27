@@ -97,5 +97,6 @@ public class MoviesController : Controller
     {
         await _movieService.DeleteAsync(id);
         return RedirectToAction(nameof(Index));
+        
     }
 }
