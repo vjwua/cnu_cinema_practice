@@ -19,6 +19,10 @@ public class AdminSessionViewModelMapping : Profile
         CreateMap<SessionSeatDTO, SessionSeatViewModel>();
 
         CreateMap<SessionDetailDTO, SessionDetailsViewModel>()
+            .ForMember(dest => dest.MovieId,
+                opt => opt.MapFrom(src => src.MovieId)) // ← Додано MovieId
+            .ForMember(dest => dest.HallId,
+                opt => opt.MapFrom(src => src.HallId)) // ← Додано HallId
             .ForMember(dest => dest.MovieFormat,
                 opt => opt.MapFrom(src => FormatMovieFormat(src.MovieFormat)))
             .AfterMap((src, dest) =>

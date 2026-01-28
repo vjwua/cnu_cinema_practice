@@ -6,6 +6,7 @@ using Core.Interfaces.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin;
 
@@ -58,25 +59,22 @@ public class SessionController(
     }
 
     [HttpGet]
-    public async Task<IActionResult> Create()
-    {
-        await PopulateDropdownsAsync();
-        return View(new CreateSessionViewModel());
-    }
-
-    // Can create with pre-filled date and hall (useful from schedule view)
-    [HttpGet]
-    public async Task<IActionResult> CreateFromSchedule(DateTime? startTime, int? hallId)
+    public async Task<IActionResult> Create(DateTime? startTime, int? hallId, int? movieId)
     {
         await PopulateDropdownsAsync();
 
         var model = new CreateSessionViewModel();
+
         if (startTime.HasValue)
             model.StartTime = startTime.Value;
+
         if (hallId.HasValue)
             model.HallId = hallId.Value;
 
-        return View("Create", model);
+        if (movieId.HasValue)
+            model.MovieId = movieId.Value;
+
+        return View(model);
     }
 
     [HttpPost]
@@ -100,15 +98,18 @@ public class SessionController(
         catch (ValidationException ex)
         {
             HandleValidationException(ex);
-            await PopulateDropdownsAsync();
-            return View(model);
         }
         catch (InvalidOperationException ex)
         {
             HandleBusinessException(ex);
-            await PopulateDropdownsAsync();
-            return View(model);
         }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
+        }
+
+        await PopulateDropdownsAsync();
+        return View(model);
     }
 
     [HttpGet]
@@ -147,15 +148,18 @@ public class SessionController(
         catch (ValidationException ex)
         {
             HandleValidationException(ex);
-            await PopulateDropdownsAsync();
-            return View(model);
         }
         catch (InvalidOperationException ex)
         {
             HandleBusinessException(ex);
-            await PopulateDropdownsAsync();
-            return View(model);
         }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
+        }
+
+        await PopulateDropdownsAsync();
+        return View(model);
     }
 
     [HttpPost]
@@ -169,11 +173,20 @@ public class SessionController(
         }
         catch (ValidationException ex)
         {
-            TempData["ErrorMessage"] = ex.Message;
+            TempData["ErrorMessage"] = $"Validation error: {ex.Message}";
         }
         catch (InvalidOperationException ex)
         {
-            TempData["ErrorMessage"] = ex.Message;
+            TempData["ErrorMessage"] = $"Operation error: {ex.Message}";
+        }
+        catch (DbUpdateException ex)
+        {
+            TempData["ErrorMessage"] =
+                "Cannot delete this session because it has associated bookings or reservations. Please cancel all bookings first.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"An unexpected error occurred while deleting the session: {ex.Message}";
         }
 
         return RedirectToAction(nameof(Index));
@@ -211,7 +224,7 @@ public class SessionController(
         }
         catch (Exception)
         {
-            return Json(new { hasConflict = false });
+            return Json(new { hasConflict = false, message = "Error checking conflict." });
         }
     }
 
@@ -222,9 +235,7 @@ public class SessionController(
     private void HandleValidationException(ValidationException ex)
     {
         foreach (var error in ex.Errors)
-        {
             ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
-        }
     }
 
     private void HandleBusinessException(InvalidOperationException ex)
