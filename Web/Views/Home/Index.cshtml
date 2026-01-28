@@ -1,41 +1,119 @@
-@using cnu_cinema_practice.ViewModels
-@model List<MovieOverviewViewModel>
+@model cnu_cinema_practice.ViewModels.Home.HomeIndexViewModel
 @{
-    ViewData["Title"] = "Now Showing";
+    ViewData["Title"] = "Home - Test";
 }
 
-<div class="mb-4">
-    <h1 class="display-4 mb-2">Now Showing</h1>
-    <p class="lead text-muted">Great movies start here.</p>
-</div>
-
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
-    @foreach (var movie in Model)
-    {
-        <div class="col">
-            <div class="card h-100 shadow-sm movie-card">
-                <img src="@movie.PosterUrl" class="card-img-top" alt="@movie.Name poster">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">@movie.Name</h5>
-                    <div class="mb-2">
-                        <span class="badge bg-secondary">@movie.ImdbRating</span>
-                    </div>
-                    <p class="card-text text-muted small mb-2">
-                        <i class="bi bi-clock"></i> @movie.FormattedDuration | @movie.FormattedGenres
-                    </p>
-                    <div class="mt-auto">
-                        <a asp-area="" asp-controller="Booking" asp-action="SelectSeats" class="btn btn-primary w-100">Book Tickets</a>
-                    </div>
-                </div>
-            </div>
+<div class="container py-5">
+    <h1>✅ Home Controller Test Page</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2>Featured Movie</h2>
         </div>
-    }
-</div>
-
-@if (!Model.Any())
-{
-    <div class="alert alert-info text-center" role="alert">
-        <h4 class="alert-heading">No movies currently showing</h4>
-        <p>Check back soon for upcoming releases!</p>
+        <div class="card-body">
+            @if (Model.FeaturedMovie != null)
+            {
+                <h3>@Model.FeaturedMovie.Name</h3>
+                <p><strong>ID:</strong> @Model.FeaturedMovie.Id</p>
+                <p><strong>Genre:</strong> @Model.FeaturedMovie.Genre</p>
+                <p><strong>Duration:</strong> @Model.FeaturedMovie.FormattedDuration</p>
+                <p><strong>Rating:</strong> @Model.FeaturedMovie.ImdbRating</p>
+                <p><strong>Poster URL:</strong> @(string.IsNullOrEmpty(Model.FeaturedMovie.PosterUrl) ? "(No poster)" : Model.FeaturedMovie.PosterUrl)</p>
+                @if (!string.IsNullOrEmpty(Model.FeaturedMovie.PosterUrl))
+                {
+                    <img src="@Model.FeaturedMovie.PosterUrl" alt="@Model.FeaturedMovie.Name" style="max-width: 200px;" class="mt-2" />
+                }
+                <p><strong>Sessions Count:</strong> @Model.FeaturedMovie.Sessions.Count</p>
+            }
+            else
+            {
+                <p class="text-danger">No featured movie</p>
+            }
+        </div>
     </div>
-}
+
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h2>All Movies (@Model.Movies.Count)</h2>
+        </div>
+        <div class="card-body">
+            @if (Model.Movies.Any())
+            {
+                <div class="row">
+                    @foreach (var movie in Model.Movies.Take(3))
+                    {
+                        <div class="col-md-4 mb-3">
+                            <div class="border p-3">
+                                <h5>@movie.Name</h5>
+                                @if (!string.IsNullOrEmpty(movie.PosterUrl))
+                                {
+                                    <img src="@movie.PosterUrl" alt="@movie.Name" style="max-width: 100%; max-height: 300px; object-fit: cover;" class="mb-2" />
+                                }
+                                else
+                                {
+                                    <p class="text-muted">(No poster)</p>
+                                }
+                                <p>Genre: @movie.Genre</p>
+                                <p>Duration: @movie.FormattedDuration</p>
+                                <p>Sessions: @movie.Sessions.Count</p>
+                                @if (movie.Sessions.Any())
+                                {
+                                    <small>Times: @string.Join(", ", movie.Sessions.Select(s => s.FormattedTime))</small>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+                @if (Model.Movies.Count > 3)
+                {
+                    <p class="text-muted">... and @(Model.Movies.Count - 3) more movies</p>
+                }
+            }
+            else
+            {
+                <p class="text-danger">No movies found</p>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h2>Coming Soon (@Model.UpcomingMovies.Count movies)</h2>
+        </div>
+        <div class="card-body">
+            @if (Model.UpcomingMovies.Any())
+            {
+                <div class="row">
+                    @foreach (var movie in Model.UpcomingMovies.Take(3))
+                    {
+                        <div class="col-md-4 mb-3">
+                            <div class="border p-3">
+                                <h5>@movie.Name</h5>
+                                @if (!string.IsNullOrEmpty(movie.PosterUrl))
+                                {
+                                    <img src="@movie.PosterUrl" alt="@movie.Name" style="max-width: 100%; max-height: 300px; object-fit: cover;" class="mb-2" />
+                                }
+                                else
+                                {
+                                    <p class="text-muted">(No poster)</p>
+                                }
+                                <p>Genre: @movie.Genre</p>
+                                <p>Rating: @movie.FormattedRating</p>
+                                <p>Duration: @movie.FormattedDuration</p>
+                                <p>Release Date: @movie.ReleaseDate.ToString("MMM dd, yyyy")</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+                @if (Model.UpcomingMovies.Count > 3)
+                {
+                    <p class="text-muted">... and @(Model.UpcomingMovies.Count - 3) more</p>
+                }
+            }
+            else
+            {
+                <p class="text-danger">No upcoming movies</p>
+            }
+        </div>
+    </div>
+</div>

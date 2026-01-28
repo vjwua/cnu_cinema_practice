@@ -6,12 +6,20 @@ DELETE FROM Movies;
 DELETE FROM Halls;
 DELETE FROM SeatTypes;
 
--- Insert Movies
+-- Insert Movies (with sessions - now showing)
 INSERT INTO Movies (Name, DurationMinutes, AgeLimit, Genre, Description, ReleaseDate, ImdbRating, PosterUrl, Country)
 VALUES 
 ('Dune: Part Two', 150, 12, 1, 'Epic continuation of the Dune saga', '2026-01-15', 8.5, 'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'USA'),
 ('Avatar 3', 220, 12, 2, 'Return to Pandora for another adventure', '2026-01-10', 8.9, 'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'USA'),
 ('The Grand Adventure', 142, 12, 0, 'An epic adventure across distant lands', '2026-01-20', 7.8, 'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'UK');
+
+-- Insert Upcoming Movies (without sessions - coming soon)
+INSERT INTO Movies (Name, DurationMinutes, AgeLimit, Genre, Description, ReleaseDate, ImdbRating, PosterUrl, Country)
+VALUES 
+('Oppenheimer 2', 180, 16, 3, 'The story continues', '2026-02-20', 8.7, 'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'USA'),
+('Spider-Man: Beyond', 135, 12, 1, 'New adventures of Spider-Man', '2026-03-15', 8.2, 'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'USA'),
+('The Last Voyage', 155, 13, 2, 'A journey to the unknown', '2026-04-01', 7.9, 'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'UK'),
+('Interstellar II', 190, 12, 2, 'Return to the stars', '2026-03-25', 9.1, 'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'USA');
 
 -- Insert Halls (using raw SQL to bypass constructor)
 SET IDENTITY_INSERT Halls ON;

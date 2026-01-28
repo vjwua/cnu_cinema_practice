@@ -8,4 +8,7 @@ public class SessionPreviewDTO
     public DateTime StartTime { get; set; }
     public decimal BasePrice { get; set; }
     public string HallName { get; set; } = string.Empty;
+    public string? MoviePosterUrl { get; set; }
+    public int MovieDurationMinutes { get; set; }
+    public string? MovieGenre { get; set; }
 }
