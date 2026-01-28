@@ -1,36 +1,21 @@
-html {
-  font-size: 14px;
-}
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
+body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
+h1, h2, h3, .font-heading { font-family: 'Space Grotesk', sans-serif; }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
+.glass { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
 
-html {
-  position: relative;
-  min-height: 100%;
+@keyframes float { 
+    0%, 100% { transform: translate(0, 0) scale(1); } 
+    33% { transform: translate(30px, -50px) scale(1.1); } 
+    66% { transform: translate(-20px, 20px) scale(0.9); } 
 }
+.animate-blob { animation: float 20s infinite alternate cubic-bezier(0.45, 0, 0.55, 1); }
 
-body {
-  margin-bottom: 60px;
-}
+.movie-card:hover .movie-overlay { transform: translateY(-10px); opacity: 1; }
+.movie-card:hover .movie-poster { transform: scale(1.1); }
+.movie-card:hover .neon-glow { opacity: 1; }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
-
-.cinema-primary {
-    background-color: #FFDD47;
-    color: #8EFFE6;
-}
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
