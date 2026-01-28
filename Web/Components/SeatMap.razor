@@ -1,0 +1,73 @@
+@using cnu_cinema_practice.Models
+
+<div class="flex flex-col items-center gap-12 w-full max-w-3xl mx-auto py-10">
+    <!-- Curved Screen -->
+    <div class="relative w-full">
+        <div class="h-1 w-full bg-cyan-500 rounded-full shadow-[0_0_25px_rgba(34,211,238,0.8)] opacity-50"></div>
+        <div class="text-center text-[10px] text-cyan-500/50 uppercase tracking-[0.5em] mt-3 font-bold">Центральний
+            Екран</div>
+    </div>
+
+    <!-- Grid -->
+    <div class="flex flex-col gap-3">
+        @for (int r = 1; r <= 8; r++)
+        {
+            var row = r;
+            var isVIP = row >= 7;
+
+            <div class="flex items-center gap-3">
+                <span class="w-6 text-[10px] font-bold text-slate-600 text-right">@row</span>
+                <div class="flex gap-2">
+                    @for (int c = 1; c <= 12; c++)
+                    {
+                        var col = c;
+                        var seatId = $"{row}-{col}";
+                        var isOccupied = OccupiedSeats.Contains(seatId);
+                        var isSelected = SelectedSeats.Contains(seatId);
+
+                        <button disabled="@isOccupied" @onclick="() => OnSeatToggle.InvokeAsync(seatId)"
+                            title="@($"Ряд {row}, Місце {col}{(isVIP ? " (VIP)" : "")}")" class="transition-all duration-300 transform hover:scale-125 rounded-sm
+                                       @(isVIP ? "w-8 h-6 sm:w-10 sm:h-7 rounded-md" : "w-6 h-6 sm:w-8 sm:h-8")
+                                       @(isOccupied ? "bg-slate-800 cursor-not-allowed opacity-20" : 
+                                         isSelected ? "bg-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.6)]" : 
+                                         isVIP ? "bg-amber-500/20 border border-amber-500/50 hover:bg-amber-500/40" : 
+                                         "bg-slate-700 hover:bg-slate-600 border border-slate-600")">
+                        </button>
+                    }
+                </div>
+                <span class="w-6 text-[10px] font-bold text-slate-600 text-left">@row</span>
+            </div>
+        }
+    </div>
+
+    <!-- Legend -->
+    <div class="flex flex-wrap justify-center gap-8 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+        <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-slate-700 border border-slate-600 rounded-sm"></div>
+            <span>Вільне</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-amber-500/20 border border-amber-500/50 rounded-sm"></div>
+            <span>VIP</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-cyan-500 rounded-sm"></div>
+            <span>Ваш вибір</span>
+        </div>
+        <div class="flex items-center gap-2 opacity-30">
+            <div class="w-4 h-4 bg-slate-800 rounded-sm"></div>
+            <span>Зайняте</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public List<string> OccupiedSeats { get; set; } = new();
+
+    [Parameter]
+    public List<string> SelectedSeats { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<string> OnSeatToggle { get; set; }
+}

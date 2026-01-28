@@ -1,0 +1,38 @@
+@using cnu_cinema_practice.Models
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
+    @foreach (var snack in MockData.Snacks)
+    {
+        <div class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl flex items-center gap-4">
+            <div class="text-4xl">@snack.Icon</div>
+            <div class="flex-grow">
+                <h4 class="font-bold text-slate-200">@snack.Name</h4>
+                <p class="text-cyan-500 font-bold">@snack.Price ₴</p>
+            </div>
+            <div class="flex items-center gap-3 bg-slate-800 rounded-lg p-1">
+                <button @onclick="() => UpdateSnack(snack.Id, -1)"
+                    class="w-8 h-8 flex items-center justify-center hover:bg-slate-700 rounded transition-colors">
+                    -
+                </button>
+                <span class="w-4 text-center font-bold">@(SelectedSnacks.GetValueOrDefault(snack.Id, 0))</span>
+                <button @onclick="() => UpdateSnack(snack.Id, 1)"
+                    class="w-8 h-8 flex items-center justify-center hover:bg-slate-700 rounded transition-colors">
+                    +
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Dictionary<string, int> SelectedSnacks { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<(string Id, int Delta)> OnUpdateSnack { get; set; }
+
+    private async Task UpdateSnack(string id, int delta)
+    {
+        await OnUpdateSnack.InvokeAsync((id, delta));
+    }
+}

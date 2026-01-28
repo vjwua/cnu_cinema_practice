@@ -1,4 +1,6 @@
 using Infrastructure;
+using cnu_cinema_practice.Components;
+using cnu_cinema_practice.Services;
 
 namespace cnu_cinema_practice;
 
@@ -7,6 +9,12 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        // Add services to the container.
+        builder.Services.AddRazorComponents()
+            .AddInteractiveServerComponents();
+
+        builder.Services.AddScoped<ICinemaService, CinemaService>();
 
         builder.Services.AddControllersWithViews();
         builder.Services.AddInfrastructure(builder.Configuration);
@@ -25,6 +33,10 @@ public class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseAntiforgery();
+
+        app.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode();
 
         app.MapControllerRoute(
             name: "default",
