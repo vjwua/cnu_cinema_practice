@@ -6,6 +6,8 @@ namespace Core.Interfaces.Repositories;
 public interface IMovieRepository
 {
     Task<IEnumerable<Movie>> GetAllAsync();
+    Task<IEnumerable<Movie>> GetAllWithUpcomingSessionsAsync();
+    Task<IEnumerable<Movie>> GetUpcomingMoviesAsync();
     Task<Movie?> GetByIdAsync(int id);
     Task<IEnumerable<Movie>> GetByGenreAsync(MovieGenre genre);
     Task<Movie> CreateAsync(Movie movie);
