@@ -4,17 +4,17 @@ using Core.Interfaces.Repositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Repositories.Interfaces;
+namespace Infrastructure.Repositories;
 
 public class SeatRepository : ISeatRepository
 {
     private CinemaDbContext _context;
-    private readonly HallRepository _hallRepo;
+    private readonly IHallRepository _hallRepo;
     private readonly DbSet<Seat> _seats;
     private readonly DbSet<Session> _sessions;
     private readonly DbSet<SeatReservation> _seatReservations;
 
-    public SeatRepository(CinemaDbContext con, HallRepository hRepo)
+    public SeatRepository(CinemaDbContext con, IHallRepository hRepo)
     {
         this._context = con;
         this._seats = this._context.Seats;
@@ -78,5 +78,13 @@ public class SeatRepository : ISeatRepository
         var availableForSession = await GetAvailableSeatsAsync(sessionId);
         var result = availableForSession.Contains(await GetByIdAsync(seatId));
         return result;
+    }
+
+    public async Task<IEnumerable<Seat>> GetByHallId(int hallId)
+    {
+        var seats = await _seats
+            .Where(s => s.HallId == hallId)
+            .ToListAsync();
+        return seats.AsEnumerable();
     }
 }

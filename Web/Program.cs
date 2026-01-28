@@ -27,6 +27,14 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
+// Маршрут для Admin Area (ВАЖЛИВО: до default route)
+        app.MapControllerRoute(
+            name: "admin",
+            pattern: "Admin/{controller=Admin}/{action=Index}/{id?}",
+            defaults: new { area = "Admin" }
+        );
+
+// Стандартний маршрут для клієнтської частини
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");

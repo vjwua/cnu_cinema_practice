@@ -1,11 +1,12 @@
 ﻿@using cnu_cinema_practice.ViewModels
-@model HallLayoutViewModel
+@using Microsoft.EntityFrameworkCore.Storage.Json
+@model cnu_cinema_practice.ViewModels.Halls.UpdateHallViewModel
 @{
-    ViewData["Title"] = "Hall Layout - " + Model.HallName;
+    ViewData["Title"] = "Hall Layout - " + Model.Name;
 }
 
 <div class="mb-4">
-    <h1 class="display-5">@Model.HallName Layout</h1>
+    <h1 class="display-5">@Model.Name Layout</h1>
     <p class="text-muted">Configure seat availability and disabled seats</p>
 </div>
 
@@ -29,15 +30,22 @@
                 <!-- Seat Map -->
                 <div class="seat-map">
                     @{
-                        var rows = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".Substring(0, Model.Rows).ToCharArray();
-                        for (int i = 0; i < Model.Rows; i++)
+                        List<string> DisabledSeats = new List<string>();
+                        int rowCount = Model.SeatLayout.GetLength(0);
+                        int columnCount = Model.SeatLayout.GetLength(1);
+                        var rows = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".Substring(0, rowCount).ToCharArray();
+                        for (int i = 0; i < rowCount; i++)
                         {
                             <div class="seat-row">
                                 <span class="row-label">@rows[i]</span>
-                                @for (int j = 1; j <= Model.SeatsPerRow; j++)
+                                @for (int j = 1; j <= columnCount; j++)
                                 {
                                     var seatId = $"{rows[i]}{j}";
-                                    var isDisabled = Model.DisabledSeats.Contains(seatId);
+                                    bool isDisabled = Model.SeatLayout[i, j - 1] == 0;
+                                    if (isDisabled)
+                                    {
+                                        DisabledSeats.Add(seatId);
+                                    }
 
                                     <div class="seat @(isDisabled ? "disabled-seat" : "enabled-seat")"
                                          data-seat="@seatId"
@@ -74,22 +82,22 @@
             <div class="card-body">
                 <h6>Disabled Seats:</h6>
                 <p id="disabled-seats-display" class="text-muted small">
-                    @(Model.DisabledSeats.Any() ? string.Join(", ", Model.DisabledSeats) : "None")
+                    @(DisabledSeats.Any() ? string.Join(", ", DisabledSeats) : "None")
                 </p>
 
                 <hr>
 
                 <div class="mb-3">
-                    <strong>Total Seats:</strong> @(Model.Rows* Model.SeatsPerRow)<br>
-                    <strong>Disabled:</strong> <span id="disabled-count">@Model.DisabledSeats.Count</span><br>
-                    <strong>Available:</strong> <span id="available-count">@(Model.Rows* Model.SeatsPerRow - Model.DisabledSeats.Count)</span>
+                    <strong>Total Seats:</strong> @(rowCount * columnCount)<br>
+                    <strong>Disabled:</strong> <span id="disabled-count">@DisabledSeats.Count</span><br>
+                    <strong>Available:</strong> <span id="available-count">@(rowCount * columnCount - DisabledSeats.Count)</span>
                 </div>
 
                 <hr>
 
-                <form asp-action="UpdateHallLayout" method="post">
-                    <input type="hidden" name="hallId" value="@Model.HallId" />
-                    <input type="hidden" id="disabled-seats-input" name="disabledSeats" value="@string.Join(",", Model.DisabledSeats)" />
+                <form asp-action="Update" method="post">
+                    <input type="hidden" name="hallId" value="@Model.Id" />
+                    <input type="hidden" id="disabled-seats-input" name="disabledSeats" value="@string.Join(",", DisabledSeats)" />
 
                     <button type="submit" class="btn btn-success w-100 mb-2">
                         <i class="bi bi-save"></i> Save Layout
@@ -109,15 +117,17 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            let disabledSeats = [@Html.Raw(string.Join(",", Model.DisabledSeats.Select(s => $"'{s}'")))];
+            @*
+            // let disabledSeats = [@Html.Raw(string.Join(",", Model.DisabledSeats.Select(s => $"'{s}'")))];
+            *@
+            let disabledSeats = [];
             const originalDisabledSeats = [...disabledSeats];
-            const totalSeats = @(Model.Rows* Model.SeatsPerRow);
+            const totalSeats = @(Model.SeatLayout.GetLength(0) * Model.SeatLayout.GetLength(1));
 
             // Add click handlers to all seats
             document.querySelectorAll('.seat').forEach(seat => {
                 seat.addEventListener('click', function() {
                     const seatId = this.getAttribute('data-seat');
-
                     if (this.classList.contains('disabled-seat')) {
                         // Enable the seat
                         this.classList.remove('disabled-seat');

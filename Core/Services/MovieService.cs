@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Core.DTOs.Movies;
 using Core.Entities;
 using Core.Enums;
@@ -21,6 +21,18 @@ public class MovieService : IMovieService
     public async Task<IEnumerable<MovieListDTO>> GetAllAsync()
     {
         var movies  = await _movieRepository.GetAllAsync();
+        return _mapper.Map<IEnumerable<MovieListDTO>>(movies);
+    }
+
+    public async Task<IEnumerable<MovieWithSessionsDTO>> GetAllWithUpcomingSessionsAsync()
+    {
+        var movies = await _movieRepository.GetAllWithUpcomingSessionsAsync();
+        return _mapper.Map<IEnumerable<MovieWithSessionsDTO>>(movies);
+    }
+
+    public async Task<IEnumerable<MovieListDTO>> GetUpcomingMoviesAsync()
+    {
+        var movies = await _movieRepository.GetUpcomingMoviesAsync();
         return _mapper.Map<IEnumerable<MovieListDTO>>(movies);
     }
 

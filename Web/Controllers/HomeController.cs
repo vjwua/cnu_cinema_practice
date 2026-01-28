@@ -1,69 +1,50 @@
-using cnu_cinema_practice.ViewModels;
+using cnu_cinema_practice.ViewModels.Home;
+using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-// using cnu_cinema_practice.Models;
 
 namespace cnu_cinema_practice.Controllers;
 
-public class HomeController : Controller
+public class HomeController(IMovieService movieService) : Controller
 {
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        var movies = new List<MovieOverviewViewModel>
+        var moviesWithSessions = await movieService.GetAllWithUpcomingSessionsAsync();
+
+        var movieCards = moviesWithSessions.Select(movie => new MovieCardViewModel
+        {
+            Id = movie.Id,
+            Name = movie.Name,
+            PosterUrl = movie.PosterUrl,
+            ImdbRating = movie.ImdbRating?.ToString("F1"),
+            Genre = movie.Genre.ToString(),
+            DurationMinutes = movie.DurationMinutes,
+            Sessions = movie.Sessions.Take(2).Select(s => new MovieSessionTimeViewModel
             {
-                new MovieOverviewViewModel
-                {
-                    Id = 1,
-                    Name = "The Grand Adventure",
-                    PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
-                    DurationMinutes = 142,
-                    Genres = new List<string> { "Action", "Adventure", "Sci-Fi" },
-                    ImdbRating = "12+",
-                    ReleaseDate = new DateTime(2026, 1, 15)
-                },
-                new MovieOverviewViewModel
-                {
-                    Id = 2,
-                    Name = "Mystery at Midnight",
-                    PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
-                    DurationMinutes = 118,
-                    Genres = new List<string> { "Mystery", "Thriller" },
-                    ImdbRating = "18+",
-                    ReleaseDate = new DateTime(2026, 1, 10)
-                },
-                new MovieOverviewViewModel
-                {
-                    Id = 3,
-                    Name = "Comedy Central",
-                    PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
-                    DurationMinutes = 95,
-                    Genres = new List<string> { "Comedy", "Romance" },
-                    ImdbRating = "ÇÀ",
-                    ReleaseDate = new DateTime(2025, 12, 20)
-                },
-                new MovieOverviewViewModel
-                {
-                    Id = 4,
-                    Name = "Drama Unfolds",
-                    PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
-                    DurationMinutes = 156,
-                    Genres = new List<string> { "Drama", "Biography" },
-                    ImdbRating = "16+",
-                    ReleaseDate = new DateTime(2026, 1, 5)
-                }
-            };
+                SessionId = s.Id,
+                StartTime = s.StartTime
+            }).ToList()
+        }).ToList();
 
-        return View(movies);
-    }
+        // Get upcoming movies (coming soon - no sessions yet)
+        var upcomingMovies = await movieService.GetUpcomingMoviesAsync();
+        var upcomingMovieViewModels = upcomingMovies.Select(m => new UpcomingMovieViewModel
+        {
+            Id = m.Id,
+            Name = m.Name,
+            PosterUrl = m.PosterUrl,
+            Genre = m.Genre.ToString(),
+            ImdbRating = m.ImdbRating,
+            ReleaseDate = m.ReleaseDate,
+            DurationMinutes = m.DurationMinutes
+        }).ToList();
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+        var viewModel = new HomeIndexViewModel
+        {
+            FeaturedMovie = movieCards.FirstOrDefault(),
+            Movies = movieCards,
+            UpcomingMovies = upcomingMovieViewModels
+        };
 
-    public IActionResult Reverse()
-    {
-        return View();
+        return View(viewModel);
     }
-    // ...
 }

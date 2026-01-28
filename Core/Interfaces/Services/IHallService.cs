@@ -1,4 +1,5 @@
 using Core.DTOs.Halls;
+using Core.DTOs.Seats;
 
 namespace Core.Interfaces.Services;
 
@@ -12,4 +13,5 @@ public interface IHallService
     Task<int> GetSeatCountAsync(int hallId);
     Task<bool> ExistsAsync(int hallId);
     Task DeleteAsync(int hallId);
+    Task<IEnumerable<SeatDTO>> GetSeatsByHall(int hallId);
 }

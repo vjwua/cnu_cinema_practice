@@ -1,7 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
-using Infrastructure.Repositories.Interfaces;
 using Core.Entities;
 using Core.Enums;
 using FluentAssertions;
