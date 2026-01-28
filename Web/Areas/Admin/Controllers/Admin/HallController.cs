@@ -19,7 +19,7 @@ public class HallController : Controller
         this._mapper = mapper;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Halls()
     {
         var halls = await _hallService.GetAllAsync();
         var viewModels = _mapper.Map<IEnumerable<HallListViewModel>>(halls);
@@ -43,15 +43,45 @@ public class HallController : Controller
     public async Task<IActionResult> Create(CreateHallViewModel model)
     {
         var dto = _mapper.Map<CreateHallDTO>(model);
+        dto.SeatLayout = new byte[dto.Rows, dto.Columns];
+        foreach (var row in dto.SeatLayout)
+        {
+            foreach (var seat in dto.SeatLayout)
+            {
+                dto.SeatLayout[row, seat] = 1;
+            }
+        }
         var details = await _hallService.CreateAsync(dto);
 
         bool exists = await _hallService.ExistsAsync(details.Id);
         if (exists == false)
         {
             ModelState.AddModelError(string.Empty, "Could not create new Hall");
-            return View(model);
+            //return View(model);
         }
-        return RedirectToAction("Index");
+        return RedirectToAction("Halls");
+    }
+    public IActionResult CreateHall()
+    {
+        return View(new CreateHallViewModel());
+    }
+
+    public async Task<IActionResult> HallLayout(int id)
+    {
+        var dto = await _hallService.GetByIdAsync(id);
+
+        var viewmodel = new UpdateHallViewModel();
+        var seats = await _hallService.GetSeatsByHall(id);
+        byte[,] layout = new byte[dto.Rows, dto.Columns];
+        foreach (var seat in seats)
+        {
+            var r = seat.RowNum;
+            var c = seat.SeatNum;
+            layout[r, c] = (byte)seat.SeatTypeId;
+        }
+
+        viewmodel.SeatLayout = layout;
+        return View(viewmodel);
     }
 
     [HttpPost]
@@ -80,6 +110,6 @@ public class HallController : Controller
     public async Task<IActionResult> Delete(int id)
     {
         await _hallService.DeleteAsync(id);
-        return RedirectToAction("Index");
+        return RedirectToAction("Halls");
     }
 }

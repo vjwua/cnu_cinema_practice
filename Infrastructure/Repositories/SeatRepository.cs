@@ -79,4 +79,12 @@ public class SeatRepository : ISeatRepository
         var result = availableForSession.Contains(await GetByIdAsync(seatId));
         return result;
     }
+
+    public async Task<IEnumerable<Seat>> GetByHallId(int hallId)
+    {
+        var seats = await _seats
+            .Where(s => s.HallId == hallId)
+            .ToListAsync();
+        return seats.AsEnumerable();
+    }
 }

@@ -1,5 +1,5 @@
 ﻿@using cnu_cinema_practice.ViewModels
-@model List<AdminHallViewModel>
+@model List<cnu_cinema_practice.ViewModels.Halls.HallListViewModel>
 @{
     ViewData["Title"] = "Manage Halls";
 }
@@ -30,20 +30,20 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <h5 class="card-title mb-0">@hall.Name</h5>
-                        @if (hall.IsAvailable)
+                        @*@if (hall.IsAvailable)
                         {
                             <span class="badge bg-success">Active</span>
                         }
                         else
                         {
                             <span class="badge bg-secondary">Inactive</span>
-                        }
+                        }*@
                     </div>
 
                     <div class="mb-3">
                         <p class="mb-2">
                             <i class="bi bi-grid-3x3"></i>
-                            <strong>Layout:</strong> @hall.Rows rows × @hall.SeatsPerRow seats
+                            <strong>Layout:</strong> @hall.Rows rows × @hall.Columns seats
                         </p>
                         <p class="mb-0">
                             <i class="bi bi-people"></i>
@@ -78,7 +78,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <form asp-action="DeleteHall" asp-route-id="@hall.Id" method="post" class="d-inline">
+                            <form asp-action="Delete" asp-route-id="@hall.Id" method="post" class="d-inline">
                                 <button type="submit" class="btn btn-danger">Delete</button>
                             </form>
                         </div>

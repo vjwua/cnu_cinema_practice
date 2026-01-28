@@ -7,4 +7,5 @@ public class HallListViewModel
     public string Name { get; set; }
     public byte Rows { get; set; }
     public byte Columns { get; set; }
+    public int TotalSeats => Rows * Columns;
 }
