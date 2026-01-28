@@ -9,10 +9,10 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
 {
     [Area("Admin")]
     public class AdminController(
-            IMovieService movieService,
-            IHallService hallService,
-            IMapper mapper) : Controller
-        {
+        IMovieService movieService,
+        IHallService hallService,
+        IMapper mapper) : Controller
+    {
         // Dashboard
         public IActionResult Index()
         {
@@ -24,9 +24,9 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
         // List all movies
         public async Task<IActionResult> Movies()
         {
-            var movies = await movieService.GetAllAsync();
-            var viewModels = mapper.Map<IEnumerable<AdminMovieViewModel>>(movies);
-            return View(viewModels);
+            var moviesDto = await movieService.GetAllAsync();
+            var movies = mapper.Map<IEnumerable<AdminMovieViewModel>>(moviesDto);
+            return View(movies);
         }
 
         // Create movie - GET
@@ -51,8 +51,8 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
 
             try
             {
-                var dto = mapper.Map<CreateMovieDTO>(model);
-                await movieService.CreateAsync(dto);
+                var createDto = mapper.Map<CreateMovieDTO>(model);
+                await movieService.CreateAsync(createDto);
 
                 TempData["Success"] = $"Movie '{model.Name}' created successfully!";
                 return RedirectToAction("Movies");
@@ -67,15 +67,12 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
         // Edit movie - GET
         public async Task<IActionResult> EditMovie(int id)
         {
-            var movie = await movieService.GetByIdAsync(id);
-            if (movie == null)
-            {
-                TempData["Error"] = "Movie not found.";
-                return RedirectToAction("Movies");
-            }
+            var movieDto = await movieService.GetByIdAsync(id);
+            if (movieDto == null)
+                return NotFound();
 
-            var viewModel = mapper.Map<MovieFormViewModel>(movie);
-            return View(viewModel);
+            var movie = mapper.Map<MovieFormViewModel>(movieDto);
+            return View(movie);
         }
 
         // Edit movie - POST
@@ -90,16 +87,15 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
 
             try
             {
-                var dto = mapper.Map<UpdateMovieDTO>(model);
-                await movieService.UpdateAsync(dto);
+                var updateDto = mapper.Map<UpdateMovieDTO>(model);
+                await movieService.UpdateAsync(updateDto);
 
                 TempData["Success"] = $"Movie '{model.Name}' updated successfully!";
                 return RedirectToAction("Movies");
             }
             catch (KeyNotFoundException)
             {
-                TempData["Error"] = "Movie not found.";
-                return RedirectToAction("Movies");
+                return NotFound();
             }
             catch (Exception ex)
             {
@@ -131,47 +127,13 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
         }
 
         // Toggle movie active status
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> ToggleMovieStatus(int id)
-        //{
-        //    try
-        //    {
-        //        var movie = await movieService.GetByIdAsync(id);
-        //        if (movie == null)
-        //        {
-        //            TempData["Error"] = "Movie not found.";
-        //            return RedirectToAction("Movies");
-        //        }
-
-        //        // Toggle the IsActive status
-        //        var updateDto = new UpdateMovieDTO
-        //        {
-        //            Id = id,
-        //            Name = movie.Name,
-        //            Description = movie.Description,
-        //            DurationMinutes = movie.DurationMinutes,
-        //            ReleaseDate = movie.ReleaseDate,
-        //            PosterUrl = movie.PosterUrl,
-        //            TrailerUrl = movie.TrailerUrl,
-        //            Director = movie.Director,
-        //            Genre = movie.Genre,
-        //            AgeLimit = movie.AgeLimit,
-        //            Country = movie.Country,
-        //            ImdbRating = movie.ImdbRating,
-        //            IsActive = !movie.IsActive // Toggle
-        //        };
-
-        //        await movieService.UpdateAsync(updateDto);
-        //        TempData["Success"] = $"Movie status updated successfully!";
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        TempData["Error"] = $"Error updating status: {ex.Message}";
-        //    }
-
-        //    return RedirectToAction("Movies");
-        //}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ToggleMovieStatus(int id)
+        {
+            // TODO: Implement if IsActive becomes part of Movie entity
+            return RedirectToAction("Movies");
+        }
 
         #endregion
 
@@ -180,9 +142,9 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
         // List all halls
         public async Task<IActionResult> Halls()
         {
-            var halls = await hallService.GetAllAsync();
-            var viewModels = mapper.Map<IEnumerable<AdminHallViewModel>>(halls);
-            return View(viewModels);
+            var hallsDto = await hallService.GetAllAsync();
+            var halls = mapper.Map<IEnumerable<AdminHallViewModel>>(hallsDto);
+            return View(halls);
         }
 
         // Create hall - GET
@@ -203,8 +165,8 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
 
             try
             {
-                var dto = mapper.Map<CreateHallDTO>(model);
-                await hallService.CreateAsync(dto);
+                var createDto = mapper.Map<CreateHallDTO>(model);
+                await hallService.CreateAsync(createDto);
 
                 TempData["Success"] = $"Hall '{model.Name}' created successfully!";
                 return RedirectToAction("Halls");
@@ -219,15 +181,12 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
         // Edit hall - GET
         public async Task<IActionResult> EditHall(int id)
         {
-            var hall = await hallService.GetByIdAsync(id);
-            if (hall == null)
-            {
-                TempData["Error"] = "Hall not found.";
-                return RedirectToAction("Halls");
-            }
+            var hallDto = await hallService.GetByIdAsync(id);
+            if (hallDto == null)
+                return NotFound();
 
-            var viewModel = mapper.Map<HallFormViewModel>(hall);
-            return View(viewModel);
+            var hall = mapper.Map<HallFormViewModel>(hallDto);
+            return View(hall);
         }
 
         // Edit hall - POST
@@ -242,8 +201,8 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
 
             try
             {
-                var dto = mapper.Map<UpdateHallDTO>(model);
-                await hallService.UpdateHallInfo(dto);
+                var updateDto = mapper.Map<UpdateHallDTO>(model);
+                await hallService.UpdateHallInfo(updateDto);
 
                 TempData["Success"] = $"Hall '{model.Name}' updated successfully!";
                 return RedirectToAction("Halls");
@@ -258,22 +217,11 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
         // Manage hall layout
         public async Task<IActionResult> HallLayout(int id)
         {
-            var hall = await hallService.GetByIdAsync(id);
-            if (hall == null)
-            {
-                TempData["Error"] = "Hall not found.";
-                return RedirectToAction("Halls");
-            }
+            var hallDto = await hallService.GetByIdAsync(id);
+            if (hallDto == null)
+                return NotFound();
 
-            var layout = new HallLayoutViewModel
-            {
-                HallId = id,
-                HallName = hall.Name,
-                Rows = hall.Rows,
-                SeatsPerRow = hall.Columns,
-                DisabledSeats = new List<string>() // TODO: Implement disabled seats logic if needed
-            };
-
+            var layout = mapper.Map<HallLayoutViewModel>(hallDto);
             return View(layout);
         }
 
@@ -282,23 +230,23 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateHallLayout(int hallId, string disabledSeats)
         {
-            var seatList = string.IsNullOrEmpty(disabledSeats)
-                ? new List<string>()
-                : disabledSeats.Split(',').ToList();
-
             try
             {
-                // TODO: Implement disabled seats logic in your service/repository
-                // For now, you might need to add a method to handle this in HallService
+                var seatList = string.IsNullOrEmpty(disabledSeats)
+                    ? new List<string>()
+                    : disabledSeats.Split(',').ToList();
+
+                // TODO: Convert disabled seats to proper seat layout and update
+                // This will require mapping seat identifiers to byte[,] array
 
                 TempData["Success"] = $"Hall layout updated! {seatList.Count} seats disabled.";
+                return RedirectToAction("Halls");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error updating layout: {ex.Message}";
+                return RedirectToAction("Halls");
             }
-
-            return RedirectToAction("Halls");
         }
 
         // Delete hall
