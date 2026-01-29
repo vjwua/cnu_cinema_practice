@@ -87,4 +87,48 @@ public class SeatRepository : ISeatRepository
             .ToListAsync();
         return seats.AsEnumerable();
     }
+
+    public async Task SetSeatTypeAsync(int seatId, int seatType)
+    {
+        var seat = await GetByIdAsync(seatId);
+        if (seat != null) seat.SeatTypeId = seatType;
+    }
+
+    public async Task CreateAsync(Seat seat)
+    {
+        try
+        {
+            await _seats.AddAsync(seat);
+            await _context.SaveChangesAsync();    
+        }
+        finally{}
+    }
+
+    public async Task UpdateHallLayout(int hallId, int r, int c, string ls)
+    {
+        var seats = await GetByHallId(hallId);
+        foreach (var seat in seats)
+        {
+            int sType = seat.SeatTypeId;
+            int seatIndex = seat.RowNum * c + seat.SeatNum;
+            if (seatIndex < ls.Length
+                && sType != (ls[seatIndex] - '0') )
+            {
+                await SetSeatTypeAsync(seat.Id, (byte) (ls[seatIndex] - '0') );
+            }
+        }
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var seat = await GetByIdAsync(id);
+        if (seat != null)
+        {
+            _seatReservations.RemoveRange(_seatReservations.Where(s => s.SeatId == seat.Id).ToList());
+            await _context.SaveChangesAsync();
+            _seats.Remove(seat);
+            await _context.SaveChangesAsync();
+        }
+    }
 }

@@ -1,5 +1,5 @@
 ﻿@using cnu_cinema_practice.ViewModels
-@model HallFormViewModel
+@model cnu_cinema_practice.ViewModels.Halls.HallDetailViewModel
 @{
     ViewData["Title"] = Model.Id > 0 ? "Edit Hall" : "Add New Hall";
 }
@@ -11,23 +11,23 @@
                 <h4 class="mb-0">@ViewData["Title"]</h4>
             </div>
             <div class="card-body">
-                <form asp-action="@(Model.Id > 0 ? "EditHall" : "CreateHall")" method="post">
-                    <input type="hidden" asp-for="Id" />
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="Id" value="@Model.Id" />
 
                     <div class="mb-3">
                         <label asp-for="Name" class="form-label">Hall Name *</label>
-                        <input asp-for="Name" class="form-control" placeholder="e.g., Theater 1, VIP Hall" required />
+                        <input asp-for="Name" value="@Model.Name" class="form-control" placeholder="e.g., Theater 1, VIP Hall" required />
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="Rows" class="form-label">Number of Rows *</label>
-                            <input asp-for="Rows" type="number" class="form-control" min="1" max="26" required />
+                            <input asp-for="Rows" value="@Model.Rows" type="number" class="form-control" min="1" max="26" required />
                             <small class="text-muted">Maximum 26 rows (A-Z)</small>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="SeatsPerRow" class="form-label">Seats Per Row *</label>
-                            <input asp-for="SeatsPerRow" type="number" class="form-control" min="1" max="30" required />
+                            <label asp-for="Columns" class="form-label">Seats Per Row *</label>
+                            <input asp-for="Columns" value="@Model.Columns" type="number" class="form-control" min="1" max="30" required />
                         </div>
                     </div>
 
@@ -36,10 +36,10 @@
                         <strong>Total Capacity:</strong> <span id="total-capacity">0</span> seats
                     </div>
 
-                    <div class="mb-3 form-check">
+                    @*<div class="mb-3 form-check">
                         <input asp-for="IsActive" type="checkbox" class="form-check-input" />
                         <label asp-for="IsActive" class="form-check-label">Active</label>
-                    </div>
+                    </div>*@
 
                     <hr>
 
@@ -47,7 +47,7 @@
                         <button type="submit" class="btn btn-success">
                             <i class="bi bi-save"></i> @(Model.Id > 0 ? "Update Hall" : "Create Hall")
                         </button>
-                        <a asp-action="Halls" class="btn btn-outline-secondary">Cancel</a>
+                        <a asp-action="List" class="btn btn-outline-secondary">Cancel</a>
                     </div>
                 </form>
             </div>

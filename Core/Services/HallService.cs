@@ -5,6 +5,7 @@ using Core.Entities;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 
 namespace Core.Services;
@@ -73,5 +74,36 @@ public class HallService : IHallService
     {
         var seats = await _seatRepository.GetByHallId(hallId);
         return _mapper.Map<IEnumerable<SeatDTO>>(seats);
+    }
+
+    public async Task UpdateHallDimensions(int hallId, byte rows, byte cols)
+    {
+        await _hallRepository.UpdateDimensionsAsync(hallId, rows, cols);
+    }
+
+    public async Task SetSeatTypesAsync(int seatId, int seatType)
+    {
+        await _seatRepository.SetSeatTypeAsync(seatId, seatType);
+    }
+
+    public async Task DeleteSeat(int seatId)
+    {
+        await _seatRepository.DeleteAsync(seatId);
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _hallRepository.SaveChangesAsync();
+    }
+
+    public async Task CreateSeatAsync(int hallId, SeatDTO seatDto)
+    {
+        await _seatRepository.CreateAsync(_mapper.Map<Seat>(seatDto));
+    }
+
+    public async Task UpdateLayout(int hallId, int r, int c, string layoutString)
+    {
+        //await _hallRepository.RemoveAllSeatsAsync(hallId);
+        await _seatRepository.UpdateHallLayout(hallId, r, c, layoutString);
     }
 }

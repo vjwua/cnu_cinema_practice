@@ -19,6 +19,4 @@ public class HallDetailViewModel
     [Display(Name = "Column count")]
     [Range((byte)1, (byte) 50, ErrorMessage = "Hall must have 1-50 columns")]
     public byte Columns { get; set; }
-    public ICollection<SeatViewModel> Seats { get; set; }
-    public int SeatCount => Seats.Count();
 }

@@ -30,10 +30,31 @@
                 <!-- Seat Map -->
                 <div class="seat-map">
                     @{
+                        string[] seatClases =
+                        [
+                            "disabled-seat",
+                            "standard-seat",
+                            "premium-seat",
+                            "vip-seat"
+                        ];
                         List<string> DisabledSeats = new List<string>();
                         int rowCount = Model.SeatLayout.GetLength(0);
                         int columnCount = Model.SeatLayout.GetLength(1);
                         var rows = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".Substring(0, rowCount).ToCharArray();
+                        string layoutString = "";
+                        string resetString = "";
+
+                        string hallName = Model.Name;
+                        int hallId = Model.Id;
+                        
+                        for (int i = 0; i < rowCount; i++)
+                        {
+                            for (int j = 0; j < columnCount; j++)
+                            {
+                                layoutString += Model.SeatLayout[i, j].ToString();
+                                resetString += "1";
+                            }
+                        }
                         for (int i = 0; i < rowCount; i++)
                         {
                             <div class="seat-row">
@@ -46,12 +67,25 @@
                                     {
                                         DisabledSeats.Add(seatId);
                                     }
-
-                                    <div class="seat @(isDisabled ? "disabled-seat" : "enabled-seat")"
-                                         data-seat="@seatId"
-                                         title="Seat @seatId - Click to toggle">
-                                        @j
-                                    </div>
+                                    
+                                    int r = i;
+                                    int c = j - 1;
+                                    
+                                    <form asp-action="ToggleSeat"
+                                          asp-route-r="@r"
+                                          asp-route-c="@c"
+                                          asp-route-id="@hallId"
+                                          asp-route-name="@hallName"
+                                          asp-route-rc="@rowCount"
+                                          asp-route-cc="@columnCount"
+                                          asp-route-ls="@layoutString"
+                                          method="post">
+                                        <button type="submit" class="seat @(seatClases[Model.SeatLayout[r, c]])"
+                                                data-seat="@seatId"
+                                                title="Seat @seatId - Click to toggle">
+                                            @(c + 1)
+                                        </button>
+                                    </form>
                                 }
                                 <span class="row-label">@rows[i]</span>
                             </div>
@@ -62,12 +96,20 @@
                 <!-- Legend -->
                 <div class="seat-legend mt-4">
                     <div class="legend-item">
-                        <div class="seat enabled-seat"></div>
-                        <span>Available for Booking</span>
+                        <div class="seat disabled-seat"></div>
+                        <span>Unavailable</span>
                     </div>
                     <div class="legend-item">
-                        <div class="seat disabled-seat"></div>
-                        <span>Disabled (Cannot be Booked)</span>
+                        <div class="seat standard-seat"></div>
+                        <span>Standard</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="seat premium-seat"></div>
+                        <span>Premium</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="seat vip-seat"></div>
+                        <span>VIP</span>
                     </div>
                 </div>
             </div>
@@ -95,91 +137,33 @@
 
                 <hr>
 
-                <form asp-action="Update" method="post">
+                <form asp-action="UpdateLayout"
+                      asp-route-id="@hallId"
+                      asp-route-r="@rowCount"
+                      asp-route-c="@columnCount"
+                      asp-route-ls="@layoutString"
+                      method="post">
                     <input type="hidden" name="hallId" value="@Model.Id" />
                     <input type="hidden" id="disabled-seats-input" name="disabledSeats" value="@string.Join(",", DisabledSeats)" />
 
                     <button type="submit" class="btn btn-success w-100 mb-2">
                         <i class="bi bi-save"></i> Save Layout
                     </button>
-                    <button type="button" class="btn btn-outline-secondary w-100 mb-2" id="reset-btn">
-                        <i class="bi bi-arrow-counterclockwise"></i> Reset Changes
-                    </button>
-                    <a asp-action="Halls" class="btn btn-outline-dark w-100">
+                </form>
+                    <form asp-action="ResetLayout"
+                          asp-route-id="@hallId"
+                          asp-route-name="@hallName"
+                          asp-route-r="@rowCount"
+                          asp-route-c="@columnCount"
+                          method="post">
+                        <button type="submit" class="btn btn-outline-secondary w-100 mb-2" id="reset-btn">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset 
+                        </button>
+                    </form>
+                    <a asp-action="List" class="btn btn-outline-dark w-100">
                         <i class="bi bi-arrow-left"></i> Back to Halls
                     </a>
-                </form>
             </div>
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            @*
-            // let disabledSeats = [@Html.Raw(string.Join(",", Model.DisabledSeats.Select(s => $"'{s}'")))];
-            *@
-            let disabledSeats = [];
-            const originalDisabledSeats = [...disabledSeats];
-            const totalSeats = @(Model.SeatLayout.GetLength(0) * Model.SeatLayout.GetLength(1));
-
-            // Add click handlers to all seats
-            document.querySelectorAll('.seat').forEach(seat => {
-                seat.addEventListener('click', function() {
-                    const seatId = this.getAttribute('data-seat');
-                    if (this.classList.contains('disabled-seat')) {
-                        // Enable the seat
-                        this.classList.remove('disabled-seat');
-                        this.classList.add('enabled-seat');
-                        disabledSeats = disabledSeats.filter(s => s !== seatId);
-                    } else {
-                        // Disable the seat
-                        this.classList.remove('enabled-seat');
-                        this.classList.add('disabled-seat');
-                        disabledSeats.push(seatId);
-                    }
-
-                    updateSummary();
-                });
-
-                seat.style.cursor = 'pointer';
-            });
-
-            // Reset button
-            document.getElementById('reset-btn').addEventListener('click', function() {
-                disabledSeats = [...originalDisabledSeats];
-
-                // Reset all seats
-                document.querySelectorAll('.seat').forEach(seat => {
-                    const seatId = seat.getAttribute('data-seat');
-                    if (originalDisabledSeats.includes(seatId)) {
-                        seat.classList.remove('enabled-seat');
-                        seat.classList.add('disabled-seat');
-                    } else {
-                        seat.classList.remove('disabled-seat');
-                        seat.classList.add('enabled-seat');
-                    }
-                });
-
-                updateSummary();
-            });
-
-            function updateSummary() {
-                const disabledCount = disabledSeats.length;
-                const availableCount = totalSeats - disabledCount;
-
-                document.getElementById('disabled-count').textContent = disabledCount;
-                document.getElementById('available-count').textContent = availableCount;
-                document.getElementById('disabled-seats-input').value = disabledSeats.join(',');
-
-                if (disabledSeats.length > 0) {
-                    disabledSeats.sort();
-                    document.getElementById('disabled-seats-display').textContent = disabledSeats.join(', ');
-                } else {
-                    document.getElementById('disabled-seats-display').textContent = 'None';
-                }
-            }
-        });
-    </script>
-}

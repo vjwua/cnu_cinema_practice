@@ -13,6 +13,8 @@ public class HallRepository : IHallRepository
     private readonly DbSet<Hall> _halls;
     private readonly DbSet<Seat> _seats;
     private readonly DbSet<SeatType> _seatTypes;
+    private readonly DbSet<SeatReservation> _seatReservations;
+    private readonly DbSet<Session> _sessions;
 
     public HallRepository(CinemaDbContext context)
     {
@@ -20,6 +22,8 @@ public class HallRepository : IHallRepository
         this._halls = this._context.Halls;
         this._seats = this._context.Seats;
         this._seatTypes = this._context.SeatTypes;
+        this._seatReservations = this._context.SeatReservations;
+        this._sessions = this._context.Sessions;
     }
 
     public async Task<Hall?> GetByIdAsync(int id)
@@ -108,11 +112,26 @@ public class HallRepository : IHallRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task UpdateDimensionsAsync(int hallId, byte rows, byte cols)
+    {
+        Hall? hall = await GetByIdAsync(hallId);
+        if (hall != null) hall.UpdateDimensions(rows, cols);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task RemoveAllSeatsAsync(int hallId)
     {
         var seatsByHall = await _seats
             .Where(s => s.HallId == hallId)
             .ToListAsync();
+        var seatReservations = await _seatReservations
+            .Where(sr => seatsByHall.Contains(sr.Seat))
+            .ToListAsync();
+        _seatReservations.RemoveRange(seatReservations);
+        
+        var sessions = _sessions.Where(s => s.HallId == hallId).ToList();
+        _sessions.RemoveRange(sessions);
+        await _context.SaveChangesAsync();
         _seats.RemoveRange(seatsByHall);
         await _context.SaveChangesAsync();
     }
@@ -140,5 +159,10 @@ public class HallRepository : IHallRepository
             _halls.Remove(hall);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 }

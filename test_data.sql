@@ -34,9 +34,10 @@ SET IDENTITY_INSERT Halls OFF;
 SET IDENTITY_INSERT SeatTypes ON;
 INSERT INTO SeatTypes (Id, Name, AddedPrice, IsActive)
 VALUES 
+(0, 'Unavailable', 0, 1),
 (1, 'Standard', 0, 1),
-(2, 'VIP', 50, 1),
-(3, 'Premium', 30, 1);
+(2, 'Premium', 30, 1);
+(3, 'VIP', 50, 1);
 SET IDENTITY_INSERT SeatTypes OFF;
 
 -- Insert Sessions
