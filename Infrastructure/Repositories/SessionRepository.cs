@@ -1,3 +1,5 @@
+using Core.DTOs.Common;
+using Core.DTOs.Sessions;
 using Core.Entities;
 using Core.Interfaces.Repositories;
 using Infrastructure.Data;
@@ -80,6 +82,63 @@ public class SessionRepository(CinemaDbContext context) : ISessionRepository
             .Where(s => s.StartTime > now)
             .OrderBy(s => s.StartTime)
             .ToListAsync();
+    }
+
+    public async Task<PagedResult<Session>> GetAdminPagedAsync(SessionAdminQueryDTO query)
+    {
+        var page = query.Page <= 0 ? 1 : query.Page;
+        const int pageSize = 12;
+
+        var sessionsQuery = context.Sessions
+            .AsNoTracking()
+            .Include(s => s.Movie)
+            .Include(s => s.Hall)
+                .ThenInclude(h => h.Seats)
+            .Include(s => s.SeatReservations)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.Trim().ToLower();
+            sessionsQuery = sessionsQuery.Where(s =>
+                s.Movie.Name.ToLower().Contains(search) ||
+                s.Hall.Name.ToLower().Contains(search));
+        }
+
+        if (query.MovieFormat.HasValue)
+        {
+            var format = query.MovieFormat.Value;
+            sessionsQuery = sessionsQuery.Where(s => s.MovieFormat == format);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.DateFilter))
+        {
+            var today = DateTime.Today;
+            var filter = query.DateFilter.Trim().ToLowerInvariant();
+            sessionsQuery = filter switch
+            {
+                "today" => sessionsQuery.Where(s => s.StartTime.Date == today),
+                "upcoming" => sessionsQuery.Where(s => s.StartTime.Date >= today),
+                "past" => sessionsQuery.Where(s => s.StartTime.Date < today),
+                _ => sessionsQuery
+            };
+        }
+
+        sessionsQuery = sessionsQuery.OrderBy(s => s.StartTime);
+
+        var total = await sessionsQuery.CountAsync();
+        var items = await sessionsQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<Session>
+        {
+            Items = items,
+            TotalCount = total,
+            Page = page,
+            PageSize = pageSize
+        };
     }
 
     public async Task<bool> HasAnyOrdersAsync(int sessionId)

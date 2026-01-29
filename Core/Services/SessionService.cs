@@ -1,4 +1,5 @@
 using AutoMapper;
+using Core.DTOs.Common;
 using Core.DTOs.Sessions;
 using Core.Entities;
 using Core.Enums;
@@ -29,6 +30,19 @@ public class SessionService(
     {
         var sessions = await sessionRepository.GetAllAsync();
         return sessions.Select(mapper.Map<SessionListDTO>);
+    }
+
+    public async Task<PagedResult<SessionListDTO>> GetAdminPagedAsync(SessionAdminQueryDTO query)
+    {
+        var result = await sessionRepository.GetAdminPagedAsync(query);
+
+        return new PagedResult<SessionListDTO>
+        {
+            Items = result.Items.Select(mapper.Map<SessionListDTO>).ToList(),
+            TotalCount = result.TotalCount,
+            Page = result.Page,
+            PageSize = result.PageSize
+        };
     }
 
     public async Task<IEnumerable<SessionListDTO>> GetSessionsByMovieIdAsync(int movieId)

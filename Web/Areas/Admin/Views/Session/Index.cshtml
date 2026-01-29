@@ -1,4 +1,4 @@
-@model System.Collections.Generic.IEnumerable<cnu_cinema_practice.ViewModels.Sessions.AdminSessionViewModel>
+@model cnu_cinema_practice.ViewModels.Sessions.AdminSessionIndexViewModel
 @{
     ViewBag.Title = "Sessions";
     Layout = "_Layout";
@@ -35,126 +35,45 @@
         </div>
     }
 
-    <div class="sessions-filters mb-4">
-        <div class="row g-3">
+    <form method="get" class="sessions-filters mb-4" id="filtersForm">
+        <input type="hidden" name="page" value="1" />
+        <div class="row g-3 align-items-end">
             <div class="col-md-4">
-                <input type="text" id="searchInput" class="form-control" placeholder="Search by movie or hall...">
+                <input type="text"
+                       name="search"
+                       value="@Model.Search"
+                       class="form-control"
+                       placeholder="Search by movie or hall...">
             </div>
             <div class="col-md-3">
-                <select id="formatFilter" class="form-select">
-                    <option value="">All Formats</option>
-                    <option value="2D">2D</option>
-                    <option value="3D">3D</option>
-                    <option value="IMAX">IMAX</option>
-                    <option value="4DX">4DX</option>
+                <select name="format" class="form-select">
+                    <option value="" selected="@(string.IsNullOrWhiteSpace(Model.Format) ? "selected" : null)">All Formats</option>
+                    <option value="2D" selected="@(Model.Format == "2D" ? "selected" : null)">2D</option>
+                    <option value="3D" selected="@(Model.Format == "3D" ? "selected" : null)">3D</option>
+                    <option value="IMAX" selected="@(Model.Format == "IMAX" ? "selected" : null)">IMAX</option>
+                    <option value="4DX" selected="@(Model.Format == "4DX" ? "selected" : null)">4DX</option>
                 </select>
             </div>
             <div class="col-md-3">
-                <select id="dateFilter" class="form-select">
-                    <option value="">All Dates</option>
-                    <option value="today">Today</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="past">Past</option>
+                <select name="dateFilter" class="form-select">
+                    <option value="" selected="@(string.IsNullOrWhiteSpace(Model.DateFilter) ? "selected" : null)">All Dates</option>
+                    <option value="today" selected="@(Model.DateFilter == "today" ? "selected" : null)">Today</option>
+                    <option value="upcoming" selected="@(Model.DateFilter == "upcoming" ? "selected" : null)">Upcoming</option>
+                    <option value="past" selected="@(Model.DateFilter == "past" ? "selected" : null)">Past</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+            <div class="col-md-2 d-grid gap-2">
+                <a class="btn btn-outline-secondary"
+                   href="@Url.Action("Index")">
                     <i class="bi bi-x-circle"></i> Clear
-                </button>
+                </a>
             </div>
         </div>
+    </form>
+
+    <div id="sessionsResults">
+        @await Html.PartialAsync("_SessionIndexResults", Model)
     </div>
-
-    @if (Model.Any())
-    {
-        <div class="sessions-grid" id="sessionsGrid">
-            @foreach (var session in Model.OrderBy(s => s.StartTime))
-            {
-                var isPast = session.StartTime < DateTime.Now;
-                <div class="session-card @(isPast ? "past-session" : "")"
-                     data-movie="@session.MovieName.ToLower()"
-                     data-hall="@session.HallName.ToLower()"
-                     data-format="@session.MovieFormat"
-                     data-date="@session.StartTime.ToString("yyyy-MM-dd")"
-                     data-timestamp="@session.StartTime.Ticks">
-
-                    @if (!string.IsNullOrEmpty(session.MoviePosterUrl))
-                    {
-                        <div class="session-poster">
-                            <img src="@session.MoviePosterUrl" alt="@session.MovieName">
-                            @if (isPast)
-                            {
-                                <div class="past-overlay">
-                                    <span class="badge bg-secondary">Past</span>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="session-poster no-poster">
-                            <i class="bi bi-film"></i>
-                        </div>
-                    }
-
-                    <div class="session-details">
-                        <h5 class="session-movie-title">@session.MovieName</h5>
-
-                        <div class="session-info-grid">
-                            <div class="info-item">
-                                <i class="bi bi-geo-alt-fill"></i>
-                                <span>@session.HallName</span>
-                            </div>
-                            <div class="info-item">
-                                <i class="bi bi-clock-fill"></i>
-                                <span>@session.StartTime.ToString("MMM dd, HH:mm")</span>
-                            </div>
-                            <div class="info-item">
-                                <i class="bi bi-badge-3d-fill"></i>
-                                <span>@session.MovieFormat</span>
-                            </div>
-                            <div class="info-item">
-                                <i class="bi bi-currency-dollar"></i>
-                                <span>@session.BasePrice.ToString("F2")</span>
-                            </div>
-                        </div>
-
-                        <div class="session-actions">
-                            <a href="@Url.Action("Details", new { id = session.Id })"
-                               class="btn btn-sm btn-outline-info">
-                                <i class="bi bi-eye"></i> Details
-                            </a>
-                            <a href="@Url.Action("Edit", new { id = session.Id })"
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-pencil"></i> Edit
-                            </a>
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-danger"
-                                    onclick="confirmDelete(@session.Id, '@session.MovieName', '@session.StartTime.ToString("MMM dd, HH:mm")')">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-
-        <div id="noResults" class="text-center py-5" style="display: none;">
-            <i class="bi bi-search" style="font-size: 3rem; color: #6c757d;"></i>
-            <p class="text-muted mt-3">No sessions found matching your filters.</p>
-        </div>
-    }
-    else
-    {
-        <div class="empty-state text-center py-5">
-            <i class="bi bi-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>
-            <h4 class="mt-3">No Sessions Yet</h4>
-            <p class="text-muted">Get started by creating your first session.</p>
-            <a href="@Url.Action("Create")" class="btn btn-primary mt-3">
-                <i class="bi bi-plus-circle"></i> Create First Session
-            </a>
-        </div>
-    }
 </div>
 
 <!-- Delete Confirmation Modal -->
@@ -332,60 +251,94 @@
         modal.show();
     }
 
-    function clearFilters() {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('formatFilter').value = '';
-        document.getElementById('dateFilter').value = '';
-        filterSessions();
-    }
+    (function () {
+        const form = document.getElementById('filtersForm');
+        if (!form) return;
 
-    function filterSessions() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const formatFilter = document.getElementById('formatFilter').value;
-        const dateFilter = document.getElementById('dateFilter').value;
-        const cards = document.querySelectorAll('.session-card');
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const resultsEl = document.getElementById('sessionsResults');
+        if (!resultsEl) return;
 
-        let visibleCount = 0;
+        const searchInput = form.querySelector('input[name="search"]');
+        const formatSelect = form.querySelector('select[name="format"]');
+        const dateSelect = form.querySelector('select[name="dateFilter"]');
+        const pageInput = form.querySelector('input[name="page"]');
 
-        cards.forEach(card => {
-            const movie = card.dataset.movie;
-            const hall = card.dataset.hall;
-            const format = card.dataset.format;
-            const dateStr = card.dataset.date; // yyyy-MM-dd format
-            const sessionDate = new Date(dateStr);
-            sessionDate.setHours(0, 0, 0, 0);
+        let debounceTimer;
+        let lastSearchValue = searchInput ? (searchInput.value || '') : '';
+        let activeController = null;
 
-            let show = true;
-
-            if (searchTerm && !movie.includes(searchTerm) && !hall.includes(searchTerm)) {
-                show = false;
+        const buildQueryFromForm = () => {
+            const data = new FormData(form);
+            const params = new URLSearchParams();
+            for (const [key, value] of data.entries()) {
+                if (value === null) continue;
+                const str = String(value);
+                if (str.length === 0) continue;
+                params.set(key, str);
             }
+            return params;
+        };
 
-            if (formatFilter && format !== formatFilter) {
-                show = false;
-            }
+        const loadResults = async ({ resetPage }) => {
+            if (resetPage && pageInput) pageInput.value = '1';
 
-            if (dateFilter === 'today' && sessionDate.getTime() !== today.getTime()) {
-                show = false;
-            } else if (dateFilter === 'upcoming' && sessionDate < today) {
-                show = false;
-            } else if (dateFilter === 'past' && sessionDate >= today) {
-                show = false;
-            }
+            if (activeController) activeController.abort();
+            activeController = new AbortController();
 
-            card.style.display = show ? 'flex' : 'none';
-            if (show) visibleCount++;
+            const params = buildQueryFromForm();
+            const qs = params.toString();
+
+            const fullUrl = '@Url.Action("Index")' + (qs ? ('?' + qs) : '');
+            window.history.replaceState(null, '', fullUrl);
+
+            try {
+                const url = '@Url.Action("IndexResults")' + (qs ? ('?' + qs) : '');
+                const resp = await fetch(url, {
+                    method: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    signal: activeController.signal
+                });
+                if (!resp.ok) return;
+                const html = await resp.text();
+                resultsEl.innerHTML = html;
+            } catch (e) { }
+        };
+
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                window.clearTimeout(debounceTimer);
+                debounceTimer = window.setTimeout(() => {
+                    const current = searchInput.value || '';
+                    if (current === lastSearchValue) return;
+                    lastSearchValue = current;
+                    loadResults({ resetPage: true });
+                }, 120);
+            });
+        }
+
+        if (formatSelect) {
+            formatSelect.addEventListener('change', () => loadResults({ resetPage: true }));
+        }
+
+        if (dateSelect) {
+            dateSelect.addEventListener('change', () => loadResults({ resetPage: true }));
+        }
+
+        resultsEl.addEventListener('click', (evt) => {
+            const link = evt.target.closest('a');
+            if (!link) return;
+
+            if (!link.classList.contains('page-link')) return;
+            const pagination = link.closest('.pagination');
+            if (!pagination) return;
+            if (link.closest('.disabled')) return;
+
+            evt.preventDefault();
+
+            const url = new URL(link.href);
+            const page = url.searchParams.get('page') || '1';
+            if (pageInput) pageInput.value = page;
+            loadResults({ resetPage: false });
         });
-
-        document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
-        document.getElementById('sessionsGrid').style.display = visibleCount === 0 ? 'none' : 'grid';
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('searchInput').addEventListener('input', filterSessions);
-        document.getElementById('formatFilter').addEventListener('change', filterSessions);
-        document.getElementById('dateFilter').addEventListener('change', filterSessions);
-    });
+    })();
 </script>

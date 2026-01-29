@@ -1,0 +1,120 @@
+@model cnu_cinema_practice.ViewModels.Sessions.AdminSessionIndexViewModel
+
+@if (Model.Paged.Items.Any())
+{
+    <div class="sessions-grid">
+        @foreach (var session in Model.Paged.Items)
+        {
+            var isPast = session.StartTime < DateTime.Now;
+            <div class="session-card @(isPast ? "past-session" : "")">
+
+                @if (!string.IsNullOrEmpty(session.MoviePosterUrl))
+                {
+                    <div class="session-poster">
+                        <img src="@session.MoviePosterUrl" alt="@session.MovieName">
+                        @if (isPast)
+                        {
+                            <div class="past-overlay">
+                                <span class="badge bg-secondary">Past</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="session-poster no-poster">
+                        <i class="bi bi-film"></i>
+                    </div>
+                }
+
+                <div class="session-details">
+                    <h5 class="session-movie-title">@session.MovieName</h5>
+
+                    <div class="session-info-grid">
+                        <div class="info-item">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <span>@session.HallName</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-clock-fill"></i>
+                            <span>@session.StartTime.ToString("MMM dd, HH:mm")</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-badge-3d-fill"></i>
+                            <span>@session.MovieFormat</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-currency-dollar"></i>
+                            <span>@session.BasePrice.ToString("F2")</span>
+                        </div>
+                    </div>
+
+                    <div class="session-actions">
+                        <a href="@Url.Action("Details", new { id = session.Id })"
+                           class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-eye"></i> Details
+                        </a>
+                        <a href="@Url.Action("Edit", new { id = session.Id })"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                onclick="confirmDelete(@session.Id, '@session.MovieName', '@session.StartTime.ToString("MMM dd, HH:mm")')">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (Model.Paged.TotalCount > Model.Paged.PageSize)
+    {
+        var current = Model.Paged.Page;
+        var totalPages = Model.Paged.TotalPages;
+        var start = Math.Max(1, current - 3);
+        var end = Math.Min(totalPages, current + 3);
+
+        <nav class="mt-4" aria-label="Sessions pagination">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(Model.Paged.HasPreviousPage ? "" : "disabled")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", new { search = Model.Search, format = Model.Format, dateFilter = Model.DateFilter, page = current - 1 })">
+                        &laquo;
+                    </a>
+                </li>
+
+                @for (var p = start; p <= end; p++)
+                {
+                    <li class="page-item @(p == current ? "active" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", new { search = Model.Search, format = Model.Format, dateFilter = Model.DateFilter, page = p })">@p</a>
+                    </li>
+                }
+
+                <li class="page-item @(Model.Paged.HasNextPage ? "" : "disabled")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", new { search = Model.Search, format = Model.Format, dateFilter = Model.DateFilter, page = current + 1 })">
+                        &raquo;
+                    </a>
+                </li>
+            </ul>
+            <div class="text-center text-muted small">
+                Showing page @Model.Paged.Page of @Model.Paged.TotalPages (12 per page, total: @Model.Paged.TotalCount)
+            </div>
+        </nav>
+    }
+}
+else
+{
+    <div class="empty-state text-center py-5">
+        <i class="bi bi-search" style="font-size: 4rem; color: #6c757d;"></i>
+        <h4 class="mt-3">No Sessions Found</h4>
+        <p class="text-muted">Try changing filters or clear them.</p>
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary mt-2">
+            <i class="bi bi-x-circle"></i> Clear filters
+        </a>
+    </div>
+}
+
