@@ -2,6 +2,7 @@ using AutoMapper;
 using cnu_cinema_practice.ViewModels.Halls;
 using cnu_cinema_practice.ViewModels.Sessions;
 using Core.DTOs.Sessions;
+using Core.Enums;
 using Core.Interfaces.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -19,11 +20,17 @@ public class SessionController(
 {
     #region Public Actions
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search, string? format, string? dateFilter, int page = 1)
     {
-        var sessions = await sessionService.GetAllSessionsAsync();
-        var viewModels = mapper.Map<IEnumerable<AdminSessionViewModel>>(sessions);
-        return View(viewModels);
+        var viewModel = await BuildIndexViewModelAsync(search, format, dateFilter, page);
+        return View(viewModel);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> IndexResults(string? search, string? format, string? dateFilter, int page = 1)
+    {
+        var viewModel = await BuildIndexViewModelAsync(search, format, dateFilter, page);
+        return PartialView("_SessionIndexResults", viewModel);
     }
 
     public async Task<IActionResult> Schedule(DateTime? date)
@@ -250,6 +257,54 @@ public class SessionController(
 
         ViewBag.Movies = new SelectList(movies, "Id", "Name");
         ViewBag.Halls = new SelectList(halls, "Id", "Name");
+    }
+
+    private async Task<AdminSessionIndexViewModel> BuildIndexViewModelAsync(
+        string? search,
+        string? format,
+        string? dateFilter,
+        int page)
+    {
+        var parsedFormat = ParseMovieFormat(format);
+
+        var result = await sessionService.GetAdminPagedAsync(new SessionAdminQueryDTO
+        {
+            Search = search,
+            MovieFormat = parsedFormat,
+            DateFilter = dateFilter,
+            Page = page <= 0 ? 1 : page
+        });
+
+        return new AdminSessionIndexViewModel
+        {
+            Paged = new Core.DTOs.Common.PagedResult<AdminSessionViewModel>
+            {
+                Items = result.Items.Select(mapper.Map<AdminSessionViewModel>).ToList(),
+                TotalCount = result.TotalCount,
+                Page = result.Page,
+                PageSize = result.PageSize
+            },
+            Search = search,
+            Format = format,
+            DateFilter = dateFilter
+        };
+    }
+
+    private static MovieFormat? ParseMovieFormat(string? format)
+    {
+        if (string.IsNullOrWhiteSpace(format))
+            return null;
+
+        var normalized = format.Trim();
+
+        return normalized.ToUpperInvariant() switch
+        {
+            "2D" => MovieFormat.TwoD,
+            "3D" => MovieFormat.ThreeD,
+            "IMAX" => MovieFormat.IMAX,
+            "4DX" => MovieFormat.FourDX,
+            _ => Enum.TryParse<MovieFormat>(normalized, ignoreCase: true, out var parsed) ? parsed : null
+        };
     }
 
     #endregion
