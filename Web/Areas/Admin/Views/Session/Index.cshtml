@@ -36,7 +36,7 @@
     }
 
     <form method="get" class="sessions-filters mb-4" id="filtersForm">
-        <input type="hidden" name="page" value="1" />
+        <input type="hidden" name="page" value="1"/>
         <div class="row g-3 align-items-end">
             <div class="col-md-4">
                 <input type="text"
@@ -47,7 +47,9 @@
             </div>
             <div class="col-md-3">
                 <select name="format" class="form-select">
-                    <option value="" selected="@(string.IsNullOrWhiteSpace(Model.Format) ? "selected" : null)">All Formats</option>
+                    <option value="" selected="@(string.IsNullOrWhiteSpace(Model.Format) ? "selected" : null)">All
+                        Formats
+                    </option>
                     <option value="2D" selected="@(Model.Format == "2D" ? "selected" : null)">2D</option>
                     <option value="3D" selected="@(Model.Format == "3D" ? "selected" : null)">3D</option>
                     <option value="IMAX" selected="@(Model.Format == "IMAX" ? "selected" : null)">IMAX</option>
@@ -56,9 +58,12 @@
             </div>
             <div class="col-md-3">
                 <select name="dateFilter" class="form-select">
-                    <option value="" selected="@(string.IsNullOrWhiteSpace(Model.DateFilter) ? "selected" : null)">All Dates</option>
+                    <option value="" selected="@(string.IsNullOrWhiteSpace(Model.DateFilter) ? "selected" : null)">All
+                        Dates
+                    </option>
                     <option value="today" selected="@(Model.DateFilter == "today" ? "selected" : null)">Today</option>
-                    <option value="upcoming" selected="@(Model.DateFilter == "upcoming" ? "selected" : null)">Upcoming</option>
+                    <option value="upcoming" selected="@(Model.DateFilter == "upcoming" ? "selected" : null)">Upcoming
+                    </option>
                     <option value="past" selected="@(Model.DateFilter == "past" ? "selected" : null)">Past</option>
                 </select>
             </div>
@@ -119,10 +124,10 @@
         border-bottom: 2px solid #dee2e6;
     }
 
-        .page-header h2 {
-            margin: 0;
-            color: #212529;
-        }
+    .page-header h2 {
+        margin: 0;
+        color: #212529;
+    }
 
     .header-actions {
         display: flex;
@@ -153,14 +158,14 @@
         flex-direction: column;
     }
 
-        .session-card:hover {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transform: translateY(-3px);
-        }
+    .session-card:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transform: translateY(-3px);
+    }
 
-        .session-card.past-session {
-            opacity: 0.7;
-        }
+    .session-card.past-session {
+        opacity: 0.7;
+    }
 
     .session-poster {
         position: relative;
@@ -171,16 +176,16 @@
         justify-content: center;
     }
 
-        .session-poster img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    .session-poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 
-        .session-poster.no-poster {
-            color: white;
-            font-size: 4rem;
-        }
+    .session-poster.no-poster {
+        color: white;
+        font-size: 4rem;
+    }
 
     .past-overlay {
         position: absolute;
@@ -217,10 +222,10 @@
         color: #495057;
     }
 
-        .info-item i {
-            color: #007bff;
-            font-size: 1rem;
-        }
+    .info-item i {
+        color: #007bff;
+        font-size: 1rem;
+    }
 
     .session-actions {
         display: flex;
@@ -229,10 +234,10 @@
         flex-wrap: wrap;
     }
 
-        .session-actions .btn {
-            flex: 1;
-            min-width: 80px;
-        }
+    .session-actions .btn {
+        flex: 1;
+        min-width: 80px;
+    }
 
     .empty-state {
         background: #f8f9fa;
@@ -253,92 +258,70 @@
 
     (function () {
         const form = document.getElementById('filtersForm');
-        if (!form) return;
-
         const resultsEl = document.getElementById('sessionsResults');
-        if (!resultsEl) return;
+        if (!form || !resultsEl) return;
 
-        const searchInput = form.querySelector('input[name="search"]');
-        const formatSelect = form.querySelector('select[name="format"]');
-        const dateSelect = form.querySelector('select[name="dateFilter"]');
         const pageInput = form.querySelector('input[name="page"]');
-
         let debounceTimer;
-        let lastSearchValue = searchInput ? (searchInput.value || '') : '';
-        let activeController = null;
+        let abortController = null;
 
-        const buildQueryFromForm = () => {
-            const data = new FormData(form);
-            const params = new URLSearchParams();
-            for (const [key, value] of data.entries()) {
-                if (value === null) continue;
-                const str = String(value);
-                if (str.length === 0) continue;
-                params.set(key, str);
-            }
-            return params;
-        };
-
-        const loadResults = async ({ resetPage }) => {
+        const loadResults = async (resetPage = false) => {
             if (resetPage && pageInput) pageInput.value = '1';
 
-            if (activeController) activeController.abort();
-            activeController = new AbortController();
+            abortController?.abort();
+            abortController = new AbortController();
 
-            const params = buildQueryFromForm();
-            const qs = params.toString();
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
 
-            const fullUrl = '@Url.Action("Index")' + (qs ? ('?' + qs) : '');
-            window.history.replaceState(null, '', fullUrl);
+            for (const [key, value] of formData.entries()) {
+                if (value && value.trim() !== '') {
+                    params.set(key, value);
+                }
+            }
+
+            const query = params.toString();
+            const url = '@Url.Action("IndexResults")' + (query ? '?' + query : '');
+
+            window.history.replaceState(null, '',
+                '@Url.Action("Index")' + (query ? '?' + query : ''));
 
             try {
-                const url = '@Url.Action("IndexResults")' + (qs ? ('?' + qs) : '');
-                const resp = await fetch(url, {
-                    method: 'GET',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    signal: activeController.signal
+                const response = await fetch(url, {
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    signal: abortController.signal
                 });
-                if (!resp.ok) return;
-                const html = await resp.text();
-                resultsEl.innerHTML = html;
-            } catch (e) { }
+
+                if (response.ok) {
+                    resultsEl.innerHTML = await response.text();
+                }
+            } catch (e) {
+                if (e.name !== 'AbortError') {
+                    console.error('Failed to load sessions:', e);
+                }
+            }
         };
 
+        const searchInput = form.querySelector('input[name="search"]');
         if (searchInput) {
             searchInput.addEventListener('input', () => {
-                window.clearTimeout(debounceTimer);
-                debounceTimer = window.setTimeout(() => {
-                    const current = searchInput.value || '';
-                    if (current === lastSearchValue) return;
-                    lastSearchValue = current;
-                    loadResults({ resetPage: true });
-                }, 120);
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => loadResults(true), 120);
             });
         }
 
-        if (formatSelect) {
-            formatSelect.addEventListener('change', () => loadResults({ resetPage: true }));
-        }
+        form.querySelectorAll('select').forEach(select => {
+            select.addEventListener('change', () => loadResults(true));
+        });
 
-        if (dateSelect) {
-            dateSelect.addEventListener('change', () => loadResults({ resetPage: true }));
-        }
+        resultsEl.addEventListener('click', (e) => {
+            const pageLink = e.target.closest('.page-link');
+            if (!pageLink || pageLink.closest('.disabled')) return;
 
-        resultsEl.addEventListener('click', (evt) => {
-            const link = evt.target.closest('a');
-            if (!link) return;
-
-            if (!link.classList.contains('page-link')) return;
-            const pagination = link.closest('.pagination');
-            if (!pagination) return;
-            if (link.closest('.disabled')) return;
-
-            evt.preventDefault();
-
-            const url = new URL(link.href);
-            const page = url.searchParams.get('page') || '1';
+            e.preventDefault();
+            const page = new URL(pageLink.href).searchParams.get('page') || '1';
             if (pageInput) pageInput.value = page;
-            loadResults({ resetPage: false });
+            loadResults(false);
         });
     })();
 </script>
