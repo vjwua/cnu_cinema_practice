@@ -5,6 +5,11 @@
     ViewData["Title"] = "Hall Layout - " + Model.Name;
 }
 
+@section css {
+    <link rel="stylesheet" href="~/css/halls.css" />
+    <link rel="stylesheet" href="~/css/seats.css" />
+}
+
 <div class="mb-4">
     <h1 class="display-5">@Model.Name Layout</h1>
     <p class="text-muted">Configure seat availability and disabled seats</p>
