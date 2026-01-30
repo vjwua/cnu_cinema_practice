@@ -535,3 +535,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/rider,vs,dotnetcore,windows,macos,linux
+
+# Prevent Windows-style paths with backslashes from being created/tracked
+*\\*

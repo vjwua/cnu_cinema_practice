@@ -1,0 +1,169 @@
+﻿@using cnu_cinema_practice.ViewModels
+@using Microsoft.EntityFrameworkCore.Storage.Json
+@model cnu_cinema_practice.ViewModels.Halls.UpdateHallViewModel
+@{
+    ViewData["Title"] = "Hall Layout - " + Model.Name;
+}
+
+<div class="mb-4">
+    <h1 class="display-5">@Model.Name Layout</h1>
+    <p class="text-muted">Configure seat availability and disabled seats</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-9">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-grid-3x3"></i> Seat Configuration</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    Click on seats to toggle their disabled status. Disabled seats cannot be booked by customers.
+                </div>
+
+                <!-- Screen -->
+                <div class="text-center mb-4">
+                    <div class="screen">SCREEN</div>
+                </div>
+
+                <!-- Seat Map -->
+                <div class="seat-map">
+                    @{
+                        string[] seatClases =
+                        [
+                            "disabled-seat",
+                            "standard-seat",
+                            "premium-seat",
+                            "vip-seat"
+                        ];
+                        List<string> DisabledSeats = new List<string>();
+                        int rowCount = Model.SeatLayout.GetLength(0);
+                        int columnCount = Model.SeatLayout.GetLength(1);
+                        var rows = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".Substring(0, rowCount).ToCharArray();
+                        string layoutString = "";
+                        string resetString = "";
+
+                        string hallName = Model.Name;
+                        int hallId = Model.Id;
+                        
+                        for (int i = 0; i < rowCount; i++)
+                        {
+                            for (int j = 0; j < columnCount; j++)
+                            {
+                                layoutString += Model.SeatLayout[i, j].ToString();
+                                resetString += "1";
+                            }
+                        }
+                        for (int i = 0; i < rowCount; i++)
+                        {
+                            <div class="seat-row">
+                                <span class="row-label">@rows[i]</span>
+                                @for (int j = 1; j <= columnCount; j++)
+                                {
+                                    var seatId = $"{rows[i]}{j}";
+                                    bool isDisabled = Model.SeatLayout[i, j - 1] == 0;
+                                    if (isDisabled)
+                                    {
+                                        DisabledSeats.Add(seatId);
+                                    }
+                                    
+                                    int r = i;
+                                    int c = j - 1;
+                                    
+                                    <form asp-action="ToggleSeat"
+                                          asp-route-r="@r"
+                                          asp-route-c="@c"
+                                          asp-route-id="@hallId"
+                                          asp-route-name="@hallName"
+                                          asp-route-rc="@rowCount"
+                                          asp-route-cc="@columnCount"
+                                          asp-route-ls="@layoutString"
+                                          method="post">
+                                        <button type="submit" class="seat @(seatClases[Model.SeatLayout[r, c]])"
+                                                data-seat="@seatId"
+                                                title="Seat @seatId - Click to toggle">
+                                            @(c + 1)
+                                        </button>
+                                    </form>
+                                }
+                                <span class="row-label">@rows[i]</span>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- Legend -->
+                <div class="seat-legend mt-4">
+                    <div class="legend-item">
+                        <div class="seat disabled-seat"></div>
+                        <span>Unavailable</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="seat standard-seat"></div>
+                        <span>Standard</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="seat premium-seat"></div>
+                        <span>Premium</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="seat vip-seat"></div>
+                        <span>VIP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="card shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-tools"></i> Configuration</h5>
+            </div>
+            <div class="card-body">
+                <h6>Disabled Seats:</h6>
+                <p id="disabled-seats-display" class="text-muted small">
+                    @(DisabledSeats.Any() ? string.Join(", ", DisabledSeats) : "None")
+                </p>
+
+                <hr>
+
+                <div class="mb-3">
+                    <strong>Total Seats:</strong> @(rowCount * columnCount)<br>
+                    <strong>Disabled:</strong> <span id="disabled-count">@DisabledSeats.Count</span><br>
+                    <strong>Available:</strong> <span id="available-count">@(rowCount * columnCount - DisabledSeats.Count)</span>
+                </div>
+
+                <hr>
+
+                <form asp-action="UpdateLayout"
+                      asp-route-id="@hallId"
+                      asp-route-r="@rowCount"
+                      asp-route-c="@columnCount"
+                      asp-route-ls="@layoutString"
+                      method="post">
+                    <input type="hidden" name="hallId" value="@Model.Id" />
+                    <input type="hidden" id="disabled-seats-input" name="disabledSeats" value="@string.Join(",", DisabledSeats)" />
+
+                    <button type="submit" class="btn btn-success w-100 mb-2">
+                        <i class="bi bi-save"></i> Save Layout
+                    </button>
+                </form>
+                    <form asp-action="ResetLayout"
+                          asp-route-id="@hallId"
+                          asp-route-name="@hallName"
+                          asp-route-r="@rowCount"
+                          asp-route-c="@columnCount"
+                          method="post">
+                        <button type="submit" class="btn btn-outline-secondary w-100 mb-2" id="reset-btn">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset 
+                        </button>
+                    </form>
+                    <a asp-action="List" class="btn btn-outline-dark w-100">
+                        <i class="bi bi-arrow-left"></i> Back to Halls
+                    </a>
+            </div>
+        </div>
+    </div>
+</div>

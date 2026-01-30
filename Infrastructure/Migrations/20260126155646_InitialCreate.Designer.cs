@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(CinemaDbContext))]
-    [Migration("20260120111323_InitialCreate")]
+    [Migration("20260126155646_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -33,15 +33,16 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<byte>("Columns")
+                        .HasColumnType("tinyint");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<byte[]>("SeatLayout")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("binary(64)");
+                    b.Property<byte>("Rows")
+                        .HasColumnType("tinyint");
 
                     b.HasKey("Id");
 
@@ -50,7 +51,9 @@ namespace Infrastructure.Migrations
 
                     b.ToTable("Halls", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Halls_SeatLayout_Length", "DATALENGTH(SeatLayout) = 64");
+                            t.HasCheckConstraint("CK_Halls_Columns", "Columns > 0 AND Columns <= 50");
+
+                            t.HasCheckConstraint("CK_Halls_Rows", "Rows > 0 AND Rows <= 50");
                         });
                 });
 
@@ -73,8 +76,8 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<int>("DurationMinutes")
-                        .HasColumnType("int");
+                    b.Property<byte>("DurationMinutes")
+                        .HasColumnType("tinyint");
 
                     b.Property<long>("Genre")
                         .HasColumnType("bigint");
@@ -101,64 +104,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Movies", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Movies_DurationMinutes", "DurationMinutes > 0 AND DurationMinutes <= 600");
-
-                            t.HasCheckConstraint("CK_Movies_ImdbRating", "ImdbRating IS NULL OR (ImdbRating >= 0.0 AND ImdbRating <= 10.0)");
-                        });
-                });
-
-            modelBuilder.Entity("Core.Entities.MovieActor", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ActorId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MovieId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Role")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActorId");
-
-                    b.HasIndex("MovieId", "ActorId")
-                        .IsUnique();
-
-                    b.ToTable("MovieActors", (string)null);
-                });
-
-            modelBuilder.Entity("Core.Entities.MovieDirector", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DirectorId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MovieId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DirectorId");
-
-                    b.HasIndex("MovieId", "DirectorId")
-                        .IsUnique();
-
-                    b.ToTable("MovieDirectors", (string)null);
+                    b.ToTable("Movies", (string)null);
                 });
 
             modelBuilder.Entity("Core.Entities.Order", b =>
@@ -184,22 +130,17 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Status");
+                    b.HasIndex("SessionId");
 
                     b.HasIndex("UserId");
 
-                    b.HasIndex("SessionId", "Status");
-
-                    b.HasIndex("UserId", "CreatedAt");
-
                     b.ToTable("Orders", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Orders_Status", "Status IN (0, 1, 2, 3, 4, 5)");
+                            t.HasCheckConstraint("CK_Orders_Status", "Status IN (0, 1, 2, 3, 4)");
                         });
                 });
 
@@ -233,8 +174,6 @@ namespace Infrastructure.Migrations
 
                     b.ToTable("Payments", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Payments_Amount", "Amount > 0");
-
                             t.HasCheckConstraint("CK_Payments_PaymentMethod", "PaymentMethod IN (0, 1, 2, 3)");
                         });
                 });
@@ -265,12 +204,8 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("AddedPrice")
-                        .HasPrecision(6, 2)
-                        .HasColumnType("decimal(6,2)");
-
-                    b.Property<bool>("IsAvailable")
-                        .HasColumnType("bit");
+                    b.Property<int>("HallId")
+                        .HasColumnType("int");
 
                     b.Property<byte>("RowNum")
                         .HasColumnType("tinyint");
@@ -278,29 +213,103 @@ namespace Infrastructure.Migrations
                     b.Property<byte>("SeatNum")
                         .HasColumnType("tinyint");
 
-                    b.Property<byte>("SeatType")
-                        .HasColumnType("tinyint");
-
-                    b.Property<int>("SessionId")
+                    b.Property<int>("SeatTypeId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SessionId", "IsAvailable");
+                    b.HasIndex("SeatTypeId");
 
-                    b.HasIndex("SessionId", "RowNum", "SeatNum")
+                    b.HasIndex("HallId", "RowNum", "SeatNum")
                         .IsUnique();
 
-                    b.ToTable("Seats", null, t =>
+                    b.ToTable("Seats", (string)null);
+                });
+
+            modelBuilder.Entity("Core.Entities.SeatReservation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("decimal(8,2)");
+
+                    b.Property<DateTime?>("ReservedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReservedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SeatId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SessionId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int?>("TicketId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeatId");
+
+                    b.HasIndex("SessionId", "SeatId")
+                        .IsUnique();
+
+                    b.ToTable("SeatReservations", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Seats_AddedPrice", "AddedPrice >= 0");
-
-                            t.HasCheckConstraint("CK_Seats_RowNum", "RowNum >= 0 AND RowNum < 16");
-
-                            t.HasCheckConstraint("CK_Seats_SeatNum", "SeatNum >= 0 AND SeatNum < 16");
-
-                            t.HasCheckConstraint("CK_Seats_SeatType", "SeatType IN (0, 1, 2, 3)");
+                            t.HasCheckConstraint("CK_SeatReservations_Status", "Status IN (1, 2)");
                         });
+                });
+
+            modelBuilder.Entity("Core.Entities.SeatType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AddedPrice")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<string>("ColorCode")
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("SeatTypes", (string)null);
                 });
 
             modelBuilder.Entity("Core.Entities.Session", b =>
@@ -329,16 +338,11 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StartTime");
+                    b.HasIndex("HallId");
 
-                    b.HasIndex("HallId", "StartTime");
+                    b.HasIndex("MovieId");
 
-                    b.HasIndex("MovieId", "StartTime");
-
-                    b.ToTable("Sessions", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Sessions_BasePrice", "BasePrice > 0");
-                        });
+                    b.ToTable("Sessions", (string)null);
                 });
 
             modelBuilder.Entity("Core.Entities.Ticket", b =>
@@ -352,24 +356,22 @@ namespace Infrastructure.Migrations
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<int>("SeatId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TotalPrice")
+                    b.Property<decimal>("Price")
                         .HasPrecision(8, 2)
                         .HasColumnType("decimal(8,2)");
 
+                    b.Property<int>("SeatReservationId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("SeatId");
-
-                    b.HasIndex("OrderId", "SeatId")
+                    b.HasIndex("SeatReservationId")
                         .IsUnique();
 
-                    b.ToTable("Tickets", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Tickets_TotalPrice", "TotalPrice > 0");
-                        });
+                    b.HasIndex("OrderId", "SeatReservationId")
+                        .IsUnique();
+
+                    b.ToTable("Tickets", (string)null);
                 });
 
             modelBuilder.Entity("Infrastructure.Identity.ApplicationUser", b =>
@@ -570,34 +572,34 @@ namespace Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Core.Entities.MovieActor", b =>
+            modelBuilder.Entity("MovieActor", b =>
                 {
-                    b.HasOne("Core.Entities.Person", null)
-                        .WithMany()
-                        .HasForeignKey("ActorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Property<int>("MovieId")
+                        .HasColumnType("int");
 
-                    b.HasOne("Core.Entities.Movie", null)
-                        .WithMany()
-                        .HasForeignKey("MovieId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Property<int>("ActorId")
+                        .HasColumnType("int");
+
+                    b.HasKey("MovieId", "ActorId");
+
+                    b.HasIndex("ActorId");
+
+                    b.ToTable("MovieActor", (string)null);
                 });
 
-            modelBuilder.Entity("Core.Entities.MovieDirector", b =>
+            modelBuilder.Entity("MovieDirector", b =>
                 {
-                    b.HasOne("Core.Entities.Person", null)
-                        .WithMany()
-                        .HasForeignKey("DirectorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Property<int>("MovieId")
+                        .HasColumnType("int");
 
-                    b.HasOne("Core.Entities.Movie", null)
-                        .WithMany()
-                        .HasForeignKey("MovieId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Property<int>("DirectorId")
+                        .HasColumnType("int");
+
+                    b.HasKey("MovieId", "DirectorId");
+
+                    b.HasIndex("DirectorId");
+
+                    b.ToTable("MovieDirector", (string)null);
                 });
 
             modelBuilder.Entity("Core.Entities.Order", b =>
@@ -630,11 +632,38 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Core.Entities.Seat", b =>
                 {
-                    b.HasOne("Core.Entities.Session", "Session")
+                    b.HasOne("Core.Entities.Hall", "Hall")
                         .WithMany("Seats")
+                        .HasForeignKey("HallId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.SeatType", "SeatType")
+                        .WithMany("Seats")
+                        .HasForeignKey("SeatTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Hall");
+
+                    b.Navigation("SeatType");
+                });
+
+            modelBuilder.Entity("Core.Entities.SeatReservation", b =>
+                {
+                    b.HasOne("Core.Entities.Seat", "Seat")
+                        .WithMany("Reservations")
+                        .HasForeignKey("SeatId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.Session", "Session")
+                        .WithMany("SeatReservations")
                         .HasForeignKey("SessionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Seat");
 
                     b.Navigation("Session");
                 });
@@ -666,15 +695,15 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Entities.Seat", "Seat")
-                        .WithMany()
-                        .HasForeignKey("SeatId")
+                    b.HasOne("Core.Entities.SeatReservation", "SeatReservation")
+                        .WithOne("Ticket")
+                        .HasForeignKey("Core.Entities.Ticket", "SeatReservationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Order");
 
-                    b.Navigation("Seat");
+                    b.Navigation("SeatReservation");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -728,8 +757,40 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MovieActor", b =>
+                {
+                    b.HasOne("Core.Entities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("ActorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.Movie", null)
+                        .WithMany()
+                        .HasForeignKey("MovieId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MovieDirector", b =>
+                {
+                    b.HasOne("Core.Entities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("DirectorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.Movie", null)
+                        .WithMany()
+                        .HasForeignKey("MovieId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Core.Entities.Hall", b =>
                 {
+                    b.Navigation("Seats");
+
                     b.Navigation("Sessions");
                 });
 
@@ -745,11 +806,26 @@ namespace Infrastructure.Migrations
                     b.Navigation("Tickets");
                 });
 
+            modelBuilder.Entity("Core.Entities.Seat", b =>
+                {
+                    b.Navigation("Reservations");
+                });
+
+            modelBuilder.Entity("Core.Entities.SeatReservation", b =>
+                {
+                    b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("Core.Entities.SeatType", b =>
+                {
+                    b.Navigation("Seats");
+                });
+
             modelBuilder.Entity("Core.Entities.Session", b =>
                 {
                     b.Navigation("Orders");
 
-                    b.Navigation("Seats");
+                    b.Navigation("SeatReservations");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,10 +1,17 @@
-﻿using cnu_cinema_practice.ViewModels;
+﻿using AutoMapper;
+using cnu_cinema_practice.ViewModels;
+using Core.DTOs.Movies;
+using Core.DTOs.Halls;
+using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
 {
     [Area("Admin")]
-    public class AdminController : Controller
+    public class AdminController(
+        IMovieService movieService,
+        IHallService hallService,
+        IMapper mapper) : Controller
     {
         // Dashboard
         public IActionResult Index()
@@ -15,39 +22,10 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
         #region Movies Management
 
         // List all movies
-        public IActionResult Movies()
+        public async Task<IActionResult> Movies()
         {
-            // TODO: Fetch from database
-            var movies = new List<AdminMovieViewModel>
-            {
-                new AdminMovieViewModel
-                {
-                    Id = 1,
-                    Name = "The Grand Adventure",
-                    PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
-                    DurationMinutes = 142,
-                    ImdbRating = "12+",
-                    ReleaseDate = new DateTime(2026, 1, 15),
-                    Director = "John Smith",
-                    Description = "An epic adventure across the galaxy.",
-                    Genres = new List<string> { "Action", "Adventure", "Sci-Fi" },
-                    IsActive = true
-                },
-                new AdminMovieViewModel
-                {
-                    Id = 2,
-                    Name = "Mystery at Midnight",
-                    PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
-                    DurationMinutes = 118,
-                    ImdbRating = "18+",
-                    ReleaseDate = new DateTime(2026, 1, 10),
-                    Director = "Jane Doe",
-                    Description = "A thrilling mystery that will keep you guessing.",
-                    Genres = new List<string> { "Mystery", "Thriller" },
-                    IsActive = true
-                }
-            };
-
+            var moviesDto = await movieService.GetAllAsync();
+            var movies = mapper.Map<IEnumerable<AdminMovieViewModel>>(moviesDto);
             return View(movies);
         }
 
@@ -63,67 +41,97 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
 
         // Create movie - POST
         [HttpPost]
-        public IActionResult CreateMovie(MovieFormViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateMovie(MovieFormViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // TODO: Save to database
-            TempData["Success"] = $"Movie '{model.Name}' created successfully!";
-            return RedirectToAction("Movies");
+            try
+            {
+                var createDto = mapper.Map<CreateMovieDTO>(model);
+                await movieService.CreateAsync(createDto);
+
+                TempData["Success"] = $"Movie '{model.Name}' created successfully!";
+                return RedirectToAction("Movies");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, $"Error creating movie: {ex.Message}");
+                return View(model);
+            }
         }
 
         // Edit movie - GET
-        public IActionResult EditMovie(int id)
+        public async Task<IActionResult> EditMovie(int id)
         {
-            // TODO: Fetch from database
-            var movie = new MovieFormViewModel
-            {
-                Id = 1,
-                Name = "The Grand Adventure",
-                PosterUrl = "https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png",
-                DurationMinutes = 142,
-                ImdbRating = "12+",
-                ReleaseDate = new DateTime(2026, 1, 15),
-                Director = "John Smith",
-                Description = "An epic adventure across the galaxy.",
-                GenresString = "Action, Adventure, Sci-Fi",
-                IsActive = true
-            };
+            var movieDto = await movieService.GetByIdAsync(id);
+            if (movieDto == null)
+                return NotFound();
 
+            var movie = mapper.Map<MovieFormViewModel>(movieDto);
             return View(movie);
         }
 
         // Edit movie - POST
         [HttpPost]
-        public IActionResult EditMovie(MovieFormViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditMovie(MovieFormViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // TODO: Update in database
-            TempData["Success"] = $"Movie '{model.Name}' updated successfully!";
-            return RedirectToAction("Movies");
+            try
+            {
+                var updateDto = mapper.Map<UpdateMovieDTO>(model);
+                await movieService.UpdateAsync(updateDto);
+
+                TempData["Success"] = $"Movie '{model.Name}' updated successfully!";
+                return RedirectToAction("Movies");
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, $"Error updating movie: {ex.Message}");
+                return View(model);
+            }
         }
 
         // Delete movie
         [HttpPost]
-        public IActionResult DeleteMovie(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteMovie(int id)
         {
-            // TODO: Delete from database
-            TempData["Success"] = "Movie deleted successfully!";
+            try
+            {
+                await movieService.DeleteAsync(id);
+                TempData["Success"] = "Movie deleted successfully!";
+            }
+            catch (KeyNotFoundException)
+            {
+                TempData["Error"] = "Movie not found.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error deleting movie: {ex.Message}";
+            }
+
             return RedirectToAction("Movies");
         }
 
         // Toggle movie active status
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult ToggleMovieStatus(int id)
         {
-            // TODO: Update status in database
+            // TODO: Implement if IsActive becomes part of Movie entity
             return RedirectToAction("Movies");
         }
 
@@ -132,37 +140,10 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
         #region Hall Management
 
         // List all halls
-        public IActionResult Halls()
+        public async Task<IActionResult> Halls()
         {
-            // TODO: Fetch from database
-            var halls = new List<AdminHallViewModel>
-            {
-                new AdminHallViewModel
-                {
-                    Id = 1,
-                    Name = "Hall 1",
-                    Rows = 8,
-                    SeatsPerRow = 12,
-                    IsAvailable = true
-                },
-                new AdminHallViewModel
-                {
-                    Id = 2,
-                    Name = "Hall 2",
-                    Rows = 10,
-                    SeatsPerRow = 14,
-                    IsAvailable = true
-                },
-                new AdminHallViewModel
-                {
-                    Id = 3,
-                    Name = "VIP Hall",
-                    Rows = 5,
-                    SeatsPerRow = 8,
-                    IsAvailable = false
-                }
-            };
-
+            var hallsDto = await hallService.GetAllAsync();
+            var halls = mapper.Map<IEnumerable<AdminHallViewModel>>(hallsDto);
             return View(halls);
         }
 
@@ -174,83 +155,115 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
 
         // Create hall - POST
         [HttpPost]
-        public IActionResult CreateHall(HallFormViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateHall(HallFormViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // TODO: Save to database
-            TempData["Success"] = $"Hall '{model.Name}' created successfully!";
-            return RedirectToAction("Halls");
+            try
+            {
+                var createDto = mapper.Map<CreateHallDTO>(model);
+                await hallService.CreateAsync(createDto);
+
+                TempData["Success"] = $"Hall '{model.Name}' created successfully!";
+                return RedirectToAction("Halls");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, $"Error creating hall: {ex.Message}");
+                return View(model);
+            }
         }
 
         // Edit hall - GET
-        public IActionResult EditHall(int id)
+        public async Task<IActionResult> EditHall(int id)
         {
-            // TODO: Fetch from database
-            var hall = new HallFormViewModel
-            {
-                Id = 1,
-                Name = "Hall 1",
-                Rows = 8,
-                SeatsPerRow = 12,
-                IsActive = true
-            };
+            var hallDto = await hallService.GetByIdAsync(id);
+            if (hallDto == null)
+                return NotFound();
 
+            var hall = mapper.Map<HallFormViewModel>(hallDto);
             return View(hall);
         }
 
         // Edit hall - POST
         [HttpPost]
-        public IActionResult EditHall(HallFormViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditHall(HallFormViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // TODO: Update in database
-            TempData["Success"] = $"Hall '{model.Name}' updated successfully!";
-            return RedirectToAction("Halls");
+            try
+            {
+                var updateDto = mapper.Map<UpdateHallDTO>(model);
+                await hallService.UpdateHallInfo(updateDto);
+
+                TempData["Success"] = $"Hall '{model.Name}' updated successfully!";
+                return RedirectToAction("Halls");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, $"Error updating hall: {ex.Message}");
+                return View(model);
+            }
         }
 
         // Manage hall layout
-        public IActionResult HallLayout(int id)
+        public async Task<IActionResult> HallLayout(int id)
         {
-            // TODO: Fetch from database
-            var layout = new HallLayoutViewModel
-            {
-                HallId = id,
-                HallName = "Hall 1",
-                Rows = 8,
-                SeatsPerRow = 12,
-                DisabledSeats = new List<string> { "A1", "A2", "H11", "H12" } // Example disabled seats
-            };
+            var hallDto = await hallService.GetByIdAsync(id);
+            if (hallDto == null)
+                return NotFound();
 
+            var layout = mapper.Map<HallLayoutViewModel>(hallDto);
             return View(layout);
         }
 
         // Update hall layout
         [HttpPost]
-        public IActionResult UpdateHallLayout(int hallId, string disabledSeats)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateHallLayout(int hallId, string disabledSeats)
         {
-            // TODO: Save disabled seats to database
-            var seatList = string.IsNullOrEmpty(disabledSeats)
-                ? new List<string>()
-                : disabledSeats.Split(',').ToList();
+            try
+            {
+                var seatList = string.IsNullOrEmpty(disabledSeats)
+                    ? new List<string>()
+                    : disabledSeats.Split(',').ToList();
 
-            TempData["Success"] = $"Hall layout updated! {seatList.Count} seats disabled.";
-            return RedirectToAction("Halls");
+                // TODO: Convert disabled seats to proper seat layout and update
+                // This will require mapping seat identifiers to byte[,] array
+
+                TempData["Success"] = $"Hall layout updated! {seatList.Count} seats disabled.";
+                return RedirectToAction("Halls");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error updating layout: {ex.Message}";
+                return RedirectToAction("Halls");
+            }
         }
 
         // Delete hall
         [HttpPost]
-        public IActionResult DeleteHall(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteHall(int id)
         {
-            // TODO: Delete from database
-            TempData["Success"] = "Hall deleted successfully!";
+            try
+            {
+                await hallService.DeleteAsync(id);
+                TempData["Success"] = "Hall deleted successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error deleting hall: {ex.Message}";
+            }
+
             return RedirectToAction("Halls");
         }
 

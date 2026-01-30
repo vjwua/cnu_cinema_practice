@@ -6,9 +6,21 @@
     opacity: 0.7;
 }
 
-.enabled-seat {
+.standard-seat {
     background-color: #28a745 !important;
     border: 2px solid #1e7e34 !important;
+    color: white !important;
+}
+
+.vip-seat {
+    background-color: #4287f5 !important;
+    border: 2px solid #265aad !important;
+    color: white !important;
+}
+
+.premium-seat {
+    background-color: #ff4fed !important;
+    border: 2px solid #bf34b1 !important;
     color: white !important;
 }
 

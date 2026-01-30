@@ -1,9 +1,11 @@
 using AutoMapper;
 using Core.DTOs.Halls;
+using Core.DTOs.Seats;
 using Core.Entities;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 
 namespace Core.Services;
@@ -12,11 +14,13 @@ public class HallService : IHallService
 {
     private readonly IMapper _mapper;
     private readonly IHallRepository _hallRepository;
+    private readonly ISeatRepository _seatRepository;
 
     public HallService(IMapper mapper, IHallRepository hallRepo, ISeatRepository seatRepo)
     {
         this._mapper = mapper;
         this._hallRepository = hallRepo;
+        this._seatRepository = seatRepo;
     }
 
     public async Task<IEnumerable<HallListDTO>> GetAllAsync()
@@ -64,5 +68,42 @@ public class HallService : IHallService
     public async Task DeleteAsync(int hallId)
     {
         await _hallRepository.DeleteAsync(hallId);
+    }
+
+    public async Task<IEnumerable<SeatDTO>> GetSeatsByHall(int hallId)
+    {
+        var seats = await _seatRepository.GetByHallId(hallId);
+        return _mapper.Map<IEnumerable<SeatDTO>>(seats);
+    }
+
+    public async Task UpdateHallDimensions(int hallId, byte rows, byte cols)
+    {
+        await _hallRepository.UpdateDimensionsAsync(hallId, rows, cols);
+    }
+
+    public async Task SetSeatTypesAsync(int seatId, int seatType)
+    {
+        await _seatRepository.SetSeatTypeAsync(seatId, seatType);
+    }
+
+    public async Task DeleteSeat(int seatId)
+    {
+        await _seatRepository.DeleteAsync(seatId);
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _hallRepository.SaveChangesAsync();
+    }
+
+    public async Task CreateSeatAsync(int hallId, SeatDTO seatDto)
+    {
+        await _seatRepository.CreateAsync(_mapper.Map<Seat>(seatDto));
+    }
+
+    public async Task UpdateLayout(int hallId, int r, int c, string layoutString)
+    {
+        //await _hallRepository.RemoveAllSeatsAsync(hallId);
+        await _seatRepository.UpdateHallLayout(hallId, r, c, layoutString);
     }
 }

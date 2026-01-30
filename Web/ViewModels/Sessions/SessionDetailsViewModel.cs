@@ -4,6 +4,7 @@ public class SessionDetailsViewModel
 {
     public int Id { get; set; }
     public string MovieTitle { get; set; } = string.Empty;
+    public int MovieId { get; set; }
     public int MovieDurationMinutes { get; set; }
     public string HallName { get; set; } = string.Empty;
     public int HallId { get; set; }

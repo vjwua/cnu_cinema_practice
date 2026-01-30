@@ -1,0 +1,301 @@
+@model cnu_cinema_practice.ViewModels.Sessions.EditSessionViewModel
+@{
+    ViewBag.Title = "Edit Session";
+    Layout = "_Layout";
+}
+
+<div class="edit-session-container">
+    <div class="page-header">
+        <h2>
+            <i class="bi bi-pencil-square"></i> Edit Session
+        </h2>
+        <div class="header-actions">
+            <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-info">
+                <i class="bi bi-eye"></i> View Details
+            </a>
+            <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" id="editSessionForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Note:</strong> Leave fields empty to keep their current values. Only update what you want to change.
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="MovieId" class="form-label">
+                                    <i class="bi bi-film"></i> Movie
+                                </label>
+                                <select asp-for="MovieId"
+                                        class="form-select"
+                                        asp-items="ViewBag.Movies"
+                                        id="movieSelect">
+                                    <option value="">-- Keep Current --</option>
+                                </select>
+                                <span asp-validation-for="MovieId" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    Leave empty to keep current movie
+                                </small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="HallId" class="form-label">
+                                    <i class="bi bi-building"></i> Hall
+                                </label>
+                                <select asp-for="HallId"
+                                        class="form-select"
+                                        asp-items="ViewBag.Halls"
+                                        id="hallSelect">
+                                    <option value="">-- Keep Current --</option>
+                                </select>
+                                <span asp-validation-for="HallId" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    Leave empty to keep current hall
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="StartTime" class="form-label">
+                                    <i class="bi bi-clock"></i> Start Time
+                                </label>
+                                <input asp-for="StartTime"
+                                       type="datetime-local"
+                                       class="form-control"
+                                       id="startTimeInput" />
+                                <span asp-validation-for="StartTime" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    Leave empty to keep current time
+                                </small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="MovieFormat" class="form-label">
+                                    <i class="bi bi-badge-3d"></i> Format
+                                </label>
+                                <select asp-for="MovieFormat" class="form-select">
+                                    <option value="">-- Keep Current --</option>
+                                    <option value="0">Standard 2D</option>
+                                    <option value="1">3D</option>
+                                    <option value="2">IMAX</option>
+                                    <option value="3">IMAX 3D</option>
+                                </select>
+                                <span asp-validation-for="MovieFormat" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    Leave empty to keep current format
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="BasePrice" class="form-label">
+                                    <i class="bi bi-currency-dollar"></i> Base Price
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="BasePrice"
+                                           type="number"
+                                           step="0.01"
+                                           class="form-control"
+                                           placeholder="Leave empty to keep current" />
+                                </div>
+                                <span asp-validation-for="BasePrice" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    Leave empty to keep current price
+                                </small>
+                            </div>
+                        </div>
+
+                        <div id="conflictAlert" class="alert" style="display: none;">
+                            <div class="d-flex align-items-start">
+                                <i id="conflictIcon" class="bi bi-exclamation-triangle-fill me-3" style="font-size: 1.5rem;"></i>
+                                <div class="flex-grow-1">
+                                    <h5 id="conflictTitle" class="alert-heading mb-2">Schedule Conflict!</h5>
+                                    <p id="conflictMessage" class="mb-0"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="bi bi-check-circle"></i> Save Changes
+                            </button>
+                            <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="button" class="btn btn-outline-info" onclick="checkConflict()">
+                                <i class="bi bi-search"></i> Check Conflicts
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card info-card">
+                <div class="card-header bg-warning text-dark">
+                    <i class="bi bi-exclamation-triangle"></i> Important
+                </div>
+                <div class="card-body">
+                    <h6>Editing Sessions</h6>
+                    <ul class="tips-list">
+                        <li>Only fill in fields you want to change</li>
+                        <li>Empty fields will keep their current values</li>
+                        <li>Changing hall or time may affect existing bookings</li>
+                        <li>Check for conflicts before saving</li>
+                    </ul>
+
+                    <hr>
+
+                    <h6>Best Practices</h6>
+                    <ul class="tips-list">
+                        <li>Notify customers if changing time/hall</li>
+                        <li>Avoid editing sessions close to start time</li>
+                        <li>Consider creating a new session instead</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-danger text-white">
+                    <i class="bi bi-trash"></i> Danger Zone
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        Deleting this session cannot be undone. All associated bookings will be affected.
+                    </p>
+                    <button type="button"
+                            class="btn btn-danger w-100"
+                            onclick="confirmDelete(@Model.Id)">
+                        <i class="bi bi-trash"></i> Delete Session
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle"></i> Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this session?</p>
+                <div class="alert alert-danger">
+                    <strong>Warning:</strong> This action cannot be undone. All bookings for this session will be affected.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Delete Permanently
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function checkConflict() {
+        const movieId = document.getElementById('movieSelect').value;
+        const hallId = document.getElementById('hallSelect').value;
+        const startTime = document.getElementById('startTimeInput').value;
+
+        if (!movieId && !hallId && !startTime) {
+            alert('Please change at least one field (Movie, Hall, or Start Time) to check for conflicts.');
+            return;
+        }
+
+        const url = '@Url.Action("CheckConflict")';
+        const params = new URLSearchParams({
+            excludeSessionId: @Model.Id
+        });
+
+        if (movieId) params.append('movieId', movieId);
+        if (hallId) params.append('hallId', hallId);
+        if (startTime) params.append('startTime', startTime);
+
+        try {
+            const response = await fetch(`${url}?${params}`);
+            const data = await response.json();
+
+            const alert = document.getElementById('conflictAlert');
+            const message = document.getElementById('conflictMessage');
+            const title = document.getElementById('conflictTitle');
+            const icon = document.getElementById('conflictIcon');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (data.hasConflict) {
+                alert.style.display = 'block';
+                alert.classList.remove('alert-success');
+                alert.classList.add('alert-danger');
+                title.textContent = 'Schedule Conflict!';
+                icon.className = 'bi bi-exclamation-triangle-fill me-3';
+                message.textContent = data.message;
+                submitBtn.disabled = true;
+            } else {
+                alert.style.display = 'block';
+                alert.classList.remove('alert-danger');
+                alert.classList.add('alert-success');
+                title.textContent = 'No Conflicts Found!';
+                icon.className = 'bi bi-check-circle-fill me-3';
+                message.textContent = data.message || 'This time slot is available. You can proceed with saving changes.';
+                submitBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error checking conflict:', error);
+        }
+    }
+
+    function confirmDelete(sessionId) {
+        document.getElementById('deleteForm').action = '@Url.Action("Delete")/' + sessionId;
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+
+    // Auto-check conflict when fields change
+    document.addEventListener('DOMContentLoaded', function() {
+        const movieSelect = document.getElementById('movieSelect');
+        const hallSelect = document.getElementById('hallSelect');
+        const startTimeInput = document.getElementById('startTimeInput');
+
+        [movieSelect, hallSelect, startTimeInput].forEach(element => {
+            element.addEventListener('change', function() {
+                if (movieSelect.value || hallSelect.value || startTimeInput.value) {
+                    checkConflict();
+                }
+            });
+        });
+    });
+</script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

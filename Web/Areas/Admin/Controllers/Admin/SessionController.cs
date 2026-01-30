@@ -2,15 +2,17 @@ using AutoMapper;
 using cnu_cinema_practice.ViewModels.Halls;
 using cnu_cinema_practice.ViewModels.Sessions;
 using Core.DTOs.Sessions;
+using Core.Enums;
 using Core.Interfaces.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin;
 
 [Area("Admin")]
-public class SessionsController(
+public class SessionController(
     ISessionService sessionService,
     IMovieService movieService,
     IHallService hallService,
@@ -18,18 +20,23 @@ public class SessionsController(
 {
     #region Public Actions
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search, string? format, string? dateFilter, int page = 1)
     {
-        var sessions = await sessionService.GetAllSessionsAsync();
-        var viewModels = mapper.Map<IEnumerable<AdminSessionViewModel>>(sessions);
-        return View(viewModels);
+        var viewModel = await BuildIndexViewModelAsync(search, format, dateFilter, page);
+        return View(viewModel);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> IndexResults(string? search, string? format, string? dateFilter, int page = 1)
+    {
+        var viewModel = await BuildIndexViewModelAsync(search, format, dateFilter, page);
+        return PartialView("_SessionIndexResults", viewModel);
     }
 
     public async Task<IActionResult> Schedule(DateTime? date)
     {
         var selectedDate = date ?? DateTime.Today;
 
-        // Get sessions for a week range (or adjust as needed)
         var startDate = selectedDate.Date;
         var endDate = startDate.AddDays(7);
 
@@ -59,25 +66,22 @@ public class SessionsController(
     }
 
     [HttpGet]
-    public async Task<IActionResult> Create()
-    {
-        await PopulateDropdownsAsync();
-        return View(new CreateSessionViewModel());
-    }
-
-    // Can create with pre-filled date and hall (useful from schedule view)
-    [HttpGet]
-    public async Task<IActionResult> CreateFromSchedule(DateTime? startTime, int? hallId)
+    public async Task<IActionResult> Create(DateTime? startTime, int? hallId, int? movieId)
     {
         await PopulateDropdownsAsync();
 
         var model = new CreateSessionViewModel();
+
         if (startTime.HasValue)
             model.StartTime = startTime.Value;
+
         if (hallId.HasValue)
             model.HallId = hallId.Value;
 
-        return View("Create", model);
+        if (movieId.HasValue)
+            model.MovieId = movieId.Value;
+
+        return View(model);
     }
 
     [HttpPost]
@@ -101,15 +105,18 @@ public class SessionsController(
         catch (ValidationException ex)
         {
             HandleValidationException(ex);
-            await PopulateDropdownsAsync();
-            return View(model);
         }
         catch (InvalidOperationException ex)
         {
             HandleBusinessException(ex);
-            await PopulateDropdownsAsync();
-            return View(model);
         }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
+        }
+
+        await PopulateDropdownsAsync();
+        return View(model);
     }
 
     [HttpGet]
@@ -148,15 +155,18 @@ public class SessionsController(
         catch (ValidationException ex)
         {
             HandleValidationException(ex);
-            await PopulateDropdownsAsync();
-            return View(model);
         }
         catch (InvalidOperationException ex)
         {
             HandleBusinessException(ex);
-            await PopulateDropdownsAsync();
-            return View(model);
         }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
+        }
+
+        await PopulateDropdownsAsync();
+        return View(model);
     }
 
     [HttpPost]
@@ -170,11 +180,20 @@ public class SessionsController(
         }
         catch (ValidationException ex)
         {
-            TempData["ErrorMessage"] = ex.Message;
+            TempData["ErrorMessage"] = $"Validation error: {ex.Message}";
         }
         catch (InvalidOperationException ex)
         {
-            TempData["ErrorMessage"] = ex.Message;
+            TempData["ErrorMessage"] = $"Operation error: {ex.Message}";
+        }
+        catch (DbUpdateException ex)
+        {
+            TempData["ErrorMessage"] =
+                "Cannot delete this session because it has associated bookings or reservations. Please cancel all bookings first.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"An unexpected error occurred while deleting the session: {ex.Message}";
         }
 
         return RedirectToAction(nameof(Index));
@@ -212,7 +231,7 @@ public class SessionsController(
         }
         catch (Exception)
         {
-            return Json(new { hasConflict = false });
+            return Json(new { hasConflict = false, message = "Error checking conflict." });
         }
     }
 
@@ -223,9 +242,7 @@ public class SessionsController(
     private void HandleValidationException(ValidationException ex)
     {
         foreach (var error in ex.Errors)
-        {
             ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
-        }
     }
 
     private void HandleBusinessException(InvalidOperationException ex)
@@ -240,6 +257,54 @@ public class SessionsController(
 
         ViewBag.Movies = new SelectList(movies, "Id", "Name");
         ViewBag.Halls = new SelectList(halls, "Id", "Name");
+    }
+
+    private async Task<AdminSessionIndexViewModel> BuildIndexViewModelAsync(
+        string? search,
+        string? format,
+        string? dateFilter,
+        int page)
+    {
+        var parsedFormat = ParseMovieFormat(format);
+
+        var result = await sessionService.GetAdminPagedAsync(new SessionAdminQueryDTO
+        {
+            Search = search,
+            MovieFormat = parsedFormat,
+            DateFilter = dateFilter,
+            Page = page <= 0 ? 1 : page
+        });
+
+        return new AdminSessionIndexViewModel
+        {
+            Paged = new Core.DTOs.Common.PagedResult<AdminSessionViewModel>
+            {
+                Items = result.Items.Select(mapper.Map<AdminSessionViewModel>).ToList(),
+                TotalCount = result.TotalCount,
+                Page = result.Page,
+                PageSize = result.PageSize
+            },
+            Search = search,
+            Format = format,
+            DateFilter = dateFilter
+        };
+    }
+
+    private static MovieFormat? ParseMovieFormat(string? format)
+    {
+        if (string.IsNullOrWhiteSpace(format))
+            return null;
+
+        var normalized = format.Trim();
+
+        return normalized.ToUpperInvariant() switch
+        {
+            "2D" => MovieFormat.TwoD,
+            "3D" => MovieFormat.ThreeD,
+            "IMAX" => MovieFormat.IMAX,
+            "4DX" => MovieFormat.FourDX,
+            _ => Enum.TryParse<MovieFormat>(normalized, ignoreCase: true, out var parsed) ? parsed : null
+        };
     }
 
     #endregion

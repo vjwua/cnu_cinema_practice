@@ -7,6 +7,8 @@ namespace Core.Interfaces.Services;
 public interface IMovieService
 {
     Task<IEnumerable<MovieListDTO>> GetAllAsync();
+    Task<IEnumerable<MovieWithSessionsDTO>> GetAllWithUpcomingSessionsAsync();
+    Task<IEnumerable<MovieListDTO>> GetUpcomingMoviesAsync();
     Task<MovieDetailDTO?> GetByIdAsync(int id);
     Task<IEnumerable<MovieListDTO>> GetByGenreAsync(MovieGenre genre);
     Task<MovieDetailDTO> CreateAsync(CreateMovieDTO dto);
