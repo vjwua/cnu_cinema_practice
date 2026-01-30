@@ -13,6 +13,7 @@ public interface IHallRepository
     //Task UpdateAsync(Hall hall);
     Task UpdateSeatLayoutAsync(int hallId, byte[,] seatLayout);
     Task UpdateNameAsync(int hallId, string name);
+    Task UpdateDimensionsAsync(int hallId, byte rows, byte cols);
     Task DeleteAsync(int id);
     Task<bool> ExistsAsync(int id);
     
@@ -20,4 +21,5 @@ public interface IHallRepository
     Task RemoveAllSeatsAsync(int hallId);
     Task<int> GetSeatCountAsync(int hallId);
     Task<IEnumerable<Seat>> GetSeatsByHallIdAsync(int hallId);
+    Task SaveChangesAsync();
 }

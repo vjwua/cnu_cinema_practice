@@ -14,5 +14,11 @@ public class SeatMapping : Profile
             .ForMember(sd => sd.SeatTypeId, opt => opt.MapFrom(s => s.SeatTypeId))
             .ForMember(sd => sd.RowNum, opt => opt.MapFrom(s => s.RowNum))
             .ForMember(sd => sd.SeatNum, opt => opt.MapFrom(s => s.SeatNum));
+
+        CreateMap<SeatDTO, Seat>()
+            .ForMember(sd => sd.HallId, opt => opt.MapFrom(s => s.HallId))
+            .ForMember(sd => sd.SeatTypeId, opt => opt.MapFrom(s => s.SeatTypeId))
+            .ForMember(sd => sd.RowNum, opt => opt.MapFrom(s => s.RowNum))
+            .ForMember(sd => sd.SeatNum, opt => opt.MapFrom(s => s.SeatNum));
     }
 }
