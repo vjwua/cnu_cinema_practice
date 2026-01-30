@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
-namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin;
+namespace cnu_cinema_practice.Areas.Admin.Controllers;
 
 [Area("Admin")]
 public class SessionController(
@@ -48,7 +48,7 @@ public class SessionController(
             SelectedDate = selectedDate,
             StartDate = startDate,
             EndDate = endDate,
-            Sessions = mapper.Map<IEnumerable<AdminSessionViewModel>>(sessions),
+            Sessions = mapper.Map<IEnumerable<SessionViewModel>>(sessions),
             Halls = mapper.Map<IEnumerable<HallListViewModel>>(halls)
         };
 
@@ -126,14 +126,14 @@ public class SessionController(
         if (session == null)
             return NotFound();
 
-        var viewModel = mapper.Map<EditSessionViewModel>(session);
+        var viewModel = mapper.Map<UpdateSessionViewModel>(session);
         await PopulateDropdownsAsync();
         return View(viewModel);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, EditSessionViewModel model)
+    public async Task<IActionResult> Edit(int id, UpdateSessionViewModel model)
     {
         if (id != model.Id)
             return NotFound();
@@ -259,7 +259,7 @@ public class SessionController(
         ViewBag.Halls = new SelectList(halls, "Id", "Name");
     }
 
-    private async Task<AdminSessionIndexViewModel> BuildIndexViewModelAsync(
+    private async Task<SessionIndexViewModel> BuildIndexViewModelAsync(
         string? search,
         string? format,
         string? dateFilter,
@@ -275,11 +275,11 @@ public class SessionController(
             Page = page <= 0 ? 1 : page
         });
 
-        return new AdminSessionIndexViewModel
+        return new SessionIndexViewModel
         {
-            Paged = new Core.DTOs.Common.PagedResult<AdminSessionViewModel>
+            Paged = new Core.DTOs.Common.PagedResult<SessionViewModel>
             {
-                Items = result.Items.Select(mapper.Map<AdminSessionViewModel>).ToList(),
+                Items = result.Items.Select(mapper.Map<SessionViewModel>).ToList(),
                 TotalCount = result.TotalCount,
                 Page = result.Page,
                 PageSize = result.PageSize

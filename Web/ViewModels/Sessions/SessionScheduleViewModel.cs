@@ -7,10 +7,10 @@ public class SessionScheduleViewModel
     public DateTime SelectedDate { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-    public IEnumerable<AdminSessionViewModel> Sessions { get; set; } = [];
+    public IEnumerable<SessionViewModel> Sessions { get; set; } = [];
     public IEnumerable<HallListViewModel> Halls { get; set; } = [];
 
-    public IEnumerable<AdminSessionViewModel> GetSessionsForHallAndDate(int hallId, DateTime date)
+    public IEnumerable<SessionViewModel> GetSessionsForHallAndDate(int hallId, DateTime date)
     {
         return Sessions
             .Where(s => s.HallId == hallId && s.StartTime.Date == date.Date)

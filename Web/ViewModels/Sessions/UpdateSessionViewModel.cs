@@ -3,7 +3,7 @@ using Core.Enums;
 
 namespace cnu_cinema_practice.ViewModels.Sessions;
 
-public class EditSessionViewModel
+public class UpdateSessionViewModel
 {
     public int Id { get; set; }
 

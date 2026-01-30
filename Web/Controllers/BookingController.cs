@@ -4,7 +4,7 @@ using Core.DTOs.Seats;
 using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
+namespace cnu_cinema_practice.Controllers
 {
     public class BookingController(
         ISessionService sessionService,

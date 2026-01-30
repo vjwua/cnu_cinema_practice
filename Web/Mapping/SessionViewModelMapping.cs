@@ -1,16 +1,15 @@
 using AutoMapper;
 using Core.DTOs.Sessions;
 using Core.Enums;
-using cnu_cinema_practice.ViewModels;
 using cnu_cinema_practice.ViewModels.Sessions;
 
 namespace cnu_cinema_practice.Mapping;
 
-public class AdminSessionViewModelMapping : Profile
+public class SessionViewModelMapping : Profile
 {
-    public AdminSessionViewModelMapping()
+    public SessionViewModelMapping()
     {
-        CreateMap<SessionListDTO, AdminSessionViewModel>()
+        CreateMap<SessionListDTO, SessionViewModel>()
             .ForMember(dest => dest.MovieFormat,
                 opt => opt.MapFrom(src => FormatMovieFormat(src.MovieFormat)))
             .ForMember(dest => dest.MovieDuration,
@@ -33,7 +32,7 @@ public class AdminSessionViewModelMapping : Profile
                 }
             });
 
-        CreateMap<SessionDetailDTO, EditSessionViewModel>()
+        CreateMap<SessionDetailDTO, UpdateSessionViewModel>()
             .ForMember(dest => dest.MovieId, opt => opt.MapFrom(src => (int?)src.MovieId))
             .ForMember(dest => dest.HallId, opt => opt.MapFrom(src => (int?)src.HallId))
             .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => (DateTime?)src.StartTime))
@@ -42,7 +41,7 @@ public class AdminSessionViewModelMapping : Profile
 
         CreateMap<CreateSessionViewModel, CreateSessionDTO>();
 
-        CreateMap<EditSessionViewModel, UpdateSessionDTO>();
+        CreateMap<UpdateSessionViewModel, UpdateSessionDTO>();
     }
 
     private static string FormatMovieFormat(MovieFormat format)
