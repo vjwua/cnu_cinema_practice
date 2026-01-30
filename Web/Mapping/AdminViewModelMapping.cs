@@ -13,7 +13,7 @@ public class AdminViewModelMapping : Profile
         // Movie mappings
         CreateMap<MovieListDTO, AdminMovieViewModel>()
             .ForMember(dest => dest.ImdbRating,
-                opt => opt.MapFrom(src => src.ImdbRating.HasValue ? src.ImdbRating.Value.ToString("F1") : "N/A"))
+                opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.ReleaseDate,
                 opt => opt.MapFrom(src => src.ReleaseDate.ToDateTime(TimeOnly.MinValue)))
             .ForMember(dest => dest.Director,
@@ -22,12 +22,14 @@ public class AdminViewModelMapping : Profile
                 opt => opt.MapFrom(src => string.Empty)) // Not in ListDTO
             .ForMember(dest => dest.Genres,
                 opt => opt.MapFrom(src => new List<string> { src.Genre.ToString() }))
-            .ForMember(dest => dest.IsActive,
-                opt => opt.MapFrom(src => true)); // Default value
+            .ForMember(dest => dest.TrailerUrl,
+                opt => opt.MapFrom(src => src.TrailerUrl ?? string.Empty))
+            .ForMember(dest => dest.AgeLimit,
+                opt => opt.MapFrom(src => src.AgeLimit));
 
         CreateMap<MovieDetailDTO, AdminMovieViewModel>()
             .ForMember(dest => dest.ImdbRating,
-                opt => opt.MapFrom(src => src.ImdbRating.HasValue ? src.ImdbRating.Value.ToString("F1") : "N/A"))
+                opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.ReleaseDate,
                 opt => opt.MapFrom(src => src.ReleaseDate.ToDateTime(TimeOnly.MinValue)))
             .ForMember(dest => dest.Director,
@@ -36,12 +38,14 @@ public class AdminViewModelMapping : Profile
                 opt => opt.MapFrom(src => src.Description ?? string.Empty))
             .ForMember(dest => dest.Genres,
                 opt => opt.MapFrom(src => new List<string> { src.Genre.ToString() }))
-            .ForMember(dest => dest.IsActive,
-                opt => opt.MapFrom(src => true));
+            .ForMember(dest => dest.TrailerUrl,
+                opt => opt.MapFrom(src => src.TrailerUrl ?? string.Empty))
+            .ForMember(dest => dest.AgeLimit,
+                opt => opt.MapFrom(src => src.AgeLimit));
 
         CreateMap<MovieDetailDTO, MovieFormViewModel>()
             .ForMember(dest => dest.ImdbRating,
-                opt => opt.MapFrom(src => src.ImdbRating.HasValue ? src.ImdbRating.Value.ToString("F1") : "N/A"))
+                opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.ReleaseDate,
                 opt => opt.MapFrom(src => src.ReleaseDate.ToDateTime(TimeOnly.MinValue)))
             .ForMember(dest => dest.Director,
@@ -50,22 +54,24 @@ public class AdminViewModelMapping : Profile
                 opt => opt.MapFrom(src => src.Description ?? string.Empty))
             .ForMember(dest => dest.GenresString,
                 opt => opt.MapFrom(src => src.Genre.ToString()))
-            .ForMember(dest => dest.IsActive,
-                opt => opt.MapFrom(src => true));
+            .ForMember(dest => dest.TrailerUrl,
+                opt => opt.MapFrom(src => src.TrailerUrl ?? string.Empty))
+            .ForMember(dest => dest.AgeLimit,
+                opt => opt.MapFrom(src => src.AgeLimit));
 
         CreateMap<MovieFormViewModel, CreateMovieDTO>()
             .ForMember(dest => dest.DurationMinutes,
                 opt => opt.MapFrom(src => (ushort)src.DurationMinutes))
             .ForMember(dest => dest.AgeLimit,
-                opt => opt.MapFrom(src => ParseAgeLimit(src.ImdbRating)))
+                opt => opt.MapFrom(src => src.AgeLimit))
             .ForMember(dest => dest.Genre,
                 opt => opt.MapFrom(src => ParseGenre(src.GenresString)))
             .ForMember(dest => dest.ReleaseDate,
                 opt => opt.MapFrom(src => DateOnly.FromDateTime(src.ReleaseDate)))
             .ForMember(dest => dest.ImdbRating,
-                opt => opt.MapFrom(src => ParseImdbRating(src.ImdbRating)))
+                opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.TrailerUrl,
-                opt => opt.MapFrom(src => (string?)null))
+                opt => opt.MapFrom(src => src.TrailerUrl))
             .ForMember(dest => dest.Country,
                 opt => opt.MapFrom(src => string.Empty))
             .ForMember(dest => dest.DirectorsIds,
@@ -77,15 +83,15 @@ public class AdminViewModelMapping : Profile
             .ForMember(dest => dest.DurationMinutes,
                 opt => opt.MapFrom(src => (ushort)src.DurationMinutes))
             .ForMember(dest => dest.AgeLimit,
-                opt => opt.MapFrom(src => ParseAgeLimit(src.ImdbRating)))
+                opt => opt.MapFrom(src => src.AgeLimit))
             .ForMember(dest => dest.Genre,
                 opt => opt.MapFrom(src => ParseGenre(src.GenresString)))
             .ForMember(dest => dest.ReleaseDate,
                 opt => opt.MapFrom(src => DateOnly.FromDateTime(src.ReleaseDate)))
             .ForMember(dest => dest.ImdbRating,
-                opt => opt.MapFrom(src => ParseImdbRating(src.ImdbRating)))
+                opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.TrailerUrl,
-                opt => opt.MapFrom(src => (string?)null))
+                opt => opt.MapFrom(src => src.TrailerUrl ?? string.Empty))
             .ForMember(dest => dest.Country,
                 opt => opt.MapFrom(src => string.Empty))
             .ForMember(dest => dest.DirectorsIds,
@@ -132,14 +138,6 @@ public class AdminViewModelMapping : Profile
     }
 
     // Helper methods for custom conversions
-    private static byte ParseAgeLimit(string imdbRating)
-    {
-        if (string.IsNullOrEmpty(imdbRating))
-            return 0;
-
-        var digits = new string(imdbRating.Where(char.IsDigit).ToArray());
-        return byte.TryParse(digits, out var result) ? result : (byte)0;
-    }
 
     private static MovieGenre ParseGenre(string genresString)
     {
@@ -150,14 +148,6 @@ public class AdminViewModelMapping : Profile
         return Enum.TryParse<MovieGenre>(firstGenre, out var genre)
             ? genre
             : MovieGenre.Action;
-    }
-
-    private static decimal? ParseImdbRating(string imdbRating)
-    {
-        if (string.IsNullOrEmpty(imdbRating) || imdbRating.Contains("+"))
-            return null;
-
-        return decimal.TryParse(imdbRating, out var result) ? result : null;
     }
 
     private static byte[,] CreateDefaultSeatLayout(byte rows, byte columns)
