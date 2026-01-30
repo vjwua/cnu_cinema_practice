@@ -6,7 +6,9 @@ namespace cnu_cinema_practice.Controllers;
 
 public class HomeController(IMovieService movieService) : Controller
 {
-    public async Task<IActionResult> Index()
+    // Disabled to allow Blazor to handle the root route
+    // public async Task<IActionResult> Index()
+    public async Task<IActionResult> IndexMvc()
     {
         var moviesWithSessions = await movieService.GetAllWithUpcomingSessionsAsync();
 
@@ -18,6 +20,7 @@ public class HomeController(IMovieService movieService) : Controller
             ImdbRating = movie.ImdbRating?.ToString("F1"),
             Genre = movie.Genre.ToString(),
             DurationMinutes = movie.DurationMinutes,
+            Description = movie.Description ?? string.Empty,
             Sessions = movie.Sessions.Take(2).Select(s => new MovieSessionTimeViewModel
             {
                 SessionId = s.Id,
