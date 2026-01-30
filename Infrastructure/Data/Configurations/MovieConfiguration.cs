@@ -1,4 +1,3 @@
-// 🔄 ОНОВИТИ: Infrastructure/Data/Configurations/MovieConfiguration.cs
 namespace Infrastructure.Data.Configurations;
 
 using Core.Entities;
@@ -12,7 +11,7 @@ public class MovieConfiguration : IEntityTypeConfiguration<Movie>
         builder.ToTable("Movies");
 
         builder.HasKey(x => x.Id);
-        
+
         builder.Property(x => x.Name)
             .HasMaxLength(200)
             .IsRequired();

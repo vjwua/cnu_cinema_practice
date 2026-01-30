@@ -11,6 +11,7 @@ public class MovieCardViewModel
     public string? ImdbRating { get; set; }
     public string Genre { get; set; } = string.Empty;
     public int DurationMinutes { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     public List<MovieSessionTimeViewModel> Sessions { get; set; } = new();
 

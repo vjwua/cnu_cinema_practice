@@ -1,12 +1,10 @@
-@model cnu_cinema_practice.ViewModels.Home.HomeIndexViewModel
-@{
-    ViewData["Title"] = "Головна - CNU Cinema";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
+@page "/"
+@using cnu_cinema_practice.ViewModels.Home
+@using Core.Interfaces.Services
+@inject IMovieService MovieService
+@rendermode RenderMode.InteractiveServer
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
-}
+<PageTitle>Головна - CNU Cinema</PageTitle>
 
 <!-- === BACKGROUND AMBIENCE === -->
 <div class="fixed-background" style="position: fixed; inset: 0; z-index: -1; pointer-events: none;">
@@ -28,10 +26,10 @@
             <span class="text-xl font-black text-white text-uppercase italic tracking-widest">CineMaster</span>
         </a>
 
-        <!-- Links (Replaced text-muted with text-cyan/white opacity) -->
+        <!-- Links -->
         <div class="hidden md-flex gap-5">
-            <a href="#movies-grid" class="text-decoration-none uppercase-nav hover-text-white transition-all"
-                style="color: rgba(255,255,255,0.7);">Афіша</a>
+            <a @onclick="ScrollToGrid" class="text-decoration-none uppercase-nav hover-text-white transition-all"
+                style="color: rgba(255,255,255,0.7); cursor: pointer;">Афіша</a>
             <a href="#" class="text-decoration-none uppercase-nav hover-text-white transition-all"
                 style="color: rgba(255,255,255,0.7);">Кінотеатри</a>
             <a href="#" class="text-decoration-none uppercase-nav hover-text-white transition-all"
@@ -63,7 +61,7 @@
                 <div class="w-full md-flex flex-column items-start animate-fade-in" style="max-width: 800px;">
                     <div class="mb-4 flex-row items-center gap-3">
                         <span class="hero-badge">Рекомендовано</span>
-                        <span class="text-cyan font-black tracking-widest text-uppercase" style="font-size: 0.8rem;">IMAX
+                        <span class="text-white font-black tracking-widest text-uppercase" style="font-size: 0.8rem;">IMAX
                             Laser 4K</span>
                     </div>
 
@@ -88,9 +86,9 @@
                     </p>
 
                     <div class="flex-row gap-3" style="flex-wrap: wrap;">
-                        <a href="#movies-grid" class="btn-primary-custom text-decoration-none">
+                        <button @onclick="ScrollToGrid" class="btn-primary-custom text-decoration-none">
                             Квитки від 160 ₴
-                        </a>
+                        </button>
                         <button class="btn-glass-hero">
                             Трейлер
                         </button>
@@ -112,28 +110,33 @@
     <!-- Header & Filter -->
     <div class="d-flex flex-column md-row justify-between items-start md-items-center mb-5 gap-4">
         <div>
-            <div class="flex-row items-center gap-3 mb-2">
+            <div class="flex-row items-center gap-2 mb-0">
                 <div style="width: 30px; height: 2px; background: var(--cyan-500);"></div>
-                <span class="text-cyan uppercase-nav">Зараз у прокаті</span>
+                <span class="text-cyan uppercase-nav" style="line-height: 1;">Зараз у прокаті</span>
             </div>
-            <h2 class="font-heading text-white text-uppercase italic font-black"
-                style="font-size: 3rem; line-height: 1;">Обери фільм</h2>
+            <h2 class="font-heading text-white text-uppercase italic font-black m-0"
+                style="font-size: 3rem; line-height: 0.9;">Обери фільм</h2>
         </div>
 
         <div class="genre-filter-container">
-            <button class="genre-btn active" data-genre="all">Всі</button>
-            <button class="genre-btn" data-genre="Action">Екшн</button>
-            <button class="genre-btn" data-genre="Drama">Драма</button>
-            <button class="genre-btn" data-genre="Comedy">Комедія</button>
-            <button class="genre-btn" data-genre="SciFi">Фантастика</button>
+            <button class="genre-btn @(ActiveGenre == "all" ? "active" : "")"
+            @onclick="@(() => SelectGenre("all"))">Всі</button>
+            <button class="genre-btn @(ActiveGenre == "Action" ? "active" : "")"
+            @onclick="@(() => SelectGenre("Action"))">Екшн</button>
+            <button class="genre-btn @(ActiveGenre == "Drama" ? "active" : "")"
+            @onclick="@(() => SelectGenre("Drama"))">Драма</button>
+            <button class="genre-btn @(ActiveGenre == "Comedy" ? "active" : "")"
+            @onclick="@(() => SelectGenre("Comedy"))">Комедія</button>
+            <button class="genre-btn @(ActiveGenre == "SciFi" ? "active" : "")"
+            @onclick="@(() => SelectGenre("SciFi"))">Фантастика</button>
         </div>
     </div>
 
     <!-- Grid -->
     <div class="movies-grid">
-        @foreach (var movie in Model.Movies)
+        @foreach (var movie in FilteredMovies)
         {
-            <div class="movie-card-wrapper" data-genre="@movie.Genre">
+            <div class="movie-card-wrapper">
                 <div class="movie-card">
                     <!-- Rating -->
                     <div class="rating-badge">
@@ -190,11 +193,12 @@
 {
     <section class="container-custom pb-5 mt-5">
         <div class="mb-5">
-            <div class="flex-row items-center gap-3 mb-2">
+            <div class="flex-row items-center gap-2 mb-0">
                 <div style="width: 30px; height: 2px; background: var(--cyan-500);"></div>
-                <span class="text-cyan uppercase-nav">Скоро</span>
+                <span class="text-cyan uppercase-nav" style="line-height: 1;">Скоро</span>
             </div>
-            <h2 class="font-heading text-white text-uppercase italic font-black" style="font-size: 3rem; line-height: 1;">
+            <h2 class="font-heading text-white text-uppercase italic font-black m-0"
+                style="font-size: 3rem; line-height: 0.9;">
                 Очікуйте</h2>
         </div>
 
@@ -225,6 +229,72 @@
     </section>
 }
 
-@section Scripts {
-    <script src="~/js/home.js"></script>
+@code {
+    [Inject] IJSRuntime JS { get; set; } = default!;
+    private HomeIndexViewModel Model { get; set; } = new();
+    private string ActiveGenre { get; set; } = "all";
+
+    private IEnumerable<MovieCardViewModel> FilteredMovies =>
+    ActiveGenre == "all"
+    ? Model.Movies
+    : Model.Movies.Where(m => m.Genre.Contains(ActiveGenre, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        var moviesWithSessions = await MovieService.GetAllWithUpcomingSessionsAsync();
+
+        var movieCards = moviesWithSessions.Select(movie => new MovieCardViewModel
+            {
+                Id = movie.Id,
+                Name = movie.Name,
+                PosterUrl = movie.PosterUrl,
+                ImdbRating = movie.ImdbRating?.ToString("F1"),
+                Genre = movie.Genre.ToString(),
+                DurationMinutes = movie.DurationMinutes,
+                Description = movie.Description ?? string.Empty,
+                Sessions = movie.Sessions.Select(s => new MovieSessionTimeViewModel
+                {
+                    SessionId = s.Id,
+                    StartTime = s.StartTime
+                }).ToList()
+            }).ToList();
+
+        // Upcoming
+        var upcomingMovies = await MovieService.GetUpcomingMoviesAsync();
+        var upcomingViewModels = upcomingMovies.Select(m => new UpcomingMovieViewModel
+            {
+                Id = m.Id,
+                Name = m.Name,
+                PosterUrl = m.PosterUrl,
+                Genre = m.Genre.ToString(),
+                ImdbRating = m.ImdbRating,
+                ReleaseDate = m.ReleaseDate,
+                DurationMinutes = m.DurationMinutes
+            }).ToList();
+
+        Model = new HomeIndexViewModel
+            {
+                FeaturedMovie = movieCards.FirstOrDefault(),
+                Movies = movieCards,
+                UpcomingMovies = upcomingViewModels
+            };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("HomeHelpers.initHeroScroll");
+        }
+    }
+
+    private async Task ScrollToGrid()
+    {
+        await JS.InvokeVoidAsync("HomeHelpers.scrollToElement", "movies-grid");
+    }
+
+    private void SelectGenre(string genre)
+    {
+        ActiveGenre = genre;
+    }
 }

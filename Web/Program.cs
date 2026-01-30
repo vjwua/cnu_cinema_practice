@@ -8,6 +8,10 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        // Add Blazor services
+        builder.Services.AddRazorComponents()
+            .AddInteractiveServerComponents();
+
         builder.Services.AddControllersWithViews();
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -26,15 +30,20 @@ public class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseAntiforgery(); // Required for Blazor
 
-// Маршрут для Admin Area (ВАЖЛИВО: до default route)
+        // Map Blazor Root
+        app.MapRazorComponents<Components.App>()
+            .AddInteractiveServerRenderMode();
+
+        // Маршрут для Admin Area (ВАЖЛИВО: до default route)
         app.MapControllerRoute(
             name: "admin",
             pattern: "Admin/{controller=Admin}/{action=Index}/{id?}",
             defaults: new { area = "Admin" }
         );
 
-// Стандартний маршрут для клієнтської частини
+        // Стандартний маршрут для клієнтської частини
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
