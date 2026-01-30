@@ -16,7 +16,7 @@
                 <i class="bi bi-film" style="font-size: 4rem; color: #0d6efd;"></i>
                 <h3 class="mt-3">Movies Management</h3>
                 <p class="text-muted">Add, edit, or remove movies from your cinema</p>
-                <a asp-controller="Movie" asp-action="List" class="btn btn-primary btn-lg">Manage Movies</a>
+                <a asp-controller="Movie" asp-action="Index" class="btn btn-primary btn-lg">Manage Movies</a>
             </div>
         </div>
     </div>
@@ -27,7 +27,7 @@
                 <i class="bi bi-building" style="font-size: 4rem; color: #198754;"></i>
                 <h3 class="mt-3">Hall Management</h3>
                 <p class="text-muted">Configure cinema halls and seat arrangements</p>
-                <a asp-controller="Hall" asp-action="List" class="btn btn-success btn-lg">Manage Hall</a>
+                <a asp-controller="Hall" asp-action="Index" class="btn btn-success btn-lg">Manage Halls</a>
             </div>
         </div>
     </div>
@@ -39,20 +39,6 @@
                 <h3 class="mt-3">Session Management</h3>
                 <p class="text-muted">Organize movies by sessions and form the schedule</p>
                 <a asp-controller="Session" asp-action="Index" class="btn btn-danger btn-lg">Manage Sessions</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">Quick Stats</h5>
-                <hr>
-                <p class="mb-2"><strong>Active Movies:</strong> 8</p>
-                <p class="mb-2"><strong>Total Halls:</strong> 5</p>
-                <p class="mb-0"><strong>Total Seats:</strong> 420</p>
             </div>
         </div>
     </div>
