@@ -25,14 +25,19 @@
                             <input asp-for="Director" class="form-control" required />
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="ImdbRating" class="form-label">Rating *</label>
-                            <select asp-for="ImdbRating" class="form-select" required>
+                            <label asp-for="AgeLimit" class="form-label">Age Rating *</label>
+                            <select asp-for="AgeLimit" class="form-select" required>
                                 <option value="">Select Rating</option>
-                                <option value="GA">ЗА</option>
+                                <option value="0">ЗА</option>
                                 <option value="12">12+</option>
                                 <option value="16">16+</option>
                                 <option value="18">18+</option>
                             </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="ImdbRating" class="form-label">IMDb Rating</label>
+                            <input asp-for="ImdbRating" type="number" step="0.1" min="0" max="10" class="form-control" placeholder="e.g., 8.5" />
                         </div>
                     </div>
 
@@ -63,12 +68,12 @@
                         <input asp-for="PosterUrl" type="url" class="form-control" required />
                         <small class="text-muted">Enter the URL of the movie poster image</small>
                     </div>
-
-                    <div class="mb-3 form-check">
-                        <input asp-for="IsActive" type="checkbox" class="form-check-input" />
-                        <label asp-for="IsActive" class="form-check-label">Active (show on website)</label>
+                    
+                    <div class="mb-3">
+                        <label asp-for="TrailerUrl" class="form-label">Trailer URL *</label>
+                        <input asp-for="TrailerUrl" type="url" class="form-control"/>
+                        <small class="text-muted">Enter the URL of the movie trailer</small>
                     </div>
-
                     <hr>
 
                     <div class="d-flex gap-2">

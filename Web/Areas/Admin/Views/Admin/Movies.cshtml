@@ -31,10 +31,10 @@
                         <th style="width: 80px;">Poster</th>
                         <th>Title</th>
                         <th>Duration</th>
-                        <th>Rating</th>
+                        <th>Age Rating</th>
+                        <th>IMDb Rating</th>
                         <th>Genres</th>
                         <th>Release Date</th>
-                        <th>Status</th>
                         <th style="width: 200px;">Actions</th>
                     </tr>
                 </thead>
@@ -50,29 +50,27 @@
                                 <small class="text-muted">@movie.Director</small>
                             </td>
                             <td>@(movie.DurationMinutes / 60)h @(movie.DurationMinutes % 60)m</td>
-                            <td><span class="badge bg-secondary">@movie.ImdbRating</span></td>
-                            <td>@string.Join(", ", movie.Genres)</td>
-                            <td>@movie.ReleaseDate.ToString("MMM dd, yyyy")</td>
+                            <td><span class="badge bg-primary">@movie.AgeLimit</span></td>
+                            @*<td><span class="badge bg-secondary">@movie.ImdbRating</span></td>*@
                             <td>
-                                @if (movie.IsActive)
+                                @if (movie.ImdbRating.HasValue)
                                 {
-                                    <span class="badge bg-success">Active</span>
+                                    <span class="badge bg-primary">@movie.ImdbRating.Value.ToString("F1")</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary">Inactive</span>
+                                    <span class="badge bg-secondary">N/A</span>
                                 }
                             </td>
+                            <td>@string.Join(", ", movie.Genres)</td>
+                            <td>@movie.ReleaseDate.ToString("MMM dd, yyyy")</td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
                                     <a asp-action="EditMovie" asp-route-id="@movie.Id" class="btn btn-outline-primary" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form asp-action="ToggleMovieStatus" asp-route-id="@movie.Id" method="post" class="d-inline">
-                                        <button type="submit" class="btn btn-outline-warning" title="Toggle Status">
-                                            <i class="bi bi-power"></i>
-                                        </button>
-                                    </form>
+                                    
+                                    
                                     <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal@(movie.Id)" title="Delete">
                                         <i class="bi bi-trash"></i>
                                     </button>

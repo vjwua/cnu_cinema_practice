@@ -34,8 +34,7 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers.Admin
         {
             return View(new MovieFormViewModel
             {
-                ReleaseDate = DateTime.Now,
-                IsActive = true
+                ReleaseDate = DateTime.Now
             });
         }
 
