@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using cnu_cinema_practice.ViewModels;
 using Core.DTOs.Sessions;
-using Core.DTOs.Movies;
 using Core.DTOs.Seats;
 
 namespace cnu_cinema_practice.Mapping;

@@ -1,6 +1,6 @@
-﻿namespace cnu_cinema_practice.ViewModels;
+﻿namespace cnu_cinema_practice.ViewModels.Movies;
 
-public class MovieOverviewViewModel
+public class MovieDetailViewModel
 {
     public int Id { get; set; }
     public string Name { get; set; }

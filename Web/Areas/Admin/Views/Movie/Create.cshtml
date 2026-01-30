@@ -1,5 +1,4 @@
-﻿@using cnu_cinema_practice.ViewModels
-@model MovieFormViewModel
+﻿@model cnu_cinema_practice.ViewModels.Movies.CreateMovieViewModel
 @{
     ViewData["Title"] = Model.Id > 0 ? "Edit Movie" : "Add New Movie";
 }
@@ -11,7 +10,7 @@
                 <h4 class="mb-0">@ViewData["Title"]</h4>
             </div>
             <div class="card-body">
-                <form asp-action="@(Model.Id > 0 ? "EditMovie" : "CreateMovie")" method="post">
+                <form asp-action="@(Model.Id > 0 ? "Edit" : "Create")" method="post">
                     <input type="hidden" asp-for="Id" />
 
                     <div class="mb-3">
@@ -80,7 +79,7 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-save"></i> @(Model.Id > 0 ? "Update Movie" : "Create Movie")
                         </button>
-                        <a asp-action="Movies" class="btn btn-outline-secondary">Cancel</a>
+                        <a asp-controller="Movie" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
                     </div>
                 </form>
             </div>
