@@ -1,6 +1,6 @@
 namespace cnu_cinema_practice.ViewModels.Sessions;
 
-public class AdminSessionViewModel
+public class SessionViewModel
 {
     public int Id { get; set; }
     public string MovieName { get; set; } = string.Empty;
