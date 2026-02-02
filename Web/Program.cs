@@ -39,7 +39,7 @@ public class Program
         // Маршрут для Admin Area (ВАЖЛИВО: до default route)
         app.MapControllerRoute(
             name: "admin",
-            pattern: "{controller=Dashboard}/{action=Index}/{id?}",
+            pattern: "Admin/{controller=Dashboard}/{action=Index}/{id?}",
             defaults: new { area = "Admin" }
         );
 
