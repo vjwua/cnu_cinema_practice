@@ -1,12 +1,15 @@
 ﻿using AutoMapper;
 using cnu_cinema_practice.ViewModels.Movies;
+using Core.Constants;
 using Core.DTOs.Movies;
 using Core.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace cnu_cinema_practice.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = RoleNames.Admin)]
     public class MovieController(
         IMovieService movieService,
         IMapper mapper) : Controller

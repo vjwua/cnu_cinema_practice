@@ -1,10 +1,13 @@
 using Infrastructure;
+using Infrastructure.Data.SeedData;
+using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace cnu_cinema_practice;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -13,10 +16,20 @@ public class Program
             .AddInteractiveServerComponents();
 
         builder.Services.AddControllersWithViews();
-        builder.Services.AddInfrastructure(builder.Configuration);
+        builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
         builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
         var app = builder.Build();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            var adminEmail = builder.Configuration["Identity:DefaultAdmin:Email"] ?? "admin@cinema.com";
+            var adminPassword = builder.Configuration["Identity:DefaultAdmin:Password"] ?? "Admin123!";
+            await IdentitySeed.SeedAsync(roleManager, userManager, adminEmail, adminPassword, logger);
+        }
 
         if (!app.Environment.IsDevelopment())
         {
@@ -48,6 +61,6 @@ public class Program
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
-        app.Run();
+        await app.RunAsync();
     }
 }

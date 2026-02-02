@@ -6,9 +6,8 @@ namespace cnu_cinema_practice.Controllers;
 
 public class HomeController(IMovieService movieService) : Controller
 {
-    // Disabled to allow Blazor to handle the root route
-    // public async Task<IActionResult> Index()
-    public async Task<IActionResult> IndexMvc()
+    // Root "/" is handled by Blazor (Home.razor). This action serves /Home/Index.
+    public async Task<IActionResult> Index()
     {
         var moviesWithSessions = await movieService.GetAllWithUpcomingSessionsAsync();
 

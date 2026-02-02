@@ -10,12 +10,13 @@ using Core.Validators.Hall;
 using Core.DTOs.Sessions;
 using Core.DTOs.Movies;
 using Core.DTOs.Halls;
-using Core.Validators.Hall;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 
 namespace Infrastructure;
 
@@ -23,16 +24,45 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
         services.AddDbContext<CinemaDbContext>(options =>
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection")
             ));
 
-        services.AddIdentity<ApplicationUser, IdentityRole>()
+        services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequiredLength = 8;
+                options.User.RequireUniqueEmail = true;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.AllowedForNewUsers = true;
+            })
             .AddEntityFrameworkStores<CinemaDbContext>()
             .AddDefaultTokenProviders();
+
+        services.ConfigureApplicationCookie(options =>
+        {
+            options.LoginPath = "/Account/Login";
+            options.AccessDeniedPath = "/Account/AccessDenied";
+
+            options.ExpireTimeSpan = TimeSpan.FromDays(30);
+            options.SlidingExpiration = true;
+
+            options.Cookie.HttpOnly = true;
+    
+            options.Cookie.SecurePolicy = environment.IsDevelopment() 
+                ? CookieSecurePolicy.SameAsRequest
+                : CookieSecurePolicy.Always;
+    
+            options.Cookie.SameSite = SameSiteMode.Strict;
+        });
 
         // Register Repositories
         services.AddScoped<ISessionRepository, SessionRepository>();
