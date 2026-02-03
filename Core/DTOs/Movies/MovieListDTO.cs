@@ -13,4 +13,5 @@ public class MovieListDTO
     public DateOnly ReleaseDate { get; set; }
     public MovieGenre Genre { get; set; }
     public ushort DurationMinutes { get; set; }
+    public string? Description { get; set; }
 }
