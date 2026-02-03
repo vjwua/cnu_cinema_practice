@@ -18,12 +18,6 @@ public class AccountController(
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            var user = await userManager.GetUserAsync(User);
-            if (user != null && await userManager.IsInRoleAsync(user, RoleNames.Admin))
-            {
-                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
-            }
-
             return RedirectToAction("Index", "Home", new { area = "" });
         }
 
@@ -51,17 +45,7 @@ public class AccountController(
         if (result.Succeeded)
         {
             logger.LogInformation("User logged in successfully");
-            var user = await userManager.FindByEmailAsync(model.Email);
-
-            if (user == null || !await userManager.IsInRoleAsync(user, RoleNames.Admin)) return RedirectToLocal(url);
-            if (!string.IsNullOrEmpty(url)
-                && Url.IsLocalUrl(url)
-                && url.StartsWith("/Admin", StringComparison.OrdinalIgnoreCase))
-            {
-                return Redirect(url);
-            }
-
-            return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+            return RedirectToLocal(url);
         }
 
         if (result.IsLockedOut)
@@ -89,12 +73,6 @@ public class AccountController(
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            var user = await userManager.GetUserAsync(User);
-            if (user != null && await userManager.IsInRoleAsync(user, RoleNames.Admin))
-            {
-                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
-            }
-
             return RedirectToAction("Index", "Home", new { area = "" });
         }
 

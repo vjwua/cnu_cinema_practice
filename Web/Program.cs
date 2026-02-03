@@ -2,6 +2,8 @@ using Infrastructure;
 using Infrastructure.Data.SeedData;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Components.Authorization;
+using cnu_cinema_practice.Identity;
 
 namespace cnu_cinema_practice;
 
@@ -15,6 +17,11 @@ public class Program
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
+        // Add authentication services for Blazor
+        builder.Services.AddCascadingAuthenticationState();
+        builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+        
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddControllersWithViews();
         builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
         builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

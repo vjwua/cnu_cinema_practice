@@ -1,7 +1,9 @@
 @using cnu_cinema_practice.ViewModels.Home
-@using cnu_cinema_practice.Components.Layout
+@using Microsoft.AspNetCore.Antiforgery
 @layout HomeLayout
 @rendermode RenderMode.InteractiveServer
+@inject IAntiforgery Antiforgery
+@inject IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>Головна - CNU Cinema</PageTitle>
 
@@ -30,10 +32,40 @@
         </div>
 
         <!-- Auth -->
-        <a href="/Account/Login" class="btn-glass-hero text-decoration-none"
-            style="padding: 0.6rem 1.5rem; font-size: 0.7rem; border-radius: 2rem;">
-            Увійти
-        </a>
+        <AuthorizeView>
+            <Authorized>
+                <div class="flex-row gap-3 items-center">
+                    @if (context.User.IsInRole("Admin"))
+                    {
+                        <a href="/Admin/Dashboard" class="btn-glass-hero text-decoration-none"
+                            style="padding: 0.6rem 1rem; font-size: 0.85rem; border-radius: 2rem; display: inline-flex; align-items: center; gap: 0.5rem;" 
+                            title="Admin Panel">
+                            <i class="bi bi-shield-lock" style="font-size: 1.1rem;"></i>
+                        </a>
+                    }
+                    <a href="#" class="btn-glass-hero profile-btn text-decoration-none"
+                        style="padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 2rem; display: inline-flex; align-items: center; gap: 0.5rem;" 
+                        title="@context.User.Identity?.Name">
+                        <i class="bi bi-person-circle" style="font-size: 1.2rem;"></i>
+                        <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@context.User.Identity?.Name</span>
+                    </a>
+                    <form action="/Account/Logout" method="post" style="margin: 0;">
+                        <input type="hidden" name="__RequestVerificationToken" value="@GetAntiforgeryToken()" />
+                        <button type="submit" class="btn-glass-hero logout-btn" 
+                                style="padding: 0.6rem 1rem; font-size: 0.85rem; border-radius: 2rem; display: inline-flex; align-items: center; cursor: pointer;" 
+                                title="Вийти">
+                            <i class="bi bi-box-arrow-right" style="font-size: 1.1rem;"></i>
+                        </button>
+                    </form>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <a href="/Account/Login" class="btn-glass-hero text-decoration-none"
+                    style="padding: 0.6rem 1.5rem; font-size: 0.7rem; border-radius: 2rem;">
+                    Увійти
+                </a>
+            </NotAuthorized>
+        </AuthorizeView>
     </div>
 </nav>
 
@@ -250,5 +282,14 @@
     private void SelectGenre(string genre)
     {
         ActiveGenre = genre;
+    }
+
+    private string GetAntiforgeryToken()
+    {
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext == null) return string.Empty;
+        
+        var tokens = Antiforgery.GetAndStoreTokens(httpContext);
+        return tokens.RequestToken ?? string.Empty;
     }
 }
