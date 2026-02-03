@@ -1,18 +1,11 @@
-@page "/"
 @using cnu_cinema_practice.ViewModels.Home
-@using Core.Interfaces.Services
-@inject IMovieService MovieService
+@using cnu_cinema_practice.Components.Layout
+@layout HomeLayout
 @rendermode RenderMode.InteractiveServer
 
 <PageTitle>Головна - CNU Cinema</PageTitle>
 
-<!-- === BACKGROUND AMBIENCE === -->
-<div class="fixed-background" style="position: fixed; inset: 0; z-index: -1; pointer-events: none;">
-    <div style="position: absolute; top: -20%; left: -10%; width: 60%; height: 60%; background: #0ea5e9; opacity: 0.1; filter: blur(150px); border-radius: 50%;"
-        class="animate-blob"></div>
-    <div style="position: absolute; bottom: -20%; right: -10%; width: 60%; height: 60%; background: #06b6d4; opacity: 0.1; filter: blur(150px); border-radius: 50%; animation-delay: -5s;"
-        class="animate-blob"></div>
-</div>
+
 
 <!-- === CUSTOM NAVBAR === -->
 <nav class="navbar-custom">
@@ -166,15 +159,17 @@
                                 <span>@movie.FormattedDuration</span>
                             </div>
 
+                            <p class="movie-description">
+                                @movie.Description
+                            </p>
+
                             <!-- Sessions Preview -->
-                            <div class="mt-4 pt-3 border-top"
-                                style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                            <div class="mt-2 pt-2 w-full flex-column items-center">
                                 <div class="uppercase-nav text-cyan mb-2" style="font-size: 0.6rem;">Сеанси</div>
-                                <div class="flex-row gap-2" style="flex-wrap: wrap;">
+                                <div class="flex-row gap-2 justify-center" style="flex-wrap: wrap;">
                                     @foreach (var session in movie.Sessions.Take(2))
                                     {
-                                        <div class="glass px-2 py-1 rounded font-black text-white"
-                                            style="font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
+                                        <div class="glass font-black text-white session-btn">
                                             @session.FormattedTime
                                         </div>
                                     }
@@ -192,34 +187,30 @@
 @if (Model.UpcomingMovies.Any())
 {
     <section class="container-custom pb-5 mt-5">
-        <div class="mb-5">
-            <div class="flex-row items-center gap-2 mb-0">
-                <div style="width: 30px; height: 2px; background: var(--cyan-500);"></div>
-                <span class="text-cyan uppercase-nav" style="line-height: 1;">Скоро</span>
+        <div class="flex-column gap-4 mb-5">
+            <div class="flex-column gap-3">
+                <div class="flex-row items-center gap-3">
+                    <div class="section-header-line"></div>
+                    <span class="section-header-label">Прем'єри незабаром</span>
+                </div>
+                <h2 class="section-header-title">Скоро у прокаті</h2>
             </div>
-            <h2 class="font-heading text-white text-uppercase italic font-black m-0"
-                style="font-size: 3rem; line-height: 0.9;">
-                Очікуйте</h2>
         </div>
 
-        <div class="movies-grid">
+        <div class="coming-soon-grid">
             @foreach (var movie in Model.UpcomingMovies.Take(4))
             {
-                <div class="movie-card-wrapper">
-                    <div class="movie-card" style="filter: grayscale(100%); transition: filter 0.5s;">
-                        <div class="rating-badge">
-                            <span class="text-cyan text-uppercase" style="font-size: 0.6rem;">Скоро</span>
-                        </div>
+                <div class="coming-soon-card">
+                    <div class="coming-soon-card-inner">
                         @if (!string.IsNullOrEmpty(movie.PosterUrl))
                         {
-                            <img src="@movie.PosterUrl" alt="@movie.Name" class="movie-poster" />
+                            <img src="@movie.PosterUrl" alt="@movie.Name" class="coming-soon-poster" />
                         }
-                        <div class="movie-overlay">
-                            <div class="movie-info">
-                                <h3 class="movie-title">@movie.Name</h3>
-                                <div class="text-cyan font-black uppercase-nav">
-                                    @movie.ReleaseDate.ToString("dd MMMM yyyy")
-                                </div>
+                        <div class="coming-soon-overlay">
+                            <div class="flex-column gap-3">
+                                <div class="coming-soon-badge">Очікується</div>
+                                <h3 class="coming-soon-title">@movie.Name</h3>
+                                <p class="coming-soon-date">З @movie.ReleaseDate.ToString("dd MMMM")</p>
                             </div>
                         </div>
                     </div>
@@ -231,54 +222,17 @@
 
 @code {
     [Inject] IJSRuntime JS { get; set; } = default!;
-    private HomeIndexViewModel Model { get; set; } = new();
+
+    [Parameter]
+    public HomeIndexViewModel Model { get; set; } = new();
+
     private string ActiveGenre { get; set; } = "all";
 
     private IEnumerable<MovieCardViewModel> FilteredMovies =>
+    Model?.Movies == null ? Enumerable.Empty<MovieCardViewModel>() :
     ActiveGenre == "all"
     ? Model.Movies
     : Model.Movies.Where(m => m.Genre.Contains(ActiveGenre, StringComparison.OrdinalIgnoreCase));
-
-    protected override async Task OnInitializedAsync()
-    {
-        var moviesWithSessions = await MovieService.GetAllWithUpcomingSessionsAsync();
-
-        var movieCards = moviesWithSessions.Select(movie => new MovieCardViewModel
-            {
-                Id = movie.Id,
-                Name = movie.Name,
-                PosterUrl = movie.PosterUrl,
-                ImdbRating = movie.ImdbRating?.ToString("F1"),
-                Genre = movie.Genre.ToString(),
-                DurationMinutes = movie.DurationMinutes,
-                Description = movie.Description ?? string.Empty,
-                Sessions = movie.Sessions.Select(s => new MovieSessionTimeViewModel
-                {
-                    SessionId = s.Id,
-                    StartTime = s.StartTime
-                }).ToList()
-            }).ToList();
-
-        // Upcoming
-        var upcomingMovies = await MovieService.GetUpcomingMoviesAsync();
-        var upcomingViewModels = upcomingMovies.Select(m => new UpcomingMovieViewModel
-            {
-                Id = m.Id,
-                Name = m.Name,
-                PosterUrl = m.PosterUrl,
-                Genre = m.Genre.ToString(),
-                ImdbRating = m.ImdbRating,
-                ReleaseDate = m.ReleaseDate,
-                DurationMinutes = m.DurationMinutes
-            }).ToList();
-
-        Model = new HomeIndexViewModel
-            {
-                FeaturedMovie = movieCards.FirstOrDefault(),
-                Movies = movieCards,
-                UpcomingMovies = upcomingViewModels
-            };
-    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

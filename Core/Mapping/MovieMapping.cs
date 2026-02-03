@@ -8,10 +8,11 @@ public class MovieMapping : Profile
 {
     public MovieMapping()
     {
-        CreateMap<Movie, MovieListDTO>();
-        
+        CreateMap<Movie, MovieListDTO>()
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+
         CreateMap<Movie, MovieWithSessionsDTO>();
-        
+
         CreateMap<Movie, MovieDetailDTO>()
             .ForMember(x => x.Actors, opt => opt.MapFrom(x => x.Actors))
             .ForMember(x => x.Directors, opt => opt.MapFrom(x => x.Directors));

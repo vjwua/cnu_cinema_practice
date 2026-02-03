@@ -527,27 +527,101 @@ a:hover {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.7s;
+    transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), filter 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+    filter: blur(0px);
+    will-change: transform, filter;
+    /* Performance opt */
+}
+
+/* Only apply hover effects if NOT a static card */
+.movie-card:not(.static-card):hover .movie-poster {
+    transform: scale(1.1);
+    filter: blur(5px);
 }
 
 .movie-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, #020617 10%, rgba(2, 6, 23, 0.6) 50%, transparent);
+    /* Base light gradient - always visible */
+    background: linear-gradient(to top, #020617 10%, rgba(2, 6, 23, 0.8) 50%, rgba(0, 0, 0, 0.1));
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+    align-items: center;
+    text-align: center;
     padding: 1.5rem;
+    padding-bottom: 4rem;
     z-index: 3;
 }
 
-.movie-info {
-    transform: translateY(10px);
-    transition: transform 0.5s;
+/* Pseudo-element for the darker hover gradient */
+.movie-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, #020617 0%, rgba(2, 6, 23, 0.95) 100%);
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+    z-index: -1;
+    /* Behind the text */
 }
 
-.movie-card:hover .movie-info {
-    transform: translateY(-5px);
+/* On hover, fade in the dark gradient - DISABLED per user request */
+/* .movie-card:not(.static-card):hover .movie-overlay::before {
+    opacity: 1;
+} */
+
+/* Ensure text sits on top of the ::before pseudo-element */
+.movie-info {
+    position: relative;
+    z-index: 2;
+    transform: translateY(40px);
+    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.movie-card:not(.static-card):hover .movie-info {
+    transform: translateY(0);
+}
+
+.movie-description {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #e2e8f0;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    width: 100%;
+    max-width: 240px;
+    height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: height 0.4s ease, opacity 0.3s 0.1s, margin 0.4s ease;
+}
+
+.movie-card:not(.static-card):hover .movie-description {
+    height: 60px;
+    opacity: 1;
+    margin-bottom: 1rem;
+}
+
+.session-btn {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s;
+    cursor: pointer;
+    font-size: 0.8rem;
+    /* Increased from 0.7rem */
+    padding: 0.4rem 0.8rem;
+    /* Increased padding */
+    border-radius: 0.5rem;
+}
+
+.session-btn:hover {
+    transform: scale(1.2);
+    /* Increased scale */
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--cyan-400);
 }
 
 .movie-title {
@@ -565,6 +639,7 @@ a:hover {
     letter-spacing: 0.1em;
     color: var(--text-muted);
     font-weight: 700;
+    justify-content: center;
 }
 
 .rating-badge {
@@ -584,7 +659,6 @@ a:hover {
     gap: 0.3rem;
 }
 
-/* Animations */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -619,4 +693,148 @@ a:hover {
     66% {
         transform: translate(-20px, 20px) scale(0.9);
     }
+}
+
+/* === COMING SOON SECTION (Tailwind Replica) === */
+.coming-soon-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    column-gap: 2.5rem;
+    row-gap: 4rem;
+}
+
+@media (min-width: 640px) {
+    .coming-soon-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .coming-soon-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1280px) {
+    .coming-soon-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.coming-soon-card {
+    position: relative;
+    /* Removed filter from container so text stays colored */
+    cursor: pointer;
+}
+
+/* Hover effect handled on child elements now */
+
+.coming-soon-card-inner {
+    position: relative;
+    aspect-ratio: 2/3;
+    border-radius: 2rem;
+    overflow: hidden;
+    background-color: #0f172a;
+    /* slate-900 */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    /* shadow-2xl */
+}
+
+.coming-soon-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1), filter 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: grayscale(100%);
+}
+
+.coming-soon-card:hover .coming-soon-poster {
+    transform: scale(1.1);
+    filter: grayscale(0%);
+}
+
+.coming-soon-card:hover .coming-soon-poster {
+    transform: scale(1.1);
+}
+
+.coming-soon-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, #020617 10%, rgba(2, 6, 23, 0.6) 50%, transparent 100%);
+    /* Darker gradient for better text legibility */
+    /* slate-950 logic */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 2rem;
+}
+
+.coming-soon-badge {
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #ff0055;
+    /* Changed to a distinct pink/red for better pop against cyan/blue themes? Or brighter cyan? User asked for "expressive". Sticking to high-contrast cyan but brighter/glowing. */
+    color: #22d3ee;
+    color: #22d3ee;
+    /* cyan-400 */
+    background: rgba(34, 211, 238, 0.2);
+    /* Increased opacity from 0.1 */
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    /* Added border or definition */
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
+    /* Added Glow */
+    align-self: flex-start;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    margin-bottom: 0.75rem;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.coming-soon-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-style: italic;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+}
+
+.coming-soon-date {
+    font-size: 11px;
+    /* Slightly larger */
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #22d3ee;
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.6), 0 2px 4px rgba(0, 0, 0, 0.8);
+    /* Glow + Shadow */
+}
+
+.section-header-line {
+    width: 2rem;
+    height: 2px;
+    background-color: #a855f7;
+    /* purple-500 */
+}
+
+.section-header-label {
+    font-size: 0.75rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.4em;
+    color: #a855f7;
+    /* purple-500 */
+}
+
+.section-header-title {
+    font-size: 3rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-style: italic;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    font-family: 'Space Grotesk', sans-serif;
 }
