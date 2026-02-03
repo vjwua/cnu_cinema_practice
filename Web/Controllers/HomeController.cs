@@ -1,15 +1,17 @@
 using cnu_cinema_practice.ViewModels.Home;
 using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace cnu_cinema_practice.Controllers;
 
 public class HomeController(IMovieService movieService) : Controller
 {
-    // Root "/" is handled by Blazor (Home.razor). This action serves /Home/Index.
-    public async Task<IActionResult> Index()
+    public async Task<IResult> Index()
     {
         var moviesWithSessions = await movieService.GetAllWithUpcomingSessionsAsync();
+        // Filter out movies that have no upcoming sessions
+        moviesWithSessions = moviesWithSessions.Where(m => m.Sessions.Any()).ToList();
 
         var movieCards = moviesWithSessions.Select(movie => new MovieCardViewModel
         {
@@ -37,7 +39,8 @@ public class HomeController(IMovieService movieService) : Controller
             Genre = m.Genre.ToString(),
             ImdbRating = m.ImdbRating,
             ReleaseDate = m.ReleaseDate,
-            DurationMinutes = m.DurationMinutes
+            DurationMinutes = m.DurationMinutes,
+            Description = m.Description ?? string.Empty
         }).ToList();
 
         var viewModel = new HomeIndexViewModel
@@ -47,6 +50,6 @@ public class HomeController(IMovieService movieService) : Controller
             UpcomingMovies = upcomingMovieViewModels
         };
 
-        return View(viewModel);
+        return new RazorComponentResult<cnu_cinema_practice.Components.Pages.Home>(new { Model = viewModel });
     }
 }

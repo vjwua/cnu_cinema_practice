@@ -12,7 +12,8 @@ public class UpcomingMovieViewModel
     public decimal? ImdbRating { get; set; }
     public DateOnly ReleaseDate { get; set; }
     public int DurationMinutes { get; set; }
-    
+    public string Description { get; set; } = string.Empty;
+
     public string FormattedDuration => $"{DurationMinutes / 60}h {DurationMinutes % 60}m";
     public string FormattedRating => ImdbRating?.ToString("F1") ?? "N/A";
 }
