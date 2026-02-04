@@ -11,29 +11,31 @@
                 <h4 class="mb-0"><i class="bi bi-box-arrow-in-right"></i> Sign In</h4>
             </div>
             <div class="card-body">
-                <form asp-area="" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@returnUrl" method="post">
+                <form asp-area="" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@returnUrl"
+                      method="post">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                     <div class="mb-3">
                         <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control" type="email" autocomplete="username" />
+                        <input asp-for="Email" class="form-control" type="email" autocomplete="username"/>
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Password" class="form-label"></label>
-                        <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                        <input asp-for="Password" class="form-control" autocomplete="current-password"/>
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3 form-check">
-                        <input asp-for="RememberMe" class="form-check-input" />
+                        <input asp-for="RememberMe" class="form-check-input"/>
                         <label asp-for="RememberMe" class="form-check-label"></label>
                     </div>
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">Sign In</button>
-                        <a asp-area="" asp-controller="Account" asp-action="Register" asp-route-returnUrl="@returnUrl" class="btn btn-outline-secondary">Register</a>
+                        <a asp-area="" asp-controller="Account" asp-action="Register" asp-route-returnUrl="@returnUrl"
+                           class="btn btn-outline-secondary">Register</a>
                     </div>
                 </form>
             </div>
@@ -42,5 +44,5 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial"/>
 }

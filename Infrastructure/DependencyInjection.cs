@@ -56,11 +56,11 @@ public static class DependencyInjection
             options.SlidingExpiration = true;
 
             options.Cookie.HttpOnly = true;
-    
-            options.Cookie.SecurePolicy = environment.IsDevelopment() 
+
+            options.Cookie.SecurePolicy = environment.IsDevelopment()
                 ? CookieSecurePolicy.SameAsRequest
                 : CookieSecurePolicy.Always;
-    
+
             options.Cookie.SameSite = SameSiteMode.Strict;
         });
 
@@ -69,12 +69,17 @@ public static class DependencyInjection
         services.AddScoped<IMovieRepository, MovieRepository>();
         services.AddScoped<IHallRepository, HallRepository>();
         services.AddScoped<ISeatRepository, SeatRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<ISeatReservationRepository, SeatReservationRepository>();
 
         // Register Services
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IMovieService, MovieService>();
         services.AddScoped<IHallService, HallService>();
         services.AddScoped<ISeatService, SeatService>();
+        services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IPaymentService, PaymentService>();
 
         // Register Validators
         // Session Validators

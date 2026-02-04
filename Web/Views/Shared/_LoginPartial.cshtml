@@ -13,22 +13,22 @@
     <div class="d-flex align-items-center gap-2">
         @if (isAdmin)
         {
-            <a class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center" 
-               asp-area="Admin" asp-controller="Dashboard" asp-action="Index" 
+            <a class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center"
+               asp-area="Admin" asp-controller="Dashboard" asp-action="Index"
                title="Admin Panel"
                style="width: 40px; height: 40px; border-radius: 50%; padding: 0;">
                 <i class="bi bi-shield-lock" style="font-size: 1.1rem;"></i>
             </a>
         }
-        <a class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" 
-           href="#" 
+        <a class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center"
+           asp-controller="Profile" asp-action="Index" asp-area=""
            title="@email"
            style="width: 40px; height: 40px; border-radius: 50%; padding: 0;">
             <i class="bi bi-person-circle" style="font-size: 1.2rem;"></i>
         </a>
         <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="m-0">
-            <button type="submit" 
-                    class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center" 
+            <button type="submit"
+                    class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center"
                     title="Logout"
                     style="width: 40px; height: 40px; border-radius: 50%; padding: 0;">
                 <i class="bi bi-box-arrow-right" style="font-size: 1.1rem;"></i>
