@@ -1,6 +1,7 @@
 using Infrastructure.Identity;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Infrastructure.Services;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Services;
@@ -80,6 +81,10 @@ public static class DependencyInjection
         services.AddScoped<ISeatService, SeatService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPaymentService, PaymentService>();
+
+        // Email Service
+        services.Configure<EmailSettings>(configuration.GetSection("Identity:EmailSettings"));
+        services.AddScoped<IEmailService, EmailService>();
 
         // Register Validators
         // Session Validators

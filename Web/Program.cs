@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Components.Authorization;
 using cnu_cinema_practice.Identity;
 using Core.Interfaces;
+using Core.Interfaces.Services;
 using Infrastructure.Data;
+using Infrastructure.Services;
 
 namespace cnu_cinema_practice;
 
@@ -16,6 +18,11 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.Configure<EmailSettings>(
+            builder.Configuration.GetSection("EmailSettings"));
+
+        builder.Services.AddScoped<IEmailService, EmailService>();
+
         // Add Blazor services
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();

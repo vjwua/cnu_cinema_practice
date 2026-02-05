@@ -1,4 +1,6 @@
+using System.Net.Mail;
 using Core.Constants;
+using Core.Interfaces.Services;
 using cnu_cinema_practice.ViewModels.Account;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
@@ -10,19 +12,20 @@ namespace cnu_cinema_practice.Controllers;
 public class AccountController(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
-    ILogger<AccountController> logger) : Controller
+    ILogger<AccountController> logger,
+    IEmailService emailService) : Controller
 {
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> Login(string? returnUrl = null)
+    public Task<IActionResult> Login(string? returnUrl = null)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToAction("Index", "Home", new { area = "" });
+            return Task.FromResult<IActionResult>(RedirectToAction("Index", "Home", new { area = "" }));
         }
 
         ViewData["ReturnUrl"] = returnUrl;
-        return View(new LoginViewModel { ReturnUrl = returnUrl });
+        return Task.FromResult<IActionResult>(View(new LoginViewModel { ReturnUrl = returnUrl }));
     }
 
     [HttpPost]
@@ -69,15 +72,15 @@ public class AccountController(
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> Register(string? returnUrl = null)
+    public Task<IActionResult> Register(string? returnUrl = null)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToAction("Index", "Home", new { area = "" });
+            return Task.FromResult<IActionResult>(RedirectToAction("Index", "Home", new { area = "" }));
         }
 
         ViewData["ReturnUrl"] = returnUrl;
-        return View(new RegisterViewModel());
+        return Task.FromResult<IActionResult>(View(new RegisterViewModel()));
     }
 
     [HttpPost]
@@ -128,6 +131,112 @@ public class AccountController(
     [HttpGet]
     [AllowAnonymous]
     public IActionResult AccessDenied()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = await userManager.FindByEmailAsync(model.Email);
+
+        if (user == null)
+        {
+            logger.LogWarning("Password reset requested for non-existent email: {Email}", model.Email);
+            ModelState.AddModelError(string.Empty, "No account exists with this email address.");
+            return View(model);
+        }
+
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+        var callbackUrl = Url.Action(
+            "ResetPassword",
+            "Account",
+            new { area = "", email = model.Email, token },
+            protocol: Request.Scheme);
+
+        try
+        {
+            await emailService.SendPasswordResetEmailAsync(model.Email, callbackUrl!);
+            logger.LogInformation("Password reset email sent to {Email}", model.Email);
+        }
+        catch (SmtpException ex)
+        {
+            logger.LogError(ex, "SMTP error sending email to {Email}", model.Email);
+            ModelState.AddModelError(string.Empty, "Failed to send email. Please try again later.");
+            return View(model);
+        }
+
+        return RedirectToAction(nameof(ForgotPasswordConfirmation), "Account", new { area = "" });
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ForgotPasswordConfirmation()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ResetPassword(string? email, string? token)
+    {
+        if (string.IsNullOrEmpty(token))
+        {
+            return BadRequest("A token is required for password reset.");
+        }
+
+        var model = new ResetPasswordViewModel
+        {
+            Email = email ?? string.Empty,
+            Token = token
+        };
+        return View(model);
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = await userManager.FindByEmailAsync(model.Email);
+        if (user == null)
+        {
+            return RedirectToAction(nameof(ResetPasswordConfirmation), "Account", new { area = "" });
+        }
+
+        var result = await userManager.ResetPasswordAsync(user, model.Token, model.Password);
+        if (result.Succeeded)
+        {
+            logger.LogInformation("Password reset successful for {Email}", model.Email);
+            return RedirectToAction(nameof(ResetPasswordConfirmation), "Account", new { area = "" });
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+
+        return View(model);
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ResetPasswordConfirmation()
     {
         return View();
     }
