@@ -6,4 +6,6 @@ public interface ISeatReservationRepository
 {
     Task<List<SeatReservation>> GetByIdsAsync(List<int> ids);
     Task MarkAsSoldAsync(List<int> ids);
+    Task<IEnumerable<SeatReservation>> GetExpiredAsync();
+    Task CleanupExpiredAsync();
 }

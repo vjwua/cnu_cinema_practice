@@ -1,6 +1,8 @@
-﻿using AutoMapper;
+﻿using System.Runtime.InteropServices.JavaScript;
+using AutoMapper;
 using cnu_cinema_practice.ViewModels;
 using Core.DTOs.Seats;
+using Core.Entities;
 using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +16,7 @@ namespace cnu_cinema_practice.Controllers
         IMapper mapper) : Controller
     {
         [HttpGet]
-        public async Task<IActionResult> SelectSeats(int sessionId)
+        public async Task<IActionResult> SelectSeats(int sessionId, string alert = "")
         {
             try
             {
@@ -55,6 +57,16 @@ namespace cnu_cinema_practice.Controllers
                 }
 
                 viewModel.LayoutArray = layout;
+                viewModel.alertMessage = alert;
+
+                var seattypes = await seatService.GetSeatTypesAsync();
+                decimal[] seatprices = new decimal[seattypes.Count()];
+                foreach (var type in seattypes)
+                {
+                    seatprices[type.Id] = type.AddedPrice;
+                }
+
+                viewModel.addedPrice = seatprices;
 
                 return View(viewModel);
             }
@@ -112,13 +124,19 @@ namespace cnu_cinema_practice.Controllers
                     if (availableSeats.Contains(reserve.Id) == false)
                     {
                         TempData["Error"] = $"The following seats are no longer available: {string.Join(", ", reserve)}";
-                        return RedirectToAction("SelectSeats", new { sessionId, Area = "" });
+                        return RedirectToAction("SelectSeats", new { sessionId,
+                            alert = $"The following seats are no longer available: {string.Join(", ", reserve)}", Area = "" });
                     }
                 }
 
                 foreach (var reserve in reservations)
                 {
-                    await seatService.ReserveSeatAsync(reserve, sessionId);
+                    if ((await seatService.ReserveSeatAsync(reserve, sessionId)) == false)
+                    {
+                        TempData["Error"] = $"The following seats are no longer available: {string.Join(", ", reserve)}";
+                        return RedirectToAction("SelectSeats", new { sessionId, 
+                            alert = $"The following seats are no longer available: {string.Join(", ", reserve)}", Area = "" });
+                    }
                 }
                 return RedirectToAction("SelectSeats", new { sessionId, Area = "" });
 

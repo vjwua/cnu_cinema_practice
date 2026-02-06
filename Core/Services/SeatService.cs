@@ -46,4 +46,10 @@ public class SeatService : ISeatService
         bool result = await _seatRepository.IsSeatAvailableAsync(seat.Id, sessionId);
         return result;
     }
+
+    public async Task<IEnumerable<SeatType>> GetSeatTypesAsync()
+    {
+        var seatTypes = await _seatRepository.GetSeatTypesAsync();
+        return seatTypes;
+    }
 }

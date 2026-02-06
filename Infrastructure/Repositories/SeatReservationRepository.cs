@@ -29,4 +29,18 @@ public class SeatReservationRepository(CinemaDbContext context) : ISeatReservati
 
         await context.SaveChangesAsync();
     }
+
+    public async Task<IEnumerable<SeatReservation>> GetExpiredAsync()
+    {
+        var reservations = await context.SeatReservations.Where(sr =>
+            sr.Status == ReservationStatus.Reserved && sr.ExpiresAt < DateTime.Now).ToListAsync();
+        return reservations.AsEnumerable();
+    }
+
+    public async Task CleanupExpiredAsync()
+    {
+        var toCleanup = await GetExpiredAsync();
+        context.SeatReservations.RemoveRange(toCleanup);
+        await context.SaveChangesAsync();
+    }
 }

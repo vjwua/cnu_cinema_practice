@@ -1,3 +1,4 @@
+using cnu_cinema_practice.Controllers;
 using Infrastructure;
 
 namespace cnu_cinema_practice;
@@ -15,6 +16,7 @@ public class Program
         builder.Services.AddControllersWithViews();
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+        builder.Services.AddHostedService<ReservationCleanup>();
 
         var app = builder.Build();
 

@@ -68,6 +68,8 @@ public class SeatRepository : ISeatRepository
             SessionId = sessionId,
             SeatId = seatId,
             Status = ReservationStatus.Reserved,
+            ReservedAt = DateTime.Now,
+            ExpiresAt = DateTime.Now + new TimeSpan(0, 5, 0),
         });
         await _context.SaveChangesAsync();
         return true;
@@ -131,4 +133,11 @@ public class SeatRepository : ISeatRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<IEnumerable<SeatType>> GetSeatTypesAsync()
+    {
+        var seattypes = await _context.SeatTypes.ToListAsync();
+        return seattypes;
+    }
+    
 }

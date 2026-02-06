@@ -1,4 +1,5 @@
 ﻿@using cnu_cinema_practice.ViewModels
+@using Microsoft.IdentityModel.Tokens
 @model BookingViewModel
 @{
     ViewData["Title"] = "Select Seats";
@@ -86,10 +87,12 @@
                                 @for (int j = 1; j <= Model.HallData.Columns; j++)
                                 {
                                     var seatId = $"{rows[i]}{j}";
-
-                                    <div class="seat @seatClasses[Model.LayoutArray[i, j - 1]]"
+                                    var seatType = Model.LayoutArray[i, j - 1];
+                                    <div class="seat @seatClasses[seatType]"
                                          data-seat="@seatId"
                                          numeric="@($"{i}-{j-1}")"
+                                         added-price="@(Model.addedPrice[seatType])"
+                                         id="@seatId"
                                          title="Seat @seatId">
                                         @j
                                     </div>
@@ -180,6 +183,11 @@
 
 @section Scripts {
     <script>
+        let False = false
+        let True = true
+        if (@(Model.alertMessage.IsNullOrEmpty() == false)) {
+            alert(@Model.alertMessage)
+        }
         const ticketPrice = @Model.BasePrice.ToString(System.Globalization.CultureInfo.InvariantCulture);
         let selectedSeats = [];
         let selectedSeatsNumeric = [];
@@ -214,8 +222,12 @@
         });
 
         function updateSummary() {
-            const quantity = selectedSeats.length;
-            const subtotal = quantity * ticketPrice;
+            let subtotal = 0
+            let quantity = selectedSeats.length
+            selectedSeats.forEach(numeric => {
+                subtotal += @Model.BasePrice
+                subtotal += parseFloat(document.getElementById(numeric).getAttribute("added-price"))
+            })
 
             document.getElementById('ticket-quantity').textContent = quantity;
             document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);

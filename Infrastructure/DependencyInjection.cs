@@ -1,3 +1,4 @@
+using cnu_cinema_practice.Controllers;
 using Infrastructure.Identity;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
@@ -10,6 +11,7 @@ using Core.Validators.Hall;
 using Core.DTOs.Sessions;
 using Core.DTOs.Movies;
 using Core.DTOs.Halls;
+using Core.Entities;
 using Core.Validators.Hall;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +41,7 @@ public static class DependencyInjection
         services.AddScoped<IMovieRepository, MovieRepository>();
         services.AddScoped<IHallRepository, HallRepository>();
         services.AddScoped<ISeatRepository, SeatRepository>();
+        services.AddScoped<ISeatReservationRepository, SeatReservationRepository>();
 
         // Register Services
         services.AddScoped<ISessionService, SessionService>();

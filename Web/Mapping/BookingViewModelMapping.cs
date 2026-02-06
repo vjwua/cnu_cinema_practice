@@ -42,6 +42,10 @@ public class BookingViewModelMapping : Profile
             .ForMember(dest => dest.SeatLayout,
                 opt => opt.Ignore())
             .ForMember(dest => dest.LayoutArray,
+                opt => opt.Ignore())
+            .ForMember(dest => dest.alertMessage,
+                opt => opt.Ignore())
+            .ForMember(dest => dest.addedPrice,
                 opt => opt.Ignore()); // Set separately
 
         // Session to CheckoutViewModel (partial)
