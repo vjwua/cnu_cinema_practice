@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using System;
+using AutoMapper;
 using Core.DTOs.Payments;
 using Core.Entities;
 using Core.Enums;
@@ -132,11 +133,11 @@ public class PaymentServiceTests
         _orderRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(order);
 
         _paymentRepoMock.Setup(r => r.CreateAsync(It.IsAny<Payment>()))
-            .ThrowsAsync(new DbException("Database error"));
+            .ThrowsAsync(new InvalidOperationException("Database error"));
 
         var act = async () => await _service.ProcessPaymentAsync(dto);
 
-        await act.Should().ThrowAsync<DbException>().WithMessage("Database error");
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Database error");
 
         _unitOfWorkMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
         _unitOfWorkMock.Verify(u => u.RollbackTransactionAsync(), Times.Once);
