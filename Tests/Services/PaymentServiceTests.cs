@@ -83,7 +83,7 @@ public class PaymentServiceTests
 
         var act = async () => await _service.ProcessPaymentAsync(dto);
 
-        await act.Should().ThrowAsync<Exception>().WithMessage("Order not found.");
+        await act.Should().ThrowAsync<KeyNotFoundException>().WithMessage("Order not found.");
         _unitOfWorkMock.Verify(u => u.BeginTransactionAsync(), Times.Never);
     }
 
@@ -96,7 +96,7 @@ public class PaymentServiceTests
 
         var act = async () => await _service.ProcessPaymentAsync(dto);
 
-        await act.Should().ThrowAsync<Exception>()
+        await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Order status is {OrderStatus.Paid}, payment cannot be processed.");
     }
 
@@ -115,7 +115,7 @@ public class PaymentServiceTests
 
         var act = async () => await _service.ProcessPaymentAsync(dto);
 
-        await act.Should().ThrowAsync<Exception>()
+        await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("Incorrect amount. Expected: 100, but received: 50");
     }
 
@@ -132,11 +132,11 @@ public class PaymentServiceTests
         _orderRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(order);
 
         _paymentRepoMock.Setup(r => r.CreateAsync(It.IsAny<Payment>()))
-            .ThrowsAsync(new Exception("Database error"));
+            .ThrowsAsync(new DbException("Database error"));
 
         var act = async () => await _service.ProcessPaymentAsync(dto);
 
-        await act.Should().ThrowAsync<Exception>().WithMessage("Database error");
+        await act.Should().ThrowAsync<DbException>().WithMessage("Database error");
 
         _unitOfWorkMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
         _unitOfWorkMock.Verify(u => u.RollbackTransactionAsync(), Times.Once);

@@ -102,7 +102,7 @@ public class OrderServiceTests
 
         var act = async () => await _service.CreateOrderAsync(userId, dto);
 
-        await act.Should().ThrowAsync<Exception>()
+        await act.Should().ThrowAsync<KeyNotFoundException>()
             .WithMessage("One or more reservations not found.");
     }
 
@@ -124,7 +124,7 @@ public class OrderServiceTests
 
         var act = async () => await _service.CreateOrderAsync(userId, dto);
 
-        await act.Should().ThrowAsync<Exception>()
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
             .WithMessage("You can only create orders for your own reservations.");
     }
 
@@ -151,7 +151,7 @@ public class OrderServiceTests
 
         var act = async () => await _service.CreateOrderAsync(userId, dto);
 
-        await act.Should().ThrowAsync<Exception>()
+        await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Some reservations are expired or already sold.");
     }
     
@@ -178,7 +178,7 @@ public class OrderServiceTests
 
         var act = async () => await _service.CreateOrderAsync(userId, dto);
 
-        await act.Should().ThrowAsync<Exception>()
+        await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Some reservations are expired or already sold.");
     }
 
@@ -210,7 +210,7 @@ public class OrderServiceTests
 
         var act = async () => await _service.CreateOrderAsync(userId, dto);
 
-        await act.Should().ThrowAsync<Exception>()
+        await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("All tickets must be for the same session.");
     }
 
@@ -236,7 +236,7 @@ public class OrderServiceTests
 
         var act = async () => await _service.GetOrderByIdAsync(999);
 
-        await act.Should().ThrowAsync<Exception>()
+        await act.Should().ThrowAsync<KeyNotFoundException>()
             .WithMessage("Order with ID 999 not found.");
     }
 

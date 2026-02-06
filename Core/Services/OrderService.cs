@@ -17,20 +17,20 @@ public class OrderService(
         var reservations = await reservationRepository.GetByIdsAsync(dto.SeatReservationIds);
 
         if (reservations.Count != dto.SeatReservationIds.Count)
-            throw new Exception("One or more reservations not found.");
+            throw new KeyNotFoundException("One or more reservations not found.");
 
         if (reservations.Any(r => r.ReservedByUserId != userId))
-            throw new Exception("You can only create orders for your own reservations.");
+            throw new UnauthorizedAccessException("You can only create orders for your own reservations.");
 
         if (reservations.Any(r => r.Status != ReservationStatus.Reserved ||
                                   (r.ExpiresAt.HasValue && r.ExpiresAt.Value < DateTime.UtcNow)))
         {
-            throw new Exception("Some reservations are expired or already sold.");
+            throw new InvalidOperationException("Some reservations are expired or already sold.");
         }
 
         var sessionId = reservations.First().SessionId;
         if (reservations.Any(r => r.SessionId != sessionId))
-            throw new Exception("All tickets must be for the same session.");
+            throw new InvalidOperationException("All tickets must be for the same session.");
 
         var order = new Order
         {
@@ -61,7 +61,7 @@ public class OrderService(
         var order = await orderRepository.GetByIdAsync(id);
 
         if (order == null)
-            throw new Exception($"Order with ID {id} not found.");
+            throw new KeyNotFoundException($"Order with ID {id} not found.");
 
         return mapper.Map<OrderDTO>(order);
     }

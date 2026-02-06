@@ -25,10 +25,10 @@ public class ReservationCleanup : IHostedService
             var context = new CinemaDbContext(contextOptions);
             await CleanupExpiredAsync(context);
         }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
+		catch (DbUpdateException ex)
+		{
+			Console.WriteLine($"Database cleanup failed: {ex.Message}");
+		}
     }
 
     public Task StartAsync(CancellationToken cancellationToken)

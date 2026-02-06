@@ -41,7 +41,7 @@ public sealed class ExternalMovieService : IExternalMovieService
             using var resp = await client.SendAsync(req);
             return resp.IsSuccessStatusCode;
         }
-        catch (Exception ex)
+        catch (TaskCanceledException ex)
         {
             _logger.LogWarning(ex, "External API availability check failed");
             return false;
@@ -194,7 +194,7 @@ public sealed class ExternalMovieService : IExternalMovieService
             await using var stream = await resp.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<T>(stream, JsonOptions);
         }
-        catch (Exception ex)
+        catch (HttpRequestException ex)
         {
             _logger.LogDebug(ex, "External API call failed for {Url}", relativeUrl);
             return null;

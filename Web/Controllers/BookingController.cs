@@ -71,7 +71,7 @@ namespace cnu_cinema_practice.Controllers
 
                 return View(viewModel);
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex)
             {
                 TempData["Error"] = $"Error loading booking page: {ex.Message}";
                 return NotFound(ex.Message);
@@ -152,7 +152,7 @@ namespace cnu_cinema_practice.Controllers
 
                 return View(viewModel);
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex)
             {
                 TempData["Error"] = $"Error processing checkout: {ex.Message}";
                 return NotFound(ex.Message);
@@ -185,7 +185,7 @@ namespace cnu_cinema_practice.Controllers
                 TempData["Success"] = "Booking confirmed! Check your email for tickets.";
                 return RedirectToAction("Confirmation", new { bookingId });
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex)
             {
                 ModelState.AddModelError(string.Empty, $"Error confirming booking: {ex.Message}");
                 return View("Checkout", model);

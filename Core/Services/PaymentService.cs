@@ -20,15 +20,15 @@ public class PaymentService(
         var order = await orderRepository.GetByIdAsync(dto.OrderId);
         
         if (order == null)
-            throw new Exception("Order not found.");
+            throw new KeyNotFoundException("Order not found.");
 
         if (order.Status != OrderStatus.Pending)
-            throw new Exception($"Order status is {order.Status}, payment cannot be processed.");
+            throw new InvalidOperationException($"Order status is {order.Status}, payment cannot be processed.");
 
         var expectedAmount = order.Tickets.Sum(t => t.Price);
         if (dto.Amount != expectedAmount)
         {
-            throw new Exception($"Incorrect amount. Expected: {expectedAmount}, but received: {dto.Amount}");
+            throw new ArgumentException($"Incorrect amount. Expected: {expectedAmount}, but received: {dto.Amount}");
         }
 
         await unitOfWork.BeginTransactionAsync();

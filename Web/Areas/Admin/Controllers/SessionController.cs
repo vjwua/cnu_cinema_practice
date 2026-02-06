@@ -232,7 +232,7 @@ public class SessionController(
                     : "No conflict detected."
             });
         }
-        catch (Exception)
+        catch (InvalidOperationException)
         {
             return Json(new { hasConflict = false, message = "Error checking conflict." });
         }

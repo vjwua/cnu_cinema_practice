@@ -52,7 +52,7 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
                 TempData["Success"] = $"Movie '{model.Name}' created successfully!";
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError(string.Empty, $"Error creating movie: {ex.Message}");
                 return View(model);
@@ -221,7 +221,7 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
                     return true;
                 }
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 logger.LogDebug(ex, "Rate limiter failed");
                 return true;
