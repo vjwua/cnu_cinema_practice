@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
+using Infrastructure.External;
 
 namespace Infrastructure;
 
@@ -61,6 +62,28 @@ public static class DependencyInjection
         // Hall Validators
         services.AddScoped<IValidator<CreateHallDTO>, CreateHallDTOValidator>();
         services.AddScoped<IValidator<UpdateHallDTO>, UpdateHallDTOValidator>();
+
+        // External Movie API
+        services.Configure<ExternalMovieApiSettings>(configuration.GetSection(ExternalMovieApiSettings.SectionName));
+        services.AddHttpClient(ExternalMovieApiSettings.HttpClientName, client =>
+        {
+            var baseUrl = configuration[$"{ExternalMovieApiSettings.SectionName}:BaseUrl"];
+            if (!string.IsNullOrWhiteSpace(baseUrl))
+            {
+                client.BaseAddress = new Uri(baseUrl);
+            }
+
+            var timeoutSecondsValue =
+                configuration[$"{ExternalMovieApiSettings.SectionName}:TimeoutSeconds"]
+                ?? configuration[$"{ExternalMovieApiSettings.SectionName}:TimeoutInSeconds"];
+
+            if (int.TryParse(timeoutSecondsValue, out var seconds) && seconds > 0)
+            {
+                client.Timeout = TimeSpan.FromSeconds(seconds);
+            }
+        });
+
+        services.AddScoped<IExternalMovieService, ExternalMovieService>();
 
         return services;
     }
