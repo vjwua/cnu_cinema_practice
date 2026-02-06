@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Security;
+using AutoMapper;
 using cnu_cinema_practice.ViewModels;
 using Core.DTOs.Sessions;
 using Core.DTOs.Seats;
@@ -26,8 +27,10 @@ public class BookingViewModelMapping : Profile
                 opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.ShowDateTime,
                 opt => opt.MapFrom(src => src.StartTime))
-            .ForMember(dest => dest.Hall,
-                opt => opt.MapFrom(src => src.HallName))
+            .ForMember(dest => dest.HallData,
+                opt => opt.Ignore())
+            .ForMember(dest => dest.HallId,
+                opt => opt.MapFrom(src => src.HallId))
             .ForMember(dest => dest.BasePrice,
                 opt => opt.MapFrom(src => src.BasePrice))
             .ForMember(dest => dest.Name,
@@ -37,6 +40,8 @@ public class BookingViewModelMapping : Profile
             .ForMember(dest => dest.AvailableShowtimes,
                 opt => opt.Ignore()) // Set separately
             .ForMember(dest => dest.SeatLayout,
+                opt => opt.Ignore())
+            .ForMember(dest => dest.LayoutArray,
                 opt => opt.Ignore()); // Set separately
 
         // Session to CheckoutViewModel (partial)
@@ -70,7 +75,7 @@ public class BookingViewModelMapping : Profile
                 opt => opt.MapFrom(src => src.Any() ? src.Max(s => s.RowNum) : (byte)0))
             .ForMember(dest => dest.SeatsPerRow,
                 opt => opt.MapFrom(src => src.Any() ? src.Max(s => s.SeatNum) : (byte)0))
-            .ForMember(dest => dest.OccupiedSeats,
+            .ForMember(dest => dest.AvailableSeats,
                 opt => opt.Ignore()); // Set separately based on reservations
     }
 }
