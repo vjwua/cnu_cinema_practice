@@ -1,4 +1,5 @@
 using Core.DTOs.Seats;
+using Core.Entities;
 
 namespace Core.Interfaces.Services;
 
@@ -9,4 +10,5 @@ public interface ISeatService
     Task<IEnumerable<SeatDTO>> GetAvailableSeatsAsync(int sessionId);
     Task<bool> ReserveSeatAsync(SeatDTO seat, int sessionId);
     Task<bool> IsSeatAvailableAsync(SeatDTO seat, int sessionId);
+    Task<IEnumerable<SeatType>> GetSeatTypesAsync();
 }

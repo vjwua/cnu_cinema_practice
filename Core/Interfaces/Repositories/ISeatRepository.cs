@@ -14,4 +14,5 @@ public interface ISeatRepository
     Task CreateAsync(Seat seat);
     Task UpdateHallLayout(int hallId, int r, int c, string ls);
     Task DeleteAsync(int seatId);
+    Task<IEnumerable<SeatType>> GetSeatTypesAsync();
 }

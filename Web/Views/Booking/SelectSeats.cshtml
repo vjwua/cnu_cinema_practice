@@ -1,7 +1,32 @@
 ﻿@using cnu_cinema_practice.ViewModels
+@using Microsoft.IdentityModel.Tokens
 @model BookingViewModel
 @{
     ViewData["Title"] = "Select Seats";
+}
+
+@section css {
+    <link rel="stylesheet" href="~/css/halls.css" />
+    <link rel="stylesheet" href="~/css/seats.css" />
+    <style>
+        .seat.premium {
+            background-color: #00ffd9;
+            border: 2px solid #004dd1;
+            color: #666;
+        }
+
+        .seat.vip {
+            background-color: #ffec3d;
+            border: 2px solid #e3cd05;
+            color: #666;
+        }
+
+        .seat.selected {
+            background-color: #28a745 !important;
+            border: 2px solid #1e7e34 !important;
+            color: white;
+        }
+    </style>
 }
 
 <div class="row">
@@ -20,9 +45,10 @@
                         <div class="btn-group-vertical w-100" role="group">
                             @foreach (var showtime in Model.AvailableShowtimes)
                             {
-                                <a asp-action="SelectSeats"
-                                   asp-route-movieId="@Model.Id"
-                                   asp-route-showtimeId="@showtime.Id"
+                                <a asp-controller="Booking"
+                                   asp-area=""
+                                   asp-action="SelectSeats"
+                                   asp-route-sessionId="@showtime.Id"
                                    class="btn btn-outline-primary text-start @(showtime.Id == Model.ShowtimeId ? "active" : "")">
                                     <strong>@showtime.FormattedTime</strong> - @showtime.Hall
                                 </a>
@@ -46,18 +72,27 @@
                 <!-- Seat Map -->
                 <div class="seat-map">
                     @{
-                        var rows = "ABCDEFGH".ToCharArray();
-                        for (int i = 0; i < Model.SeatLayout.Rows; i++)
+                        var rows = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".Substring(0, Model.HallData.Rows).ToCharArray();
+                        string[] seatClasses =
+                        [
+                            "occupied",
+                            "available",
+                            "premium",
+                            "vip",
+                        ];
+                        for (int i = 0; i < Model.HallData.Rows; i++)
                         {
                             <div class="seat-row">
                                 <span class="row-label">@rows[i]</span>
-                                @for (int j = 1; j <= Model.SeatLayout.SeatsPerRow; j++)
+                                @for (int j = 1; j <= Model.HallData.Columns; j++)
                                 {
                                     var seatId = $"{rows[i]}{j}";
-                                    var isOccupied = Model.SeatLayout.OccupiedSeats.Contains(seatId);
-
-                                    <div class="seat @(isOccupied ? "occupied" : "available")"
+                                    var seatType = Model.LayoutArray[i, j - 1];
+                                    <div class="seat @seatClasses[seatType]"
                                          data-seat="@seatId"
+                                         numeric="@($"{i}-{j-1}")"
+                                         added-price="@(Model.addedPrice[seatType])"
+                                         id="@seatId"
                                          title="Seat @seatId">
                                         @j
                                     </div>
@@ -73,6 +108,14 @@
                     <div class="legend-item">
                         <div class="seat available"></div>
                         <span>Available</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="seat premium"></div>
+                        <span>Premium</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="seat vip"></div>
+                        <span>VIP</span>
                     </div>
                     <div class="legend-item">
                         <div class="seat selected"></div>
@@ -97,7 +140,7 @@
                 <p class="text-muted small mb-3">
                     <i class="bi bi-calendar"></i> @Model.ShowDateTime.ToString("MMM dd, yyyy")<br>
                     <i class="bi bi-clock"></i> @Model.ShowDateTime.ToString("h:mm tt")<br>
-                    <i class="bi bi-geo-alt"></i> @Model.Hall
+                    <i class="bi bi-geo-alt"></i> @Model.HallData.Name
                 </p>
 
                 <hr>
@@ -122,10 +165,13 @@
                     <strong id="subtotal">$0.00</strong>
                 </div>
 
-                <form asp-action="Checkout" method="post">
-                    <input type="hidden" name="movieId" value="@Model.Id" />
-                    <input type="hidden" name="showtimeId" value="@Model.ShowtimeId" />
+                <form asp-area="" 
+                      asp-controller="Booking" 
+                      asp-action="Checkout" 
+                      method="post">
+                    <input type="hidden" name="sessionId" value="@Model.ShowtimeId"/>
                     <input type="hidden" id="selected-seats-input" name="selectedSeats" value="" />
+                    <input type="hidden" id="selected-seats-numeric-input" name="selectedNumeric" value="" />
                     <button type="submit" class="btn btn-success w-100" id="proceed-btn" disabled>
                         Proceed to Checkout
                     </button>
@@ -137,19 +183,36 @@
 
 @section Scripts {
     <script>
+        let False = false
+        let True = true
+        if (@(Model.alertMessage.IsNullOrEmpty() == false)) {
+            alert(@Model.alertMessage)
+        }
         const ticketPrice = @Model.BasePrice.ToString(System.Globalization.CultureInfo.InvariantCulture);
         let selectedSeats = [];
+        let selectedSeatsNumeric = [];
 
-        document.querySelectorAll('.seat.available').forEach(seat => {
+        document.querySelectorAll('.seat').forEach(seat => {
             seat.addEventListener('click', function() {
+                if (this.classList.contains("occupied")) {
+                    return;
+                }
                 const seatId = this.getAttribute('data-seat');
+                const numeric = this.getAttribute("numeric")
 
                 if (this.classList.contains('selected')) {
                     // Deselect
                     this.classList.remove('selected');
                     selectedSeats = selectedSeats.filter(s => s !== seatId);
+                    selectedSeatsNumeric = selectedSeatsNumeric.filter(s => s !== numeric)
                 } else {
                     // Select
+                    if (selectedSeatsNumeric.length >= 10) {
+                        alert("You cannot book more than 10 seats at a time")
+                        return
+                    }
+                    
+                    selectedSeatsNumeric.push(numeric)
                     this.classList.add('selected');
                     selectedSeats.push(seatId);
                 }
@@ -159,12 +222,17 @@
         });
 
         function updateSummary() {
-            const quantity = selectedSeats.length;
-            const subtotal = quantity * ticketPrice;
+            let subtotal = 0
+            let quantity = selectedSeats.length
+            selectedSeats.forEach(numeric => {
+                subtotal += @Model.BasePrice
+                subtotal += parseFloat(document.getElementById(numeric).getAttribute("added-price"))
+            })
 
             document.getElementById('ticket-quantity').textContent = quantity;
             document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
             document.getElementById('selected-seats-input').value = selectedSeats.join(',');
+            document.getElementById('selected-seats-numeric-input').value = selectedSeatsNumeric.join(',');
             document.getElementById('proceed-btn').disabled = quantity === 0;
 
             if (quantity > 0) {

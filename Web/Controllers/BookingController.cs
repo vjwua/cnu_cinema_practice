@@ -1,6 +1,8 @@
+using System.Runtime.InteropServices.JavaScript;
 using AutoMapper;
 using cnu_cinema_practice.ViewModels;
 using Core.DTOs.Seats;
+using Core.Entities;
 using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,61 +13,68 @@ namespace cnu_cinema_practice.Controllers
         ISessionService sessionService,
         IMovieService movieService,
         ISeatService seatService,
+        IHallService halLService,
         IMapper mapper) : Controller
     {
-        public async Task<IActionResult> SelectSeats(int movieId, int showtimeId = 0)
+        [HttpGet]
+        public async Task<IActionResult> SelectSeats(int sessionId, string alert = "")
         {
             try
             {
-                // Get movie details
-                var movie = await movieService.GetByIdAsync(movieId);
-                if (movie == null)
-                    return NotFound("Movie not found");
+                if (sessionId == 0) sessionId = 1075;
+                // Get session details
+                var session = await sessionService.GetSessionByIdAsync(sessionId);
+                if (session == null)
+                    return NotFound($"Session not found {sessionId}");
+                var movie = await movieService.GetByIdAsync(session.MovieId);
+                
+                var viewModel = mapper.Map<BookingViewModel>(session);
 
-                // Get all sessions for this movie
-                var allSessions = await sessionService.GetSessionsByMovieIdAsync(movieId);
-                var sessionsList = allSessions.ToList();
-
-                if (!sessionsList.Any())
+                viewModel.AvailableShowtimes = new List<ShowtimeOption>();
+                foreach (var showTime in await sessionService.GetSessionsByMovieIdAsync(session.MovieId))
                 {
-                    TempData["Error"] = "No showtimes available for this movie.";
-                    return RedirectToAction("Index", "Home");
+                    viewModel.AvailableShowtimes.Add(mapper.Map<ShowtimeOption>(showTime));
                 }
-
-                // Determine which session to show
-                var selectedSessionId = showtimeId > 0 ? showtimeId : sessionsList.First().Id;
-                var selectedSession = await sessionService.GetSessionByIdWithSeatsAsync(selectedSessionId);
-
-                if (selectedSession == null)
-                    return NotFound("Session not found");
-
-                // Map to BookingViewModel
-                var viewModel = mapper.Map<BookingViewModel>(selectedSession);
-
                 // Set movie details
                 viewModel.Name = movie.Name;
                 viewModel.PosterUrl = movie.PosterUrl;
 
-                // Map available showtimes
-                viewModel.AvailableShowtimes = mapper.Map<List<ShowtimeOption>>(sessionsList);
-
+                viewModel.HallData = await halLService.GetByIdAsync(viewModel.HallId);
+                
                 // Get seats for this session
-                var seats = await seatService.GetBySessionIdAsync(selectedSessionId);
-                var seatsList = seats.ToList();
+                /*var seats = await seatService.GetBySessionIdAsync(sessionId);
+                var seatsList = seats.ToList();*/
 
                 // Create seat layout
-                viewModel.SeatLayout = new SeatLayout
+                viewModel.SeatLayout = await seatService.GetAvailableSeatsAsync(sessionId);
+                byte[,] layout = new byte[viewModel.HallData.Rows, viewModel.HallData.Columns];
+                foreach (var seat in viewModel.SeatLayout)
                 {
-                    Rows = seatsList.Any() ? seatsList.Max(s => s.RowNum) : (byte)8,
-                    SeatsPerRow = seatsList.Any() ? seatsList.Max(s => s.SeatNum) : (byte)12,
-                    OccupiedSeats = await GetOccupiedSeatsAsync(selectedSessionId, seatsList)
-                };
+                    if (seat.RowNum < viewModel.HallData.Rows
+                        && seat.SeatNum < viewModel.HallData.Columns)
+                    {
+                        layout[seat.RowNum, seat.SeatNum] = (byte) seat.SeatTypeId;
+                    }
+                }
+
+                viewModel.LayoutArray = layout;
+                viewModel.alertMessage = alert;
+
+                var seattypes = await seatService.GetSeatTypesAsync();
+                decimal[] seatprices = new decimal[seattypes.Count()];
+                foreach (var type in seattypes)
+                {
+                    seatprices[type.Id] = type.AddedPrice;
+                }
+
+                viewModel.addedPrice = seatprices;
 
                 return View(viewModel);
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error loading booking page: {ex.Message}";
+                return NotFound(ex.Message);
                 return RedirectToAction("Index", "Home");
             }
         }
@@ -73,38 +82,65 @@ namespace cnu_cinema_practice.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Checkout(int movieId, int showtimeId, string selectedSeats)
+        public async Task<IActionResult> Checkout(int sessionId, string selectedSeats, string selectedNumeric)
         {
             if (string.IsNullOrEmpty(selectedSeats))
             {
                 TempData["Error"] = "Please select at least one seat.";
-                return RedirectToAction("SelectSeats", new { movieId, showtimeId });
+                return RedirectToAction("SelectSeats", new { sessionId = sessionId, Area = "" });
             }
 
             try
             {
-                var seatList = selectedSeats.Split(',').ToList();
+                var seatList = selectedNumeric.Split(',').ToList();
 
-                // Get movie and session details
-                var movie = await movieService.GetByIdAsync(movieId);
-                if (movie == null)
-                    return NotFound("Movie not found");
-
-                var session = await sessionService.GetSessionByIdWithSeatsAsync(showtimeId);
+                var session = await sessionService.GetSessionByIdWithSeatsAsync(sessionId);
                 if (session == null)
                     return NotFound("Session not found");
 
-                // Verify seats are available
-                var seats = await seatService.GetBySessionIdAsync(showtimeId);
-                var occupiedSeats = await GetOccupiedSeatsAsync(showtimeId, seats.ToList());
+                var movie = await movieService.GetByIdAsync(session.MovieId);
 
-                var unavailableSeats = seatList.Intersect(occupiedSeats).ToList();
-                if (unavailableSeats.Any())
+                // Verify seats are available
+                var seats = (await seatService.GetBySessionIdAsync(sessionId)).ToList();
+                var availableSeats = (await seatService.GetAvailableSeatsAsync(sessionId)).Select(s => s.Id);
+                
+                var reservations = new List<SeatDTO>();
+
+                foreach (var seat in seatList)
                 {
-                    TempData["Error"] =
-                        $"The following seats are no longer available: {string.Join(", ", unavailableSeats)}";
-                    return RedirectToAction("SelectSeats", new { movieId, showtimeId });
+                    var coords = seat.Split('-');
+                    byte row = Byte.Parse(coords[0]);
+                    byte col = Byte.Parse(coords[1]);
+
+                    foreach (var s in seats)
+                    {
+                        if (s.RowNum == row && s.SeatNum == col)
+                        {
+                            reservations.Add(s);
+                        }
+                    }
                 }
+
+                foreach (var reserve in reservations)
+                {
+                    if (availableSeats.Contains(reserve.Id) == false)
+                    {
+                        TempData["Error"] = $"The following seats are no longer available: {string.Join(", ", reserve)}";
+                        return RedirectToAction("SelectSeats", new { sessionId,
+                            alert = $"The following seats are no longer available: {string.Join(", ", reserve)}", Area = "" });
+                    }
+                }
+
+                foreach (var reserve in reservations)
+                {
+                    if ((await seatService.ReserveSeatAsync(reserve, sessionId)) == false)
+                    {
+                        TempData["Error"] = $"The following seats are no longer available: {string.Join(", ", reserve)}";
+                        return RedirectToAction("SelectSeats", new { sessionId, 
+                            alert = $"The following seats are no longer available: {string.Join(", ", reserve)}", Area = "" });
+                    }
+                }
+                return RedirectToAction("SelectSeats", new { sessionId, Area = "" });
 
                 // Map to CheckoutViewModel
                 var viewModel = mapper.Map<CheckoutViewModel>(session);
@@ -119,7 +155,8 @@ namespace cnu_cinema_practice.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error processing checkout: {ex.Message}";
-                return RedirectToAction("SelectSeats", new { movieId, showtimeId });
+                return NotFound(ex.Message);
+                return RedirectToAction("SelectSeats", new { sessionId });
             }
         }
 

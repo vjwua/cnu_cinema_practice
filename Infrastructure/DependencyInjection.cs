@@ -1,3 +1,4 @@
+using cnu_cinema_practice.Controllers;
 using Infrastructure.Identity;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
