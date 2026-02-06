@@ -13,5 +13,6 @@
         public string Director { get; set; }
         public string Description { get; set; }
         public string GenresString { get; set; } // Comma-separated
+        public string Country { get; set; }
     }
 }
