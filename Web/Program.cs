@@ -30,7 +30,7 @@ public class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
-        app.UseAntiforgery(); // Required for Blazor
+        app.UseAntiforgery();
 
         // Map Blazor Root
         app.MapRazorComponents<Components.App>()
