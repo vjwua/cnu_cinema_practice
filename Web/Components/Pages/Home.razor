@@ -1,4 +1,5 @@
 @using cnu_cinema_practice.ViewModels.Home
+@using cnu_cinema_practice.Web.Helpers
 @using cnu_cinema_practice.Components.Layout
 @layout HomeLayout
 @rendermode RenderMode.InteractiveServer
@@ -8,34 +9,8 @@
 
 
 <!-- === CUSTOM NAVBAR === -->
-<nav class="navbar-custom">
-    <div class="container-custom flex-row justify-between items-center">
-        <!-- Logo -->
-        <a href="/" class="text-decoration-none flex-row items-center gap-3">
-            <div class="nav-logo-box">
-                <div class="nav-logo-glow"></div>
-                <span class="text-white font-black">M</span>
-            </div>
-            <span class="text-xl font-black text-white text-uppercase italic tracking-widest">CineMaster</span>
-        </a>
-
-        <!-- Links -->
-        <div class="hidden md-flex gap-5">
-            <a @onclick="ScrollToGrid" class="text-decoration-none uppercase-nav hover-text-white transition-all"
-                style="color: rgba(255,255,255,0.7); cursor: pointer;">Афіша</a>
-            <a href="#" class="text-decoration-none uppercase-nav hover-text-white transition-all"
-                style="color: rgba(255,255,255,0.7);">Кінотеатри</a>
-            <a href="#" class="text-decoration-none uppercase-nav hover-text-white transition-all"
-                style="color: rgba(255,255,255,0.7);">Новини</a>
-        </div>
-
-        <!-- Auth -->
-        <a href="/Identity/Account/Login" class="btn-glass-hero text-decoration-none"
-            style="padding: 0.6rem 1.5rem; font-size: 0.7rem; border-radius: 2rem;">
-            Увійти
-        </a>
-    </div>
-</nav>
+<!-- === CUSTOM NAVBAR === -->
+<NavBar />
 
 <!-- === HERO SECTION === -->
 @if (Model.FeaturedMovie != null)
@@ -130,54 +105,57 @@
         @foreach (var movie in FilteredMovies)
         {
             <div class="movie-card-wrapper">
-                <div class="movie-card">
-                    <!-- Rating -->
-                    <div class="rating-badge">
-                        <span style="color: #fbbf24;">★</span>
-                        <span>@movie.ImdbRating</span>
-                    </div>
-
-                    <!-- Image -->
-                    @if (!string.IsNullOrEmpty(movie.PosterUrl))
-                    {
-                        <img src="@movie.PosterUrl" alt="@movie.Name" class="movie-poster" />
-                    }
-                    else
-                    {
-                        <div class="movie-poster flex-col justify-center items-center bg-card">
-                            <span class="font-heading font-black text-muted" style="font-size: 3rem;">?</span>
+                <a href="/movies/@movie.Id-@SlugHelper.GenerateSlug(movie.Name)" class="text-decoration-none"
+                    style="display: block; height: 100%;">
+                    <div class="movie-card">
+                        <!-- Rating -->
+                        <div class="rating-badge">
+                            <span style="color: #fbbf24;">★</span>
+                            <span>@movie.ImdbRating</span>
                         </div>
-                    }
 
-                    <!-- Overlay Info -->
-                    <div class="movie-overlay">
-                        <div class="movie-info">
-                            <h3 class="movie-title">@movie.Name</h3>
-                            <div class="flex-row items-center gap-2 movie-meta">
-                                <span>@movie.Genre</span>
-                                <span style="font-size: 1.5rem; line-height: 0; color: var(--cyan-500);">•</span>
-                                <span>@movie.FormattedDuration</span>
+                        <!-- Image -->
+                        @if (!string.IsNullOrEmpty(movie.PosterUrl))
+                        {
+                            <img src="@movie.PosterUrl" alt="@movie.Name" class="movie-poster" />
+                        }
+                        else
+                        {
+                            <div class="movie-poster flex-col justify-center items-center bg-card">
+                                <span class="font-heading font-black text-muted" style="font-size: 3rem;">?</span>
                             </div>
+                        }
 
-                            <p class="movie-description">
-                                @movie.Description
-                            </p>
+                        <!-- Overlay Info -->
+                        <div class="movie-overlay">
+                            <div class="movie-info">
+                                <h3 class="movie-title">@movie.Name</h3>
+                                <div class="flex-row items-center gap-2 movie-meta">
+                                    <span>@movie.Genre</span>
+                                    <span style="font-size: 1.5rem; line-height: 0; color: var(--cyan-500);">•</span>
+                                    <span>@movie.FormattedDuration</span>
+                                </div>
 
-                            <!-- Sessions Preview -->
-                            <div class="mt-2 pt-2 w-full flex-column items-center">
-                                <div class="uppercase-nav text-cyan mb-2" style="font-size: 0.6rem;">Сеанси</div>
-                                <div class="flex-row gap-2 justify-center" style="flex-wrap: wrap;">
-                                    @foreach (var session in movie.Sessions.Take(2))
-                                    {
-                                        <div class="glass font-black text-white session-btn">
-                                            @session.FormattedTime
-                                        </div>
-                                    }
+                                <p class="movie-description">
+                                    @movie.Description
+                                </p>
+
+                                <!-- Sessions Preview -->
+                                <div class="mt-2 pt-2 w-full flex-column items-center">
+                                    <div class="uppercase-nav text-cyan mb-2" style="font-size: 0.6rem;">Сеанси</div>
+                                    <div class="flex-row gap-2 justify-center" style="flex-wrap: wrap;">
+                                        @foreach (var session in movie.Sessions.Take(2))
+                                        {
+                                            <div class="glass font-black text-white session-btn">
+                                                @session.FormattedTime
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
         }
     </div>
@@ -200,21 +178,24 @@
         <div class="coming-soon-grid">
             @foreach (var movie in Model.UpcomingMovies.Take(4))
             {
-                <div class="coming-soon-card">
-                    <div class="coming-soon-card-inner">
-                        @if (!string.IsNullOrEmpty(movie.PosterUrl))
-                        {
-                            <img src="@movie.PosterUrl" alt="@movie.Name" class="coming-soon-poster" />
-                        }
-                        <div class="coming-soon-overlay">
-                            <div class="flex-column gap-3">
-                                <div class="coming-soon-badge">Очікується</div>
-                                <h3 class="coming-soon-title">@movie.Name</h3>
-                                <p class="coming-soon-date">З @movie.ReleaseDate.ToString("dd MMMM")</p>
+                <a href="/movies/@movie.Id-@SlugHelper.GenerateSlug(movie.Name)" class="text-decoration-none"
+                    style="display: block;">
+                    <div class="coming-soon-card">
+                        <div class="coming-soon-card-inner">
+                            @if (!string.IsNullOrEmpty(movie.PosterUrl))
+                            {
+                                <img src="@movie.PosterUrl" alt="@movie.Name" class="coming-soon-poster" />
+                            }
+                            <div class="coming-soon-overlay">
+                                <div class="flex-column gap-3">
+                                    <div class="coming-soon-badge">Очікується</div>
+                                    <h3 class="coming-soon-title">@movie.Name</h3>
+                                    <p class="coming-soon-date">З @movie.ReleaseDate.ToString("dd MMMM")</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
             }
         </div>
     </section>

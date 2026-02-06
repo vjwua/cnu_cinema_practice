@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дюна: Частина Друга - CineMaster</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Styles -->
+    <link rel="stylesheet" href="movie-details.css">
+</head>
+<body>
+    <div class="bg-ambience"></div>
+    
+    <header class="top-nav">
+        <a href="index.html" class="back-link">
+            <span class="arrow">←</span> НАЗАД ДО АФІШІ
+        </a>
+    </header>
+
+    <main class="movie-container">
+        <!-- Постер та команда -->
+        <aside class="movie-sidebar">
+            <div class="poster-wrapper">
+                <img src="https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=800&auto=format&fit=crop" alt="Дюна: Частина Друга" class="movie-poster">
+                <div class="poster-glow"></div>
+            </div>
+
+            <div class="info-card glass">
+                <div class="info-section">
+                    <span class="label">РЕЖИСЕР</span>
+                    <p class="value highlight">Дені Вільньов</p>
+                </div>
+                <div class="divider"></div>
+                <div class="info-section">
+                    <span class="label">У ГОЛОВНИХ РОЛЯХ</span>
+                    <div class="actors-list">
+                        <span>Тімоті Шаламе</span>
+                        <span>Зендея</span>
+                        <span>Ребекка Фергюсон</span>
+                        <span>Оскар Айзек</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Опис та сеанси -->
+        <section class="movie-content">
+            <header class="movie-header">
+                <div class="badges">
+                    <span class="badge-rating">★ 9.1</span>
+                    <span class="badge-age">12+</span>
+                    <span class="badge-lang">UA</span>
+                </div>
+                <h1 class="movie-title">ДЮНА: <span class="cyan">ЧАСТИНА ДРУГА</span></h1>
+                <div class="meta">
+                    <span>ФАНТАСТИКА</span>
+                    <span class="dot">•</span>
+                    <span>ПРИГОДИ</span>
+                    <span class="dot">•</span>
+                    <span>166 ХВИЛИН</span>
+                </div>
+            </header>
+
+            <article class="movie-description">
+                <h3 class="section-title">ПРО ФІЛЬМ</h3>
+                <p>Пол Атрідес об’єднується з Чані та фрименами, щоб помститися змовникам, які знищили його родину. Перед ним постає складний вибір між коханням свого життя та долею відомого всесвіту. Він намагається запобігти жахливому майбутньому, яке може передбачити лише він.</p>
+            </article>
+
+            <!-- Сеанси з перемикачем днів -->
+            <div class="sessions-card glass">
+                <div class="sessions-tabs-container">
+                    <h3 class="section-title">ОБЕРІТЬ СЕАНС</h3>
+                    
+                    <!-- Radio Inputs for Tabs Logic -->
+                    <input type="radio" name="day-selector" id="day-1" checked hidden>
+                    <input type="radio" name="day-selector" id="day-2" hidden>
+                    <input type="radio" name="day-selector" id="day-3" hidden>
+
+                    <!-- Date Navigation Labels -->
+                    <div class="date-nav">
+                        <label for="day-1" class="date-item">
+                            <span class="day-name">СЬОГОДНІ</span>
+                            <span class="day-date">20 ТРАВНЯ</span>
+                        </label>
+                        <label for="day-2" class="date-item">
+                            <span class="day-name">ЗАВТРА</span>
+                            <span class="day-date">21 ТРАВНЯ</span>
+                        </label>
+                        <label for="day-3" class="date-item">
+                            <span class="day-name">СЕРЕДА</span>
+                            <span class="day-date">22 ТРАВНЯ</span>
+                        </label>
+                    </div>
+
+                    <!-- Content for Day 1 -->
+                    <div class="sessions-grid content-day-1">
+                        <button class="session-btn active">
+                            <span class="hall-info">IMAX LASER • ЗАЛ 1</span>
+                            <span class="time">12:00</span>
+                            <span class="price">160 ₴</span>
+                        </button>
+                        <button class="session-btn">
+                            <span class="hall-info">STANDARD • ЗАЛ 3</span>
+                            <span class="time">15:30</span>
+                            <span class="price">140 ₴</span>
+                        </button>
+                        <button class="session-btn">
+                            <span class="hall-info">LUX • VIP</span>
+                            <span class="time">20:15</span>
+                            <span class="price">350 ₴</span>
+                        </button>
+                    </div>
+
+                    <!-- Content for Day 2 -->
+                    <div class="sessions-grid content-day-2">
+                        <button class="session-btn">
+                            <span class="hall-info">IMAX LASER • ЗАЛ 1</span>
+                            <span class="time">10:00</span>
+                            <span class="price">160 ₴</span>
+                        </button>
+                        <button class="session-btn">
+                            <span class="hall-info">STANDARD • ЗАЛ 2</span>
+                            <span class="time">14:00</span>
+                            <span class="price">140 ₴</span>
+                        </button>
+                        <button class="session-btn">
+                            <span class="hall-info">STANDARD • ЗАЛ 3</span>
+                            <span class="time">18:45</span>
+                            <span class="price">140 ₴</span>
+                        </button>
+                    </div>
+
+                    <!-- Content for Day 3 -->
+                    <div class="sessions-grid content-day-3">
+                        <button class="session-btn">
+                            <span class="hall-info">IMAX LASER • ЗАЛ 1</span>
+                            <span class="time">13:20</span>
+                            <span class="price">180 ₴</span>
+                        </button>
+                        <button class="session-btn">
+                            <span class="hall-info">LUX • VIP</span>
+                            <span class="time">19:00</span>
+                            <span class="price">380 ₴</span>
+                        </button>
+                        <button class="session-btn">
+                            <span class="hall-info">4DX • ЗАЛ 5</span>
+                            <span class="time">22:30</span>
+                            <span class="price">220 ₴</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="action-footer">
+                    <button class="primary-btn">ПРОДОВЖИТИ ДО ВИБОРУ МІСЦЬ</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <p>CINEMASTER PREMIUM EXPERIENCE 2024</p>
+    </footer>
+</body>
+</html>
