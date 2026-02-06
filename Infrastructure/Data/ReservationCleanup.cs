@@ -25,7 +25,7 @@ public class ReservationCleanup : IHostedService
             var context = new CinemaDbContext(contextOptions);
             await CleanupExpiredAsync(context);
         }
-		catch (DbUpdateException ex)
+		catch (Exception ex)
 		{
 			Console.WriteLine($"Database cleanup failed: {ex.Message}");
 		}
