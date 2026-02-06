@@ -1,0 +1,10 @@
+namespace cnu_cinema_practice.ViewModels.Account;
+
+public class TicketViewModel
+{
+    public int Id { get; set; }
+    public decimal Price { get; set; }
+    public int RowNum { get; set; }
+    public int SeatNum { get; set; }
+    public string SeatTypeName { get; set; } = null!;
+}

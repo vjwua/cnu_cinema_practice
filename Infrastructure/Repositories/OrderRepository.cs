@@ -12,12 +12,12 @@ public class OrderRepository(CinemaDbContext context) : IOrderRepository
     {
         return await context.Orders
             .Include(o => o.Tickets)
-                .ThenInclude(t => t.SeatReservation)
-                    .ThenInclude(sr => sr.Seat)
+            .ThenInclude(t => t.SeatReservation)
+            .ThenInclude(sr => sr.Seat)
             .Include(o => o.Session)
-                .ThenInclude(s => s.Movie)
+            .ThenInclude(s => s.Movie)
             .Include(o => o.Session)
-                .ThenInclude(s => s.Hall)
+            .ThenInclude(s => s.Hall)
             .Include(o => o.Payment)
             .FirstOrDefaultAsync(o => o.Id == id);
     }
@@ -26,13 +26,62 @@ public class OrderRepository(CinemaDbContext context) : IOrderRepository
     {
         return await context.Orders
             .Include(o => o.Tickets)
-                .ThenInclude(t => t.SeatReservation)
-                    .ThenInclude(sr => sr.Seat)
+            .ThenInclude(t => t.SeatReservation)
+            .ThenInclude(sr => sr.Seat)
+            .ThenInclude(s => s.SeatType)
             .Include(o => o.Session)
-                .ThenInclude(s => s.Movie)
+            .ThenInclude(s => s.Movie)
+            .Include(o => o.Session)
+            .ThenInclude(s => s.Hall)
+            .Include(o => o.Payment)
             .Where(o => o.UserId == userId)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Order>> GetByUserIdFilteredBySessionAsync(string userId, DateTime? from, DateTime? to,
+        OrderStatus? status)
+    {
+        var query = context.Orders
+            .Include(o => o.Tickets)
+            .ThenInclude(t => t.SeatReservation)
+            .ThenInclude(sr => sr.Seat)
+            .ThenInclude(s => s.SeatType)
+            .Include(o => o.Session)
+            .ThenInclude(s => s.Movie)
+            .Include(o => o.Session)
+            .ThenInclude(s => s.Hall)
+            .Include(o => o.Payment)
+            .Where(o => o.UserId == userId)
+            .AsQueryable();
+
+        if (from.HasValue)
+        {
+            var fromDate = from.Value.Date;
+            query = query.Where(o => o.Session.StartTime >= fromDate);
+        }
+
+        if (to.HasValue)
+        {
+            var toExclusive = to.Value.Date.AddDays(1);
+            query = query.Where(o => o.Session.StartTime < toExclusive);
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(o => o.Status == status.Value);
+        }
+
+        return await query
+            .OrderByDescending(o => o.Session.StartTime)
+            .ToListAsync();
+    }
+
+    public async Task<int> CountByUserIdAsync(string userId)
+    {
+        return await context.Orders
+            .Where(o => o.UserId == userId)
+            .CountAsync();
     }
 
     public async Task<Order> CreateAsync(Order order)

@@ -1,7 +1,8 @@
-﻿using AutoMapper;
+using AutoMapper;
 using cnu_cinema_practice.ViewModels;
 using Core.DTOs.Seats;
 using Core.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace cnu_cinema_practice.Controllers
@@ -71,6 +72,7 @@ namespace cnu_cinema_practice.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Checkout(int movieId, int showtimeId, string selectedSeats)
         {
             if (string.IsNullOrEmpty(selectedSeats))
@@ -99,7 +101,8 @@ namespace cnu_cinema_practice.Controllers
                 var unavailableSeats = seatList.Intersect(occupiedSeats).ToList();
                 if (unavailableSeats.Any())
                 {
-                    TempData["Error"] = $"The following seats are no longer available: {string.Join(", ", unavailableSeats)}";
+                    TempData["Error"] =
+                        $"The following seats are no longer available: {string.Join(", ", unavailableSeats)}";
                     return RedirectToAction("SelectSeats", new { movieId, showtimeId });
                 }
 
@@ -122,6 +125,7 @@ namespace cnu_cinema_practice.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> ConfirmBooking(CheckoutViewModel model)
         {
             if (!ModelState.IsValid)
@@ -151,6 +155,7 @@ namespace cnu_cinema_practice.Controllers
             }
         }
 
+        [Authorize]
         public IActionResult Confirmation(int bookingId)
         {
             // TODO: Fetch booking details from database

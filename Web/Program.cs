@@ -1,22 +1,52 @@
 using Infrastructure;
+using Infrastructure.Data.SeedData;
+using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Components.Authorization;
+using cnu_cinema_practice.Identity;
+using Core.Interfaces;
+using Core.Interfaces.Services;
+using Infrastructure.Data;
+using Infrastructure.Services;
 
 namespace cnu_cinema_practice;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.Configure<EmailSettings>(
+            builder.Configuration.GetSection("EmailSettings"));
+
+        builder.Services.AddScoped<IEmailService, EmailService>();
 
         // Add Blazor services
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
+        // Add authentication services for Blazor
+        builder.Services.AddCascadingAuthenticationState();
+        builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddControllersWithViews();
-        builder.Services.AddInfrastructure(builder.Configuration);
+        builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
         builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
         var app = builder.Build();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            var adminEmail = builder.Configuration["Identity:DefaultAdmin:Email"] ?? "admin@cinema.com";
+            var adminPassword = builder.Configuration["Identity:DefaultAdmin:Password"] ?? "Admin123!";
+            await IdentitySeed.SeedAsync(roleManager, userManager, adminEmail, adminPassword, logger);
+        }
 
         if (!app.Environment.IsDevelopment())
         {
@@ -48,6 +78,6 @@ public class Program
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
-        app.Run();
+        await app.RunAsync();
     }
 }
