@@ -1,0 +1,71 @@
+@model cnu_cinema_practice.ViewModels.Movies.ImportMoviePreviewViewModel
+
+<div class="card border-0">
+    <div class="row g-3">
+        <div class="col-md-3">
+            @if (!string.IsNullOrWhiteSpace(Model.PosterUrl))
+            {
+                <img src="@Model.PosterUrl" alt="Poster" class="img-fluid rounded" />
+            }
+        </div>
+        <div class="col-md-9">
+            <div class="d-flex align-items-center justify-content-between">
+                <h5 class="mb-1">@Model.Name</h5>
+                <span class="badge text-bg-secondary">External ID: @Model.ExternalId</span>
+            </div>
+            <div class="text-muted mb-2">
+                @if (Model.ReleaseDate.HasValue)
+                {
+                    <span>@Model.ReleaseDate.Value.ToString("yyyy-MM-dd")</span>
+                }
+                @if (Model.DurationMinutes > 0)
+                {
+                    <span class="mx-2">•</span>
+                    <span>@Model.DurationMinutes min</span>
+                }
+                <span class="mx-2">•</span>
+                <span>@(Model.AgeLimit == 0 ? "G" : $"{Model.AgeLimit}+")</span>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.GenresText))
+            {
+                <div class="mb-2"><span class="fw-semibold">Genres:</span> @Model.GenresText</div>
+            }
+            @if (Model.ImdbRating.HasValue)
+            {
+                <div class="mb-2"><span class="fw-semibold">Rating:</span> @Model.ImdbRating</div>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Country))
+            {
+                <div class="mb-2"><span class="fw-semibold">Country:</span> @Model.Country</div>
+            }
+
+            @if (Model.Directors.Any())
+            {
+                <div class="mb-2"><span class="fw-semibold">Directors:</span> @string.Join(", ", Model.Directors)</div>
+            }
+            @if (Model.Actors.Any())
+            {
+                <div class="mb-2"><span class="fw-semibold">Actors:</span> @string.Join(", ", Model.Actors)</div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <div class="mt-3">
+                    <div class="fw-semibold mb-1">Overview</div>
+                    <div class="text-body-secondary">@Model.Description</div>
+                </div>
+            }
+
+            <div class="mt-3 d-flex gap-2">
+                <button type="button" class="btn btn-primary" data-action="external-import" data-external-id="@Model.ExternalId">
+                    Import to form
+                </button>
+                @if (!string.IsNullOrWhiteSpace(Model.TrailerUrl))
+                {
+                    <a class="btn btn-outline-secondary" href="@Model.TrailerUrl" target="_blank" rel="noopener">Open trailer</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

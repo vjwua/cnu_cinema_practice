@@ -1,17 +1,25 @@
 ﻿using AutoMapper;
 using cnu_cinema_practice.ViewModels.Movies;
+using Core.Constants;
 using Core.DTOs.Movies;
 using Core.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 
 namespace cnu_cinema_practice.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = RoleNames.Admin)]
     public class MovieController(
         IMovieService movieService,
-        IMapper mapper) : Controller
+        IExternalMovieService externalMovieService,
+        IMapper mapper,
+        ILogger<MovieController> logger) : Controller
     {
-        // List all movies
+        private static readonly ConcurrentDictionary<string, Queue<DateTime>> SearchRateLimiter = new();
+
         public async Task<IActionResult> Index()
         {
             var movies = await movieService.GetAllAsync();
@@ -19,7 +27,6 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
             return View(viewModels);
         }
 
-        // Create movie - GET
         public IActionResult Create()
         {
             return View(new CreateMovieViewModel
@@ -28,7 +35,6 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
             });
         }
 
-        // Create movie - POST
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateMovieViewModel model)
@@ -53,7 +59,6 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
             }
         }
 
-        // Edit movie - GET
         public async Task<IActionResult> Edit(int id)
         {
             var movieDto = await movieService.GetByIdAsync(id);
@@ -64,7 +69,6 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
             return View(movie);
         }
 
-        // Edit movie - POST
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(UpdateMovieViewModel model)
@@ -93,7 +97,6 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
             }
         }
 
-        // Delete movie
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -115,13 +118,114 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        // Toggle movie active status
+        [HttpGet]
+        public async Task<IActionResult> ExternalApiStatus()
+        {
+            var available = await externalMovieService.IsApiAvailableAsync();
+            return Json(new { available });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchExternal(string query)
+        {
+            if (!AllowSearchRequest())
+                return StatusCode(429);
+
+            if (string.IsNullOrWhiteSpace(query))
+                return PartialView("_ExternalSearchPartial", Enumerable.Empty<ExternalMovieSearchViewModel>());
+
+            var available = await externalMovieService.IsApiAvailableAsync();
+            if (!available)
+                return PartialView("_ExternalSearchPartial", Enumerable.Empty<ExternalMovieSearchViewModel>());
+
+            var results = await externalMovieService.SearchMoviesAsync(query);
+            var vms = mapper.Map<IEnumerable<ExternalMovieSearchViewModel>>(results);
+
+            return PartialView("_ExternalSearchPartial", vms);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ImportPreview(int id)
+        {
+            var available = await externalMovieService.IsApiAvailableAsync();
+            if (!available)
+                return Content(string.Empty);
+
+            var dto = await externalMovieService.GetMovieDetailsAsync(id);
+            if (dto == null)
+                return Content(string.Empty);
+
+            var vm = mapper.Map<ImportMoviePreviewViewModel>(dto);
+            return PartialView("_ImportPreviewPartial", vm);
+        }
+
+        public sealed class ImportRequest
+        {
+            public int ExternalId { get; set; }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ToggleStatus(int id)
+        public async Task<IActionResult> ImportFromExternal([FromBody] ImportRequest request)
         {
-            // TODO: Implement if IsActive becomes part of Movie entity
-            return RedirectToAction("Index");
+            var available = await externalMovieService.IsApiAvailableAsync();
+            if (!available)
+                return Json(new { success = false, message = "External API is unavailable." });
+
+            var dto = await externalMovieService.GetMovieDetailsAsync(request.ExternalId);
+            if (dto == null)
+                return Json(new { success = false, message = "Movie not found." });
+
+            var director = dto.Directors.FirstOrDefault() ?? string.Empty;
+
+            return Json(new
+            {
+                success = true,
+                movie = new
+                {
+                    name = dto.Name,
+                    description = dto.Description ?? string.Empty,
+                    durationMinutes = dto.DurationMinutes,
+                    ageLimit = dto.AgeLimit,
+                    genresText = dto.GenresText,
+                    releaseDate = dto.ReleaseDate?.ToString("yyyy-MM-dd") ?? string.Empty,
+                    imdbRating = dto.ImdbRating,
+                    posterUrl = dto.PosterUrl ?? string.Empty,
+                    trailerUrl = dto.TrailerUrl ?? string.Empty,
+                    country = dto.Country ?? string.Empty,
+                    director = director
+                }
+            });
+        }
+
+        private bool AllowSearchRequest()
+        {
+            try
+            {
+                const int windowSeconds = 60;
+                const int maxRequests = 30;
+
+                var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                var now = DateTime.UtcNow;
+
+                var queue = SearchRateLimiter.GetOrAdd(ip, _ => new Queue<DateTime>());
+                lock (queue)
+                {
+                    while (queue.Count > 0 && (now - queue.Peek()).TotalSeconds > windowSeconds)
+                        queue.Dequeue();
+
+                    if (queue.Count >= maxRequests)
+                        return false;
+
+                    queue.Enqueue(now);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex, "Rate limiter failed");
+                return true;
+            }
         }
     }
 }

@@ -1,13 +1,16 @@
 using AutoMapper;
 using cnu_cinema_practice.ViewModels.Halls;
+using Core.Constants;
 using Core.DTOs.Halls;
 using Core.DTOs.Seats;
 using Core.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace cnu_cinema_practice.Areas.Admin.Controllers;
 
 [Area("Admin")]
+[Authorize(Roles = RoleNames.Admin)]
 public class HallController(
     IHallService hallService,
     IMapper mapper) : Controller

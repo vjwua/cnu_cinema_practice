@@ -3,6 +3,8 @@
 @using cnu_cinema_practice.Components.Layout
 @layout HomeLayout
 @rendermode RenderMode.InteractiveServer
+@inject IAntiforgery Antiforgery
+@inject IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>Головна - CNU Cinema</PageTitle>
 
@@ -231,5 +233,14 @@
     private void SelectGenre(string genre)
     {
         ActiveGenre = genre;
+    }
+
+    private string GetAntiforgeryToken()
+    {
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext == null) return string.Empty;
+        
+        var tokens = Antiforgery.GetAndStoreTokens(httpContext);
+        return tokens.RequestToken ?? string.Empty;
     }
 }
