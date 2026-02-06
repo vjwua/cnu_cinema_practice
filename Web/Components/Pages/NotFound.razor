@@ -1,0 +1,38 @@
+@page "/notfound"
+@rendermode RenderMode.InteractiveServer
+
+@using cnu_cinema_practice.Components.Layout
+@inject NavigationManager NavigationManager
+
+<HeadContent>
+    <link rel="stylesheet" href="css/not-found.css" />
+</HeadContent>
+
+<PageTitle>Сторінку не знайдено - CineMaster</PageTitle>
+
+<div class="bg-ambience"></div>
+
+<NavBar />
+
+<main class="not-found-page">
+    <div class="not-found-content">
+        <div class="not-found-code">404</div>
+        <h1 class="not-found-title">Сторінку не знайдено</h1>
+        <p class="not-found-text">
+            На жаль, сторінка, яку ви шукаєте, не існує або була переміщена.
+        </p>
+        <div class="not-found-actions">
+            <a href="/" class="primary-btn">
+                НА ГОЛОВНУ
+            </a>
+        </div>
+    </div>
+</main>
+
+<footer class="main-footer">
+    <p>CINEMASTER PREMIUM EXPERIENCE 2026</p>
+</footer>
+
+@code {
+    // No code needed for static 404 page
+}

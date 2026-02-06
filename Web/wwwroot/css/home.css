@@ -597,12 +597,6 @@ a:hover {
     /* Behind the text */
 }
 
-/* On hover, fade in the dark gradient - DISABLED per user request */
-/* .movie-card:not(.static-card):hover .movie-overlay::before {
-    opacity: 1;
-} */
-
-/* Ensure text sits on top of the ::before pseudo-element */
 .movie-info {
     position: relative;
     z-index: 2;

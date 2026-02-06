@@ -1,0 +1,485 @@
+:root {
+    --bg-dark: #020617;
+    --cyan: #22d3ee;
+    --cyan-glow: rgba(34, 211, 238, 0.3);
+    --text-white: #f8fafc;
+    --text-slate: #94a3b8;
+    --text-dark-slate: #475569;
+    --glass-bg: rgba(15, 23, 42, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+
+/* Background Ambience */
+.bg-ambience {
+    position: fixed;
+    top: -10%;
+    right: -5%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(8, 145, 178, 0.15) 0%, transparent 70%);
+    filter: blur(100px);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Navigation */
+.top-nav {
+    max-width: 1200px;
+    margin: 100px auto 40px;
+}
+
+.back-link {
+    color: var(--text-dark-slate);
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.3em;
+    transition: color 0.3s ease;
+}
+
+.back-link:hover {
+    color: var(--cyan);
+}
+
+.back-link .arrow {
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+/* Container */
+.movie-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 60px;
+}
+
+@media (min-width: 1024px) {
+    .movie-container {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+}
+
+/* Sidebar & Poster */
+.movie-sidebar {
+    flex: 1;
+    width: 100%;
+    max-width: 320px;
+    padding-top: 0;
+}
+
+.poster-wrapper {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.movie-poster {
+    width: 100%;
+    border-radius: 40px;
+    display: block;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--glass-border);
+}
+
+.poster-glow {
+    position: absolute;
+    inset: -20px;
+    background: var(--cyan);
+    filter: blur(60px);
+    opacity: 0.1;
+    z-index: -1;
+}
+
+/* Glass Card */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 40px;
+}
+
+.info-card {
+    padding: 30px;
+}
+
+.info-section {
+    margin-bottom: 20px;
+}
+
+.label {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-dark-slate);
+    letter-spacing: 0.2em;
+    margin-bottom: 10px;
+}
+
+.value.highlight {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--cyan);
+    font-size: 20px;
+    font-style: italic;
+    text-transform: uppercase;
+}
+
+.divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.05);
+    margin: 25px 0;
+}
+
+.actors-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.actors-list span {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-slate);
+}
+
+/* Content Area */
+.movie-content {
+    flex: 1.5;
+    padding-top: 0;
+    display: grid;
+    grid-template-rows: auto minmax(150px, max-content) 1fr;
+    gap: 0;
+}
+
+.movie-header {
+    margin-bottom: 40px;
+}
+
+.badges {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.badges span {
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.badge-rating {
+    background: #fbbf24;
+    color: #000;
+}
+
+.badge-age {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+}
+
+.badge-lang {
+    color: var(--text-dark-slate);
+    border: 1px solid var(--glass-border);
+}
+
+.movie-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(40px, 8vw, 70px);
+    line-height: 0.9;
+    font-style: italic;
+    margin-bottom: 25px;
+    letter-spacing: -0.04em;
+}
+
+.movie-title .cyan {
+    color: var(--cyan);
+}
+
+.meta {
+    display: flex;
+    gap: 15px;
+    color: var(--text-dark-slate);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+}
+
+.meta .dot {
+    opacity: 0.3;
+}
+
+/* Description */
+.movie-description {
+    margin-bottom: 38px;
+    display: block;
+    visibility: visible;
+    opacity: 1;
+}
+
+.section-title {
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--cyan);
+    letter-spacing: 0.4em;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.movie-description p {
+    color: var(--text-slate);
+    font-size: 18px;
+    line-height: 1.7;
+    font-weight: 500;
+    display: block;
+    min-height: 20px;
+}
+
+/* Sessions Card & Tabs Logic */
+.sessions-card {
+    padding: 30px 40px 40px 40px;
+    position: relative;
+}
+
+.date-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px;
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+}
+
+.date-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 14px;
+    transition: all 0.3s ease;
+}
+
+.date-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.day-name {
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: var(--text-dark-slate);
+    margin-bottom: 4px;
+}
+
+.day-date {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-slate);
+}
+
+/* Active Tab Styles using CSS Logic */
+#day-1:checked~.date-nav label[for="day-1"],
+#day-2:checked~.date-nav label[for="day-2"],
+#day-3:checked~.date-nav label[for="day-3"] {
+    background: var(--cyan);
+    box-shadow: 0 8px 20px var(--cyan-glow);
+}
+
+#day-1:checked~.date-nav label[for="day-1"] .day-name,
+#day-2:checked~.date-nav label[for="day-2"] .day-name,
+#day-3:checked~.date-nav label[for="day-3"] .day-name {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+#day-1:checked~.date-nav label[for="day-1"] .day-date,
+#day-2:checked~.date-nav label[for="day-2"] .day-date,
+#day-3:checked~.date-nav label[for="day-3"] .day-date {
+    color: var(--bg-dark);
+}
+
+/* Content Switching Logic */
+.sessions-grid {
+    display: none;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#day-1:checked~.content-day-1 {
+    display: grid;
+}
+
+#day-2:checked~.content-day-2 {
+    display: grid;
+}
+
+#day-3:checked~.content-day-3 {
+    display: grid;
+}
+
+/* Session Buttons */
+.session-btn {
+    background: rgba(0, 0, 0, 0.2);
+    border: 2px solid var(--glass-border);
+    border-radius: 25px;
+    padding: 25px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.session-btn:hover {
+    transform: translateY(-5px);
+    border-color: var(--text-dark-slate);
+}
+
+.session-btn.active {
+    border-color: var(--cyan);
+    background: rgba(34, 211, 238, 0.08);
+    box-shadow: 0 0 30px var(--cyan-glow);
+}
+
+.hall-info {
+    display: block;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: var(--text-dark-slate);
+    margin-bottom: 10px;
+}
+
+.session-btn.active .hall-info {
+    color: var(--cyan);
+}
+
+.time {
+    display: block;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: var(--text-white);
+}
+
+.price {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-slate);
+}
+
+/* Buttons */
+.primary-btn {
+    width: 100%;
+    background: var(--cyan);
+    color: var(--bg-dark);
+    border: none;
+    padding: 20px;
+    border-radius: 20px;
+    font-weight: 900;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px var(--cyan-glow);
+}
+
+.primary-btn:hover {
+    background: #fff;
+    transform: scale(1.02);
+}
+
+/* Footer */
+.main-footer {
+    text-align: center;
+    padding: 100px 0 50px;
+    opacity: 0.2;
+}
+
+.main-footer p {
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.8em;
+}
+
+/* No Sessions State */
+.no-sessions-section {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.no-sessions-card {
+    padding: 60px 40px;
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.no-sessions-title {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text-slate);
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: 0.1em;
+}
+
+.no-sessions-text {
+    color: var(--text-dark-slate);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+    font-weight: 600;
+}
+
+.ghost-btn {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-white);
+    display: inline-block;
+    width: auto;
+    padding: 15px 40px;
+    box-shadow: none;
+}
+
+.ghost-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--text-slate);
+    color: var(--text-white);
+    transform: translateY(-2px);
+    box-shadow: none;
+}

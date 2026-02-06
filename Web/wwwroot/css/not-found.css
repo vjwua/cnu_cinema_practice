@@ -1,0 +1,114 @@
+:root {
+    --bg-dark: #020617;
+    --cyan: #22d3ee;
+    --cyan-glow: rgba(34, 211, 238, 0.3);
+    --text-white: #f8fafc;
+    --text-slate: #94a3b8;
+    --glass-bg: rgba(15, 23, 42, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+/* Background Ambience */
+.bg-ambience {
+    position: fixed;
+    top: -10%;
+    right: -5%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(8, 145, 178, 0.15) 0%, transparent 70%);
+    filter: blur(100px);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.not-found-page {
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 20px 60px;
+    text-align: center;
+}
+
+.not-found-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.not-found-code {
+    font-size: 160px;
+    font-weight: 900;
+    color: var(--cyan);
+    line-height: 1;
+    margin-bottom: 20px;
+    opacity: 0.9;
+    text-shadow: 0 0 60px var(--cyan-glow);
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.not-found-title {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text-white);
+    letter-spacing: 0.02em;
+}
+
+.not-found-text {
+    font-size: 18px;
+    color: var(--text-slate);
+    max-width: 500px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+    font-weight: 500;
+}
+
+.not-found-actions {
+    margin-top: 40px;
+}
+
+.primary-btn {
+    display: inline-block;
+    padding: 16px 40px;
+    background: var(--cyan);
+    color: var(--bg-dark);
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px var(--cyan-glow);
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px var(--cyan-glow);
+}
+
+/* Footer */
+.main-footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-slate);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    margin-top: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .not-found-code {
+        font-size: 100px;
+    }
+
+    .not-found-title {
+        font-size: 28px;
+    }
+
+    .not-found-text {
+        font-size: 16px;
+    }
+}
