@@ -1,0 +1,29 @@
+@model IEnumerable<cnu_cinema_practice.ViewModels.Movies.ExternalMovieSearchViewModel>
+
+@if (!Model.Any())
+{
+    <div class="text-muted">Nothing found.</div>
+    return;
+}
+
+<div class="list-group">
+    @foreach (var item in Model)
+    {
+        <button type="button"
+                class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                data-external-id="@item.ExternalId"
+                data-action="external-select">
+            @if (!string.IsNullOrWhiteSpace(item.PosterUrl))
+            {
+                <img src="@item.PosterUrl" alt="Poster" style="width:48px;height:72px;object-fit:cover;border-radius:6px;" />
+            }
+            <div class="flex-grow-1">
+                <div class="fw-semibold">@item.Name</div>
+                @if (item.Year.HasValue)
+                {
+                    <small class="text-muted">@item.Year</small>
+                }
+            </div>
+        </button>
+    }
+</div>

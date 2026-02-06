@@ -15,14 +15,14 @@ public class OrderService(
     public async Task<OrderDTO> CreateOrderAsync(string userId, CreateOrderDTO dto)
     {
         var reservations = await reservationRepository.GetByIdsAsync(dto.SeatReservationIds);
-        
+
         if (reservations.Count != dto.SeatReservationIds.Count)
             throw new Exception("One or more reservations not found.");
 
         if (reservations.Any(r => r.ReservedByUserId != userId))
             throw new Exception("You can only create orders for your own reservations.");
 
-        if (reservations.Any(r => r.Status != ReservationStatus.Reserved || 
+        if (reservations.Any(r => r.Status != ReservationStatus.Reserved ||
                                   (r.ExpiresAt.HasValue && r.ExpiresAt.Value < DateTime.UtcNow)))
         {
             throw new Exception("Some reservations are expired or already sold.");
@@ -30,7 +30,7 @@ public class OrderService(
 
         var sessionId = reservations.First().SessionId;
         if (reservations.Any(r => r.SessionId != sessionId))
-             throw new Exception("All tickets must be for the same session.");
+            throw new Exception("All tickets must be for the same session.");
 
         var order = new Order
         {
@@ -46,20 +46,20 @@ public class OrderService(
             {
                 SeatReservationId = reservation.Id,
                 SeatReservation = reservation,
-                Price = reservation.Price 
+                Price = reservation.Price
             };
             order.Tickets.Add(ticket);
         }
 
         var createdOrder = await orderRepository.CreateAsync(order);
-        
+
         return mapper.Map<OrderDTO>(createdOrder);
     }
 
     public async Task<OrderDTO> GetOrderByIdAsync(int id)
     {
         var order = await orderRepository.GetByIdAsync(id);
-        
+
         if (order == null)
             throw new Exception($"Order with ID {id} not found.");
 
@@ -70,5 +70,17 @@ public class OrderService(
     {
         var orders = await orderRepository.GetByUserIdAsync(userId);
         return mapper.Map<IEnumerable<OrderDTO>>(orders);
+    }
+
+    public async Task<IEnumerable<OrderDTO>> GetUserOrdersFilteredBySessionAsync(string userId, DateTime? from, DateTime? to,
+        OrderStatus? status)
+    {
+        var orders = await orderRepository.GetByUserIdFilteredBySessionAsync(userId, from, to, status);
+        return mapper.Map<IEnumerable<OrderDTO>>(orders);
+    }
+
+    public async Task<int> CountUserOrdersAsync(string userId)
+    {
+        return await orderRepository.CountByUserIdAsync(userId);
     }
 }

@@ -1,0 +1,321 @@
+@page "/movies/{SlugString}"
+@rendermode RenderMode.InteractiveServer
+
+
+@using cnu_cinema_practice.ViewModels
+@using cnu_cinema_practice.Web.Helpers
+@using cnu_cinema_practice.Components.Layout
+@using Core.Interfaces.Services
+@using Core.Entities
+@inject IMovieService MovieService
+@inject ISessionService SessionService
+@inject NavigationManager NavigationManager
+@using Core.Enums
+
+@* Add the CSS specific to this page *@
+<HeadContent>
+    <link rel="stylesheet" href="css/movie-details.css" />
+</HeadContent>
+
+@if (Model == null)
+{
+    <div class="movie-container" style="justify-content: center; align-items: center; min-height: 50vh;">
+        <p>Loading...</p>
+    </div>
+}
+else
+{
+    <PageTitle>@Model.Name - CineMaster</PageTitle>
+
+    <div class="bg-ambience"></div>
+
+    <NavBar />
+
+    <header class="top-nav">
+        <a href="/" class="back-link">
+            <span class="arrow">←</span> НАЗАД ДО АФІШІ
+        </a>
+    </header>
+
+    <main class="movie-container">
+        <!-- Sidebar: Poster & Crew -->
+        <aside class="movie-sidebar">
+            <div class="poster-wrapper">
+                <img src="@Model.PosterUrl" alt="@Model.Name" class="movie-poster">
+                <div class="poster-glow"></div>
+            </div>
+
+            <div class="info-card glass">
+                <div class="info-section">
+                    <span class="label">РЕЖИСЕР</span>
+                    <p class="value highlight">
+                        @(Model.Directors.Any() ? string.Join(", ", Model.Directors) : "Не вказано")
+                    </p>
+                </div>
+                <div class="divider"></div>
+
+                <div class="info-section">
+                    <span class="label">У ГОЛОВНИХ РОЛЯХ</span>
+                    <div class="actors-list">
+                        @if (Model.Actors.Any())
+                        {
+                            @foreach (var actor in Model.Actors)
+                            {
+                                <span>@actor</span>
+                            }
+                        }
+                        else
+                        {
+                            <span style="color: var(--text-slate);">Не вказано</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content: Description & Sessions -->
+        <section class="movie-content">
+            <header class="movie-header">
+                <div class="badges">
+                    <span class="badge-rating">★ @Model.Rating</span>
+                    <span class="badge-age">@Model.AgeLimit</span>
+                    <span class="badge-lang">UA</span>
+                </div>
+                <h1 class="movie-title">
+                    @Model.Name
+                </h1>
+                <div class="meta">
+                    @if (!string.IsNullOrEmpty(Model.Genre))
+                    {
+                        <span>@Model.Genre.ToUpper()</span>
+                        <span class="dot">•</span>
+                    }
+                    <span>@Model.Duration</span>
+                    @if (Model.Directors.Any())
+                    {
+                        <span class="dot">•</span>
+                        <span>РЕЖИСЕР: @string.Join(", ", Model.Directors)</span>
+                    }
+                </div>
+            </header>
+
+            <!-- Movie Description Section -->
+            <div style="margin: 30px 0; padding: 25px; background: rgba(0, 255, 255, 0.05); border-left: 3px solid var(--cyan); border-radius: 8px;">
+                <h3 style="font-size: 12px; font-weight: 900; color: var(--cyan); letter-spacing: 0.3em; margin-bottom: 15px;">ПРО ФІЛЬМ</h3>
+                <p style="color: rgba(255, 255, 255, 0.8); font-size: 16px; line-height: 1.8; margin: 0;">
+                    @(!string.IsNullOrEmpty(Model.Description) ? Model.Description : "Опис фільму тимчасово відсутній.")
+                </p>
+            </div>
+
+            @if (Model.HasNoSessions)
+            {
+                <article class="movie-description">
+                    <h3 class="section-title">ПРО ФІЛЬМ</h3>
+                    <p>
+                        @(!string.IsNullOrEmpty(Model.Description) ? Model.Description : "Опис фільму тимчасово відсутній.")
+                    </p>
+                </article>
+
+                <section class="no-sessions-section">
+                    <div class="no-sessions-card glass">
+                        <h3 class="no-sessions-title">СЕАНСИ ВІДСУТНІ</h3>
+                        <p class="no-sessions-text">
+                            На жаль, показів цього фільму на найближчий час не заплановано.
+                        </p>
+                        <div class="no-sessions-actions">
+                            <a href="/" class="primary-btn ghost-btn">
+                                ПОВЕРНУТИСЬ НА ГОЛОВНУ
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            }
+            else
+            {
+                <article class="movie-description">
+                    <h3 class="section-title">ПРО ФІЛЬМ</h3>
+                    <p>
+                        @(!string.IsNullOrEmpty(Model.Description) ? Model.Description : "Опис фільму тимчасово відсутній.")
+                    </p>
+                </article>
+
+                <!-- Sessions with Custom Tabs -->
+                <div class="sessions-card glass">
+                    <div class="sessions-tabs-container">
+                        <h3 class="section-title">ОБЕРІТЬ СЕАНС</h3>
+
+                        <!-- Date Navigation Buttons -->
+                        <div class="date-nav">
+                            @foreach (var day in Model.WeekSessions.SessionsByDate)
+                            {
+                                var isActive = day.Date.Date == SelectedDate.Date;
+                                <div class="date-item @(isActive ? "active-tab" : "")" @onclick="() => SelectDate(day.Date)"
+                                    style="@(isActive ? "background: var(--cyan); box-shadow: 0 8px 20px var(--cyan-glow);" : "")">
+                                    <span class="day-name" style="@(isActive ? "color: rgba(0, 0, 0, 0.5);" : "")">
+                                        @day.DisplayDate
+                                    </span>
+                                    <span class="day-date" style="@(isActive ? "color: var(--bg-dark);" : "")">
+                                        @day.Date.ToString("dd MMMM", new System.Globalization.CultureInfo("uk-UA")).ToUpper()
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Content for Selected Day -->
+                        <div class="sessions-grid" style="display: grid; animation: fadeIn 0.5s ease;">
+                            @if (SelectedDaySessions != null)
+                            {
+                                @foreach (var session in SelectedDaySessions.Sessions)
+                                {
+                                    /* Use form/link to post to existing BookingController */
+                                    <a href="/Booking/SelectSeats?movieId=@Model.Id&showtimeId=@session.Id" class="session-btn"
+                                        style="text-decoration: none;">
+                                        <span class="hall-info">@session.FormatAndHall</span>
+                                        <span class="time">@session.Time</span>
+                                        <span class="price">@session.Price</span>
+                                    </a>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <p>CINEMASTER PREMIUM EXPERIENCE 2026</p>
+    </footer>
+}
+
+@code {
+    [Parameter]
+    public string SlugString { get; set; } = string.Empty;
+
+    private int Id;
+    private string Slug = string.Empty;
+
+    private MovieDetailsViewModel? Model;
+    private DateTime SelectedDate = DateTime.Today;
+    private DaySessionsViewModel? SelectedDaySessions =>
+    Model?.WeekSessions.SessionsByDate.FirstOrDefault(d => d.Date.Date == SelectedDate.Date);
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Parse SlugString: Expecting "{Id}-{Slug}"
+        var firstHyphenIndex = SlugString.IndexOf('-');
+        if (firstHyphenIndex == -1)
+        {
+             NavigationManager.NavigateTo("/404");
+             return;
+        }
+
+        var idPart = SlugString.Substring(0, firstHyphenIndex);
+        var slugPart = SlugString.Substring(firstHyphenIndex + 1);
+        // Parse ID from SlugString (format: "id-slug")
+        var parts = SlugString.Split('-', 2);
+        if (parts.Length < 1 || !int.TryParse(parts[0], out var movieId))
+        {
+            // Invalid format - redirect to 404
+            NavigationManager.NavigateTo("/notfound");
+            return;
+        }
+
+        // Fetch movie data
+        var movie = await MovieService.GetByIdAsync(movieId);
+        
+        // Check if movie exists
+        if (movie == null)
+        {
+            // Movie not found - redirect to 404
+            NavigationManager.NavigateTo("/notfound");
+            return;
+        }
+
+        // Generate canonical slug
+        var canonicalSlug = SlugHelper.GenerateSlug(movie.Name);
+        var expectedSlugString = $"{movie.Id}-{canonicalSlug}";
+
+        // SEO: Redirect if slug doesn't match (case-insensitive)
+        if (!SlugString.Equals(expectedSlugString, StringComparison.OrdinalIgnoreCase))
+        {
+            NavigationManager.NavigateTo($"/movies/{expectedSlugString}", replace: true);
+            return;
+        }
+
+        Model = new MovieDetailsViewModel
+        {
+            Id = movie.Id,
+            Name = movie.Name,
+            Slug = canonicalSlug,
+            PosterUrl = movie.PosterUrl ?? "",
+            Description = movie.Description ?? "",
+            Genre = movie.Genre.ToString(),
+            Duration = $"{movie.DurationMinutes} ХВ",
+            Rating = movie.ImdbRating.HasValue ? movie.ImdbRating.Value.ToString("0.0") : "N/A",
+            AgeLimit = $"{movie.AgeLimit}+",
+            Directors = movie.Directors.Select(d => d.Name).ToList(),
+            Actors = movie.Actors.Select(a => a.Name).ToList()
+        };
+
+        // Load Sessions
+        var sessions = await SessionService.GetSessionsByMovieIdAsync(Id);
+        var upcomingSessions = sessions.Where(s => s.StartTime > DateTime.Now).ToList();
+
+        if (!upcomingSessions.Any())
+        {
+            Model.HasNoSessions = true;
+        }
+        else
+        {
+            Model.HasNoSessions = false;
+            
+            // Group by Date
+            var grouped = upcomingSessions
+                .GroupBy(s => s.StartTime.Date)
+                .OrderBy(g => g.Key)
+                .Take(7) // Show next 7 days
+                .ToList();
+
+            foreach (var group in grouped)
+            {
+                var dayViewModel = new DaySessionsViewModel
+                {
+                    Date = group.Key,
+                    DisplayDate = GetDisplayDate(group.Key),
+                    Sessions = group.OrderBy(s => s.StartTime).Select(s => new SessionCardViewModel
+                    {
+                        Id = s.Id,
+                        Time = s.StartTime.ToString("HH:mm"),
+                        FormatAndHall = $"{(s.MovieFormat switch { MovieFormat.TwoD => "2D", MovieFormat.ThreeD => "3D", MovieFormat.IMAX => "IMAX", MovieFormat.FourDX => "4DX", _ => s.MovieFormat.ToString() })} • {s.HallName}",
+                        Price = $"{s.BasePrice} ₴",
+                        IsVIP = s.HallName.Contains("VIP", StringComparison.OrdinalIgnoreCase) // Auto-detect VIP from hall name
+                    }).ToList()
+                };
+                Model.WeekSessions.SessionsByDate.Add(dayViewModel);
+            }
+            
+            // Set default selected date to the first available day
+            if (Model.WeekSessions.SessionsByDate.Any())
+            {
+                SelectedDate = Model.WeekSessions.SessionsByDate.First().Date;
+            }
+        }
+    }
+
+    private void SelectDate(DateTime date)
+    {
+        SelectedDate = date;
+    }
+
+    private string GetDisplayDate(DateTime date)
+    {
+        var today = DateTime.Today;
+        if (date == today) return "СЬОГОДНІ";
+        if (date == today.AddDays(1)) return "ЗАВТРА";
+
+        // Return Day Name in Ukrainian
+        return date.ToString("dddd", new System.Globalization.CultureInfo("uk-UA")).ToUpper();
+    }
+}

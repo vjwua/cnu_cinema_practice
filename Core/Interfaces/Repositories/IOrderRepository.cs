@@ -6,7 +6,11 @@ namespace Core.Interfaces.Repositories;
 public interface IOrderRepository
 {
     Task<Order?> GetByIdAsync(int id);
+
     Task<IEnumerable<Order>> GetByUserIdAsync(string userId);
+    Task<IEnumerable<Order>> GetByUserIdFilteredBySessionAsync(string userId, DateTime? from, DateTime? to, OrderStatus? status);
+    Task<int> CountByUserIdAsync(string userId);
+
     Task<Order> CreateAsync(Order order);
     Task UpdateAsync(Order order);
     Task<IEnumerable<Order>> GetExpiredPendingOrdersAsync(DateTime cutoffTime);

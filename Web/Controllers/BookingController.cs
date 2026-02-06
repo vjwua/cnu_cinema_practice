@@ -1,9 +1,10 @@
-﻿using System.Runtime.InteropServices.JavaScript;
+using System.Runtime.InteropServices.JavaScript;
 using AutoMapper;
 using cnu_cinema_practice.ViewModels;
 using Core.DTOs.Seats;
 using Core.Entities;
 using Core.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace cnu_cinema_practice.Controllers
@@ -80,6 +81,7 @@ namespace cnu_cinema_practice.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Checkout(int sessionId, string selectedSeats, string selectedNumeric)
         {
             if (string.IsNullOrEmpty(selectedSeats))
@@ -160,6 +162,7 @@ namespace cnu_cinema_practice.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> ConfirmBooking(CheckoutViewModel model)
         {
             if (!ModelState.IsValid)
@@ -189,6 +192,7 @@ namespace cnu_cinema_practice.Controllers
             }
         }
 
+        [Authorize]
         public IActionResult Confirmation(int bookingId)
         {
             // TODO: Fetch booking details from database

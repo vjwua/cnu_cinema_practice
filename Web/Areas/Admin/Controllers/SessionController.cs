@@ -1,10 +1,12 @@
 using AutoMapper;
 using cnu_cinema_practice.ViewModels.Halls;
 using cnu_cinema_practice.ViewModels.Sessions;
+using Core.Constants;
 using Core.DTOs.Sessions;
 using Core.Enums;
 using Core.Interfaces.Services;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 namespace cnu_cinema_practice.Areas.Admin.Controllers;
 
 [Area("Admin")]
+[Authorize(Roles = RoleNames.Admin)]
 public class SessionController(
     ISessionService sessionService,
     IMovieService movieService,

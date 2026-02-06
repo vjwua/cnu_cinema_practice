@@ -1,0 +1,281 @@
+@using Core.Enums
+@model cnu_cinema_practice.ViewModels.Account.ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/profile.css"/>
+}
+
+@functions {
+
+    private static string StatusBadgeClass(OrderStatus status) => status switch
+    {
+        OrderStatus.Paid => "bg-success",
+        OrderStatus.Pending => "bg-warning text-dark",
+        OrderStatus.Cancelled => "bg-danger",
+        OrderStatus.Refunded => "bg-info text-dark",
+        OrderStatus.Expired => "bg-secondary",
+        _ => "bg-primary"
+    };
+
+    private static string StatusText(OrderStatus status) => status switch
+    {
+        OrderStatus.Created => "Created",
+        OrderStatus.Pending => "Pending",
+        OrderStatus.Paid => "Paid",
+        OrderStatus.Cancelled => "Cancelled",
+        OrderStatus.Refunded => "Refunded",
+        OrderStatus.Expired => "Expired",
+        _ => status.ToString()
+    };
+
+}
+
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="bi bi-person-circle me-2"></i>My Profile
+                    </h2>
+                    <p class="text-muted mb-0">@Model.Email</p>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    @if (Model.IsAdmin)
+                    {
+                        <span class="badge bg-danger fs-6">
+                            <i class="bi bi-shield-lock"></i> Administrator
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary fs-6">
+                            <i class="bi bi-person"></i> User
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom py-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h4 class="mb-0">
+                            <i class="bi bi-clock-history me-2"></i>
+                            Order History
+                        </h4>
+                        <small class="text-muted">
+                            Showing @Model.Orders.Count of @Model.TotalOrdersCount orders
+                        </small>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Filters -->
+                    <div class="bg-light rounded p-3 mb-4">
+                        <form id="order-filters" method="get">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold mb-2">
+                                        <i class="bi bi-calendar-range me-1"></i>From Date
+                                    </label>
+                                    <input type="date" name="from" class="form-control"
+                                           value="@(Model.FilterFrom.HasValue ? Model.FilterFrom.Value.ToString("yyyy-MM-dd") : "")"
+                                           placeholder="Start date"/>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold mb-2">
+                                        <i class="bi bi-calendar-check me-1"></i>To Date
+                                    </label>
+                                    <input type="date" name="to" class="form-control"
+                                           value="@(Model.FilterTo.HasValue ? Model.FilterTo.Value.ToString("yyyy-MM-dd") : "")"
+                                           placeholder="End date"/>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold mb-2">
+                                        <i class="bi bi-funnel me-1"></i>Order Status
+                                    </label>
+                                    <select name="status" class="form-select">
+                                        <option value="">All</option>
+                                        @foreach (var s in Enum.GetValues<OrderStatus>())
+                                        {
+                                            <option value="@s"
+                                                    selected="@(Model.FilterStatus == s)">@StatusText(s)</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <a class="btn btn-outline-secondary w-100"
+                                       asp-controller="Profile"
+                                       asp-action="Index"
+                                       asp-area="">
+                                        <i class="bi bi-x-circle me-1"></i>Clear
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+
+                        <script>
+                            (function () {
+                                const form = document.getElementById('order-filters');
+                                if (!form) return;
+
+                                const inputs = form.querySelectorAll('input, select');
+                                let timer = null;
+
+                                const submitDebounced = () => {
+                                    if (timer) clearTimeout(timer);
+                                    timer = setTimeout(() => form.submit(), 300);
+                                };
+
+                                inputs.forEach((el) => {
+                                    el.addEventListener('change', submitDebounced);
+                                    el.addEventListener('input', submitDebounced);
+                                });
+                            })();
+                        </script>
+                    </div>
+
+                    <!-- Orders List -->
+                    @if (!Model.Orders.Any())
+                    {
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="bi bi-inbox text-muted" style="font-size: 5rem; opacity: 0.3;"></i>
+                            </div>
+
+                            @if (Model.TotalOrdersCount == 0)
+                            {
+                                <h5 class="text-muted mb-3">No Orders Yet</h5>
+                                <p class="text-muted mb-4">Start booking your favorite movies today!</p>
+                                <a asp-controller="Home" asp-action="Index" asp-area="" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-film me-2"></i>Browse Movies
+                                </a>
+                            }
+                            else
+                            {
+                                <h5 class="text-muted mb-3">No Matching Orders</h5>
+                                <p class="text-muted mb-0">Try adjusting your filters</p>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="orders-list">
+                            @foreach (var order in Model.Orders)
+                            {
+                                <a class="text-decoration-none text-reset d-block mb-3"
+                                   asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id">
+                                    <div class="order-card card border hover-shadow transition">
+                                        <div class="card-body p-4">
+                                            <div class="row g-3">
+                                                <!-- Movie Poster -->
+                                                <div class="col-auto">
+                                                    @if (!string.IsNullOrEmpty(order.MoviePosterUrl))
+                                                    {
+                                                        <img src="@order.MoviePosterUrl"
+                                                             alt="@order.MovieName"
+                                                             class="rounded order-poster"
+                                                             style="width: 100px; height: 150px; object-fit: cover;"/>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div
+                                                            class="bg-secondary rounded d-flex align-items-center justify-content-center text-white"
+                                                            style="width: 100px; height: 150px;">
+                                                            <i class="bi bi-film" style="font-size: 2.5rem;"></i>
+                                                        </div>
+                                                    }
+                                                </div>
+
+                                                <!-- Order Content -->
+                                                <div class="col">
+                                                    <!-- Header Row -->
+                                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                                        <div class="flex-grow-1">
+                                                            <h5 class="mb-2 fw-bold">@order.MovieName</h5>
+                                                            <div class="d-flex flex-wrap gap-3 text-muted small">
+                                                                <span>
+                                                                    <i class="bi bi-hash"></i> @order.Id
+                                                                </span>
+                                                                <span>
+                                                                    <i class="bi bi-calendar3"></i> @order.SessionStartTime.ToString("dd MMM yyyy, HH:mm")
+                                                                </span>
+                                                                <span>
+                                                                    <i class="bi bi-door-open"></i> @order.HallName
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="text-end ms-3">
+                                                            @{
+                                                                var effectiveStatus = order is { IsPaid: true, Status: OrderStatus.Pending or OrderStatus.Created }
+                                                                    ? OrderStatus.Paid
+                                                                    : order.Status;
+                                                            }
+                                                            <span class="badge @StatusBadgeClass(effectiveStatus) mb-2">
+                                                                @StatusText(effectiveStatus)
+                                                            </span>
+                                                            <h4 class="mb-0 text-primary">@order.TotalAmount.ToString("C")</h4>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Tickets Section -->
+                                                    <div class="mb-3">
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <i class="bi bi-ticket-perforated me-2"></i>
+                                                            <strong>@order.Tickets.Count Ticket@(order.Tickets.Count != 1 ? "s" : "")</strong>
+                                                        </div>
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            @foreach (var ticket in order.Tickets)
+                                                            {
+                                                                <span class="badge bg-light text-dark border px-3 py-2">
+                                                                    Row @ticket.RowNum, Seat @ticket.SeatNum
+                                                                    <span
+                                                                        class="text-muted ms-1">• @ticket.SeatTypeName</span>
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Footer Row -->
+                                                    <div
+                                                        class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                                        <small class="text-muted">
+                                                            @if (order is { IsPaid: true, PaidAt: not null })
+                                                            {
+                                                                <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                                                <span>Paid on @order.PaidAt.Value.ToString("dd.MM.yyyy HH:mm")</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <i class="bi bi-clock me-1"></i>
+                                                                <span>Created on @order.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                                                            }
+                                                        </small>
+
+                                                        <small class="text-primary">
+                                                            View Details <i class="bi bi-arrow-right"></i>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -3,17 +3,17 @@
 public class MovieDetailViewModel
 {
     public int Id { get; set; }
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public int DurationMinutes { get; set; }
-    public string AgeLimit { get; set; }
-    public List<string> Genres { get; set; }
-    public string Description { get; set; }
+    public string AgeLimit { get; set; } = string.Empty;
+    public List<string> Genres { get; set; } = new();
+    public string Description { get; set; } = string.Empty;
     public DateTime ReleaseDate { get; set; }
-    public string ImdbRating { get; set; }
-    public string PosterUrl { get; set; }
-    public string TrailerUrl { get; set; }
-    public string Director { get; set; }
-    public string Country { get; set; }
+    public string ImdbRating { get; set; } = string.Empty;
+    public string PosterUrl { get; set; } = string.Empty;
+    public string TrailerUrl { get; set; } = string.Empty;
+    public string Director { get; set; } = string.Empty;
+    public string Country { get; set; } = string.Empty;
 
     public string FormattedDuration => $"{DurationMinutes / 60}h {DurationMinutes % 60}m";
 
