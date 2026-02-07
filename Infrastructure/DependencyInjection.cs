@@ -103,6 +103,12 @@ public static class DependencyInjection
         // Hall Validators
         services.AddScoped<IValidator<CreateHallDTO>, CreateHallDTOValidator>();
         services.AddScoped<IValidator<UpdateHallDTO>, UpdateHallDTOValidator>();
+        
+        // Tickets
+        services.Configure<TicketSettings>(configuration.GetSection(TicketSettings.SectionName));
+        services.AddScoped<ITicketService, TicketService>();
+        services.AddScoped<ITicketRepository, TicketRepository>();
+
 
         // External Movie API
         services.Configure<ExternalMovieApiSettings>(configuration.GetSection(ExternalMovieApiSettings.SectionName));
