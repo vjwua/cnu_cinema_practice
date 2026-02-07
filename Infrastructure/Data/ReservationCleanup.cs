@@ -20,7 +20,7 @@ public class ReservationCleanup : IHostedService
         try
         {
             var contextOptions = new DbContextOptionsBuilder<CinemaDbContext>()
-                .UseSqlServer("Server=localhost,1433;Database=CinemaDb;User Id=sa;Password=Password123!;TrustServerCertificate=True;")
+                .UseSqlServer("Server=172.18.0.2,1433;Database=CinemaDb;User Id=sa;Password=Password123!;TrustServerCertificate=True;")
                 .Options;
             var context = new CinemaDbContext(contextOptions);
             await CleanupExpiredAsync(context);
