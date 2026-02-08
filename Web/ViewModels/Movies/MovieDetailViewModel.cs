@@ -8,7 +8,7 @@ public class MovieDetailViewModel
     public string AgeLimit { get; set; } = string.Empty;
     public List<string> Genres { get; set; } = new();
     public string Description { get; set; } = string.Empty;
-    public DateTime ReleaseDate { get; set; }
+    public DateOnly ReleaseDate { get; set; }
     public string ImdbRating { get; set; } = string.Empty;
     public string PosterUrl { get; set; } = string.Empty;
     public string TrailerUrl { get; set; } = string.Empty;

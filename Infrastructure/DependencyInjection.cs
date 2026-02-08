@@ -75,6 +75,7 @@ public static class DependencyInjection
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<ISeatReservationRepository, SeatReservationRepository>();
+        services.AddScoped<IPersonRepository, PersonRepository>();
 
         // Register Services
         services.AddScoped<ISessionService, SessionService>();
@@ -83,6 +84,7 @@ public static class DependencyInjection
         services.AddScoped<ISeatService, SeatService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IPersonService, PersonService>();
 
         // Email Service
         services.Configure<EmailSettings>(configuration.GetSection("Identity:EmailSettings"));

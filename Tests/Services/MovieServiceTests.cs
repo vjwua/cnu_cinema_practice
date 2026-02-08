@@ -12,15 +12,18 @@ namespace Tests.Services;
 public class MovieServiceTests
 {
     private readonly Mock<IMovieRepository> _movieRepoMock;
+
+    private readonly Mock<IPersonRepository> _personRepoMock;
     private readonly Mock<IMapper> _mapperMock;
     private readonly MovieService _service;
 
     public MovieServiceTests()
     {
         _movieRepoMock = new Mock<IMovieRepository>();
+        _personRepoMock = new Mock<IPersonRepository>();
         _mapperMock = new Mock<IMapper>();
         
-        _service = new MovieService(_movieRepoMock.Object, _mapperMock.Object);
+        _service = new MovieService(_movieRepoMock.Object, _mapperMock.Object, _personRepoMock.Object);
     }
 
     private void SetId(Movie entity, int id)
