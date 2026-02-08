@@ -11,11 +11,13 @@ public class MovieService : IMovieService
 {
     private readonly IMovieRepository _movieRepository;
     private readonly IMapper _mapper;
+    private readonly IPersonRepository _personRepository;
     
-    public MovieService(IMovieRepository movieRepository, IMapper mapper)
+    public MovieService(IMovieRepository movieRepository, IMapper mapper, IPersonRepository personRepository)
     {
         _movieRepository = movieRepository;
         _mapper = mapper;
+        _personRepository = personRepository;
     }
 
     public async Task<IEnumerable<MovieListDTO>> GetAllAsync()
@@ -54,6 +56,12 @@ public class MovieService : IMovieService
     {
         var movie = _mapper.Map<Movie>(dto);
         
+        if (dto.DirectorsIds.Any())
+        {
+            var directors = await _personRepository.GetByIdAsync(dto.DirectorsIds);
+            movie.Directors = directors;
+        }
+        
         await _movieRepository.CreateAsync(movie);
         
         return _mapper.Map<MovieDetailDTO>(movie);
@@ -67,6 +75,15 @@ public class MovieService : IMovieService
             throw new KeyNotFoundException($"Movie with id {dto.Id} not found.");
         
         _mapper.Map(dto, movie);
+        
+        movie.Directors.Clear();
+        if (dto.DirectorsIds.Any())
+        {
+            var directors = await _personRepository.GetByIdAsync(dto.DirectorsIds);
+            foreach (var d in directors) movie.Directors.Add(d);
+        }
+
+        
         await _movieRepository.UpdateAsync(movie);
     }
     

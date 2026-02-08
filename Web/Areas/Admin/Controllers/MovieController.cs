@@ -16,7 +16,8 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
         IMovieService movieService,
         IExternalMovieService externalMovieService,
         IMapper mapper,
-        ILogger<MovieController> logger) : Controller
+        ILogger<MovieController> logger,
+        IPersonService personService) : Controller
     {
         private static readonly ConcurrentDictionary<string, Queue<DateTime>> SearchRateLimiter = new();
 
@@ -47,6 +48,13 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
             try
             {
                 var createDto = mapper.Map<CreateMovieDTO>(model);
+                
+                if (!string.IsNullOrWhiteSpace(model.Director))
+                {
+                    var directorId = await personService.GetOrCreatePersonIdByNameAsync(model.Director);
+                    createDto.DirectorsIds = new List<int> { directorId };
+                }
+                
                 await movieService.CreateAsync(createDto);
 
                 TempData["Success"] = $"Movie '{model.Name}' created successfully!";
@@ -81,6 +89,13 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
             try
             {
                 var updateDto = mapper.Map<UpdateMovieDTO>(model);
+                
+                if (!string.IsNullOrWhiteSpace(model.Director))
+                {
+                    var directorId = await personService.GetOrCreatePersonIdByNameAsync(model.Director);
+                    updateDto.DirectorsIds = new List<int> { directorId };
+                }
+                
                 await movieService.UpdateAsync(updateDto);
 
                 TempData["Success"] = $"Movie '{model.Name}' updated successfully!";

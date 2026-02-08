@@ -18,6 +18,7 @@ public class MovieRepository : IMovieRepository
     {
         return await _context.Movies
             .AsNoTracking()
+            .Include(m => m.Directors)
             .OrderByDescending(m => m.ReleaseDate)
             .ToListAsync();
     }

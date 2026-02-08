@@ -16,7 +16,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.ReleaseDate,
                 opt => opt.MapFrom(src => src.ReleaseDate))
             .ForMember(dest => dest.Director,
-                opt => opt.MapFrom(src => "Unknown"))
+                opt => opt.MapFrom(src => src.Director ?? "Unknown"))
             .ForMember(dest => dest.Description,
                 opt => opt.MapFrom(src => string.Empty))
             .ForMember(dest => dest.Genres,
@@ -90,7 +90,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.Country,
                 opt => opt.MapFrom(src => src.Country))
             .ForMember(dest => dest.DirectorsIds,
-                opt => opt.MapFrom(src => new List<int>()))
+                opt => opt.Ignore())
             .ForMember(dest => dest.ActorsIds,
                 opt => opt.MapFrom(src => new List<int>()));
 
@@ -112,7 +112,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.Country,
                 opt => opt.MapFrom(src => src.Country))
             .ForMember(dest => dest.DirectorsIds,
-                opt => opt.MapFrom(src => new List<int>()))
+                opt => opt.Ignore())
             .ForMember(dest => dest.ActorsIds,
                 opt => opt.MapFrom(src => new List<int>()));
 
