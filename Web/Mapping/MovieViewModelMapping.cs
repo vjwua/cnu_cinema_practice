@@ -14,7 +14,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.ImdbRating,
                 opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.ReleaseDate,
-                opt => opt.MapFrom(src => src.ReleaseDate.ToDateTime(TimeOnly.MinValue)))
+                opt => opt.MapFrom(src => src.ReleaseDate))
             .ForMember(dest => dest.Director,
                 opt => opt.MapFrom(src => "Unknown"))
             .ForMember(dest => dest.Description,
@@ -30,7 +30,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.ImdbRating,
                 opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.ReleaseDate,
-                opt => opt.MapFrom(src => src.ReleaseDate.ToDateTime(TimeOnly.MinValue)))
+                opt => opt.MapFrom(src => src.ReleaseDate))
             .ForMember(dest => dest.Director,
                 opt => opt.MapFrom(src => src.Directors.Any() ? src.Directors.First().Name : "Unknown"))
             .ForMember(dest => dest.Description,
@@ -46,7 +46,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.ImdbRating,
                 opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.ReleaseDate,
-                opt => opt.MapFrom(src => src.ReleaseDate.ToDateTime(TimeOnly.MinValue)))
+                opt => opt.MapFrom(src => src.ReleaseDate))
             .ForMember(dest => dest.Director,
                 opt => opt.MapFrom(src => src.Directors.Any() ? src.Directors.First().Name : "Unknown"))
             .ForMember(dest => dest.Description,
@@ -62,7 +62,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.ImdbRating,
                 opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.ReleaseDate,
-                opt => opt.MapFrom(src => src.ReleaseDate.ToDateTime(TimeOnly.MinValue)))
+                opt => opt.MapFrom(src => src.ReleaseDate))
             .ForMember(dest => dest.Director,
                 opt => opt.MapFrom(src => src.Directors.Any() ? src.Directors.First().Name : "Unknown"))
             .ForMember(dest => dest.Description,
@@ -124,9 +124,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.DurationMinutes,
                 opt => opt.MapFrom(src => (int)src.DurationMinutes))
             .ForMember(dest => dest.ReleaseDate,
-                opt => opt.MapFrom(src => src.ReleaseDate.HasValue
-                    ? src.ReleaseDate.Value.ToDateTime(TimeOnly.MinValue)
-                    : (DateTime?)null));
+                opt => opt.MapFrom(src => src.ReleaseDate));
     }
 
     private static MovieGenre ParseGenre(string genresString)
