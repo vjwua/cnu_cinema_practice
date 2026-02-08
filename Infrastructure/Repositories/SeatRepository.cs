@@ -69,7 +69,7 @@ public class SeatRepository : ISeatRepository
             SeatId = seatId,
             Status = ReservationStatus.Reserved,
             ReservedAt = DateTime.Now,
-            ExpiresAt = DateTime.Now + new TimeSpan(0, 5, 0),
+            ExpiresAt = DateTime.Now + new TimeSpan(0, 15, 0),
         });
         await _context.SaveChangesAsync();
         return true;
