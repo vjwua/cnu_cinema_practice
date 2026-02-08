@@ -15,4 +15,8 @@ public class Ticket
     public SeatReservation SeatReservation { get; set; } = null!;
 
     public decimal Price { get; set; }
+    
+    public string? QrCodeBase64 { get; set; }
+    public DateTime? ScannedAt { get; set; }
+    public string? ScannedBy { get; set; }
 }
