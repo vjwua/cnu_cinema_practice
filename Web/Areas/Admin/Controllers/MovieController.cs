@@ -31,7 +31,7 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
         {
             return View(new CreateMovieViewModel
             {
-                ReleaseDate = DateTime.Now
+                ReleaseDate = DateOnly.FromDateTime(DateTime.Today)
             });
         }
 

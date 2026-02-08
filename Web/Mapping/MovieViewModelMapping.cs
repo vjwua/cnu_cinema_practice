@@ -82,7 +82,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.Genre,
                 opt => opt.MapFrom(src => ParseGenre(src.GenresString)))
             .ForMember(dest => dest.ReleaseDate,
-                opt => opt.MapFrom(src => DateOnly.FromDateTime(src.ReleaseDate)))
+                opt => opt.MapFrom(src => src.ReleaseDate))
             .ForMember(dest => dest.ImdbRating,
                 opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.TrailerUrl,
@@ -104,7 +104,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.Genre,
                 opt => opt.MapFrom(src => ParseGenre(src.GenresString)))
             .ForMember(dest => dest.ReleaseDate,
-                opt => opt.MapFrom(src => DateOnly.FromDateTime(src.ReleaseDate)))
+                opt => opt.MapFrom(src => src.ReleaseDate))
             .ForMember(dest => dest.ImdbRating,
                 opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.TrailerUrl,

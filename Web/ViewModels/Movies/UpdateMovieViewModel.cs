@@ -9,7 +9,7 @@
         public int DurationMinutes { get; set; }
         public decimal? ImdbRating { get; set; }
         public byte AgeLimit { get; set; }
-        public DateTime ReleaseDate { get; set; }
+        public DateOnly ReleaseDate { get; set; }
         public string Director { get; set; }
         public string Description { get; set; }
         public string GenresString { get; set; } // Comma-separated

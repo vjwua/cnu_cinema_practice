@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Globalization;
 using Core.DTOs.External;
 using Core.Interfaces.Services;
 using Microsoft.Extensions.Logging;
@@ -227,7 +228,16 @@ public sealed class ExternalMovieService : IExternalMovieService
     {
         if (string.IsNullOrWhiteSpace(date))
             return null;
-        return DateOnly.TryParse(date, out var d) ? d : null;
+        
+        if (DateOnly.TryParseExact(
+                date.Trim(),
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var d))
+            return d;
+        
+        return DateOnly.TryParse(date, CultureInfo.InvariantCulture, DateTimeStyles.None, out d) ? d : null;
     }
 
     private static string? BuildTrailerUrl(TmdbVideos? videos)
