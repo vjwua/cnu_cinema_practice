@@ -173,7 +173,7 @@
                             @foreach (var order in Model.Orders)
                             {
                                 <a class="text-decoration-none text-reset d-block mb-3"
-                                   asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id">
+                                   asp-controller="Order" asp-action="Details" asp-route-id="@order.Id" asp-area="">
                                     <div class="order-card card border hover-shadow transition">
                                         <div class="card-body p-4">
                                             <div class="row g-3">

@@ -35,10 +35,15 @@ public class SeatService : ISeatService
         return _mapper.Map<IEnumerable<SeatDTO>>(availiableSeats);
     }
 
-    public async Task<bool> ReserveSeatAsync(SeatDTO seat, int sessionId)
+    public async Task<bool> ReserveSeatAsync(SeatDTO seat, int sessionId, decimal price, string? userId = null)
     {
-        bool result = await _seatRepository.ReserveSeatAsync(seat.Id, sessionId);
+        bool result = await _seatRepository.ReserveSeatAsync(seat.Id, sessionId, price, userId);
         return result;
+    }
+
+    public async Task<int?> GetReservationIdAsync(int seatId, int sessionId)
+    {
+        return await _seatRepository.GetReservationIdAsync(seatId, sessionId);
     }
 
     public async Task<bool> IsSeatAvailableAsync(SeatDTO seat, int sessionId)

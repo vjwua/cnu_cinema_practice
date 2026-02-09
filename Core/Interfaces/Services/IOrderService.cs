@@ -6,7 +6,8 @@ namespace Core.Interfaces.Services;
 public interface IOrderService
 {
     Task<OrderDTO> CreateOrderAsync(string userId, CreateOrderDTO dto);
-    Task<OrderDTO> GetOrderByIdAsync(int id);
+    Task<OrderDTO> GetByIdAsync(int id);
+    Task UpdateOrderStatusAsync(int orderId, OrderStatus status);
 
     Task<IEnumerable<OrderDTO>> GetUserOrdersAsync(string userId);
 

@@ -87,7 +87,7 @@ public static class DependencyInjection
         services.AddScoped<IPersonService, PersonService>();
 
         // Email Service
-        services.Configure<EmailSettings>(configuration.GetSection("Identity:EmailSettings"));
+        services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
         services.AddScoped<IEmailService, EmailService>();
 
         // Register Validators

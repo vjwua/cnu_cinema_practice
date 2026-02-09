@@ -164,13 +164,13 @@ public class SeatServiceTests
         var seatDto = new SeatDTO { Id = 50, HallId = 1 };
         int sessionId = 1;
 
-        _seatRepoMock.Setup(r => r.ReserveSeatAsync(seatDto.Id, sessionId))
+        _seatRepoMock.Setup(r => r.ReserveSeatAsync(seatDto.Id, sessionId, 10.0m, null))
             .ReturnsAsync(true);
 
-        var result = await _service.ReserveSeatAsync(seatDto, sessionId);
+        var result = await _service.ReserveSeatAsync(seatDto, sessionId, 10.0m);
 
         result.Should().BeTrue();
-        _seatRepoMock.Verify(r => r.ReserveSeatAsync(50, sessionId), Times.Once);
+        _seatRepoMock.Verify(r => r.ReserveSeatAsync(50, sessionId, 10.0m, null), Times.Once);
     }
 
     [Fact]
@@ -179,10 +179,10 @@ public class SeatServiceTests
         var seatDto = new SeatDTO { Id = 50 };
         int sessionId = 1;
 
-        _seatRepoMock.Setup(r => r.ReserveSeatAsync(seatDto.Id, sessionId))
+        _seatRepoMock.Setup(r => r.ReserveSeatAsync(seatDto.Id, sessionId, 10.0m, null))
             .ReturnsAsync(false);
 
-        var result = await _service.ReserveSeatAsync(seatDto, sessionId);
+        var result = await _service.ReserveSeatAsync(seatDto, sessionId, 10.0m);
 
         result.Should().BeFalse();
     }

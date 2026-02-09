@@ -1,8 +1,6 @@
-using System.Runtime.InteropServices.JavaScript;
 using AutoMapper;
 using cnu_cinema_practice.ViewModels;
 using Core.DTOs.Seats;
-using Core.Entities;
 using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +12,7 @@ namespace cnu_cinema_practice.Controllers
         IMovieService movieService,
         ISeatService seatService,
         IHallService halLService,
+        IOrderService orderService,
         IMapper mapper) : Controller
     {
         [HttpGet]
@@ -27,7 +26,7 @@ namespace cnu_cinema_practice.Controllers
                 if (session == null)
                     return NotFound($"Session not found {sessionId}");
                 var movie = await movieService.GetByIdAsync(session.MovieId);
-                
+
                 var viewModel = mapper.Map<BookingViewModel>(session);
 
                 viewModel.AvailableShowtimes = new List<ShowtimeOption>();
@@ -35,12 +34,13 @@ namespace cnu_cinema_practice.Controllers
                 {
                     viewModel.AvailableShowtimes.Add(mapper.Map<ShowtimeOption>(showTime));
                 }
+
                 // Set movie details
                 viewModel.Name = movie.Name;
                 viewModel.PosterUrl = movie.PosterUrl;
 
                 viewModel.HallData = await halLService.GetByIdAsync(viewModel.HallId);
-                
+
                 // Get seats for this session
                 /*var seats = await seatService.GetBySessionIdAsync(sessionId);
                 var seatsList = seats.ToList();*/
@@ -53,7 +53,7 @@ namespace cnu_cinema_practice.Controllers
                     if (seat.RowNum < viewModel.HallData.Rows
                         && seat.SeatNum < viewModel.HallData.Columns)
                     {
-                        layout[seat.RowNum, seat.SeatNum] = (byte) seat.SeatTypeId;
+                        layout[seat.RowNum, seat.SeatNum] = (byte)seat.SeatTypeId;
                     }
                 }
 
@@ -103,52 +103,93 @@ namespace cnu_cinema_practice.Controllers
                 // Verify seats are available
                 var seats = (await seatService.GetBySessionIdAsync(sessionId)).ToList();
                 var availableSeats = (await seatService.GetAvailableSeatsAsync(sessionId)).Select(s => s.Id);
-                
-                var reservations = new List<SeatDTO>();
 
-                foreach (var seat in seatList)
+                var reservations = (from seat in seatList
+                    select seat.Split('-')
+                    into coords
+                    let row = Byte.Parse(coords[0])
+                    let col = Byte.Parse(coords[1])
+                    from s in seats
+                    where s.RowNum == row && s.SeatNum == col
+                    select s).ToList();
+
+                foreach (var reserve in reservations.Where(reserve => availableSeats.Contains(reserve.Id) == false))
                 {
-                    var coords = seat.Split('-');
-                    byte row = Byte.Parse(coords[0]);
-                    byte col = Byte.Parse(coords[1]);
-
-                    foreach (var s in seats)
+                    TempData["Error"] =
+                        $"The following seats are no longer available: {string.Join(", ", reserve)}";
+                    return RedirectToAction("SelectSeats", new
                     {
-                        if (s.RowNum == row && s.SeatNum == col)
-                        {
-                            reservations.Add(s);
-                        }
-                    }
+                        sessionId,
+                        alert = $"The following seats are no longer available: {string.Join(", ", reserve)}",
+                        Area = ""
+                    });
                 }
+
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                var seatTypes = await seatService.GetSeatTypesAsync();
+                decimal totalPrice = 0;
 
                 foreach (var reserve in reservations)
                 {
-                    if (availableSeats.Contains(reserve.Id) == false)
+                    var seatType = seatTypes.FirstOrDefault(st => st.Id == reserve.SeatTypeId);
+                    var addedPrice = seatType?.AddedPrice ?? 0;
+                    var seatPrice = session.BasePrice + addedPrice;
+                    totalPrice += seatPrice;
+
+                    if (await seatService.ReserveSeatAsync(reserve, sessionId, seatPrice, userId)) continue;
+                    TempData["Error"] = $"The following seats are no longer available: {string.Join(", ", reserve)}";
+                    return RedirectToAction("SelectSeats", new
                     {
-                        TempData["Error"] = $"The following seats are no longer available: {string.Join(", ", reserve)}";
-                        return RedirectToAction("SelectSeats", new { sessionId,
-                            alert = $"The following seats are no longer available: {string.Join(", ", reserve)}", Area = "" });
+                        sessionId,
+                        alert = $"The following seats are no longer available: {string.Join(", ", reserve)}", Area = ""
+                    });
+                }
+
+                var reservationIds = new List<int>();
+                foreach (var seat in reservations)
+                {
+                    var reservationId = await seatService.GetReservationIdAsync(seat.Id, sessionId);
+                    if (reservationId.HasValue)
+                    {
+                        reservationIds.Add(reservationId.Value);
                     }
                 }
+
+                var viewModel = new CheckoutViewModel
+                {
+                    Id = session.Id,
+                    BasePrice = session.BasePrice,
+                    Total = totalPrice,
+                    ShowDateTime = session.StartTime,
+                    Hall = session.HallName,
+                    Name = session.MovieTitle,
+                    PosterUrl = movie.PosterUrl,
+                    SelectedSeats = seatList,
+                    ReservationIds = reservationIds,
+                    SeatDetails = []
+                };
 
                 foreach (var reserve in reservations)
                 {
-                    if ((await seatService.ReserveSeatAsync(reserve, sessionId)) == false)
+                    var seatType = seatTypes.FirstOrDefault(st => st.Id == reserve.SeatTypeId);
+                    var addedPrice = seatType?.AddedPrice ?? 0;
+                    var seatPrice = session.BasePrice + addedPrice;
+
+                    var rowLetter = GetRowLetter(reserve.RowNum);
+                    var seatNumber = $"{rowLetter}{reserve.SeatNum}";
+
+                    viewModel.SeatDetails.Add(new SeatCheckoutItem
                     {
-                        TempData["Error"] = $"The following seats are no longer available: {string.Join(", ", reserve)}";
-                        return RedirectToAction("SelectSeats", new { sessionId, 
-                            alert = $"The following seats are no longer available: {string.Join(", ", reserve)}", Area = "" });
-                    }
+                        SeatNumber = seatNumber,
+                        Type = seatType?.Name ?? "Standard",
+                        Price = seatPrice
+                    });
                 }
-                return RedirectToAction("SelectSeats", new { sessionId, Area = "" });
-
-                // Map to CheckoutViewModel
-                var viewModel = mapper.Map<CheckoutViewModel>(session);
-
-                // Set movie details
-                viewModel.Name = movie.Name;
-                viewModel.PosterUrl = movie.PosterUrl;
-                viewModel.SelectedSeats = seatList;
 
                 return View(viewModel);
             }
@@ -172,18 +213,22 @@ namespace cnu_cinema_practice.Controllers
 
             try
             {
-                // TODO: Create booking in database
-                // This would involve:
-                // 1. Creating a Booking entity
-                // 2. Reserving the selected seats
-                // 3. Processing payment
-                // 4. Sending confirmation email
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return RedirectToAction("Login", "Account");
+                }
 
-                // For now, generate a mock booking ID
-                var bookingId = new Random().Next(10000, 99999);
+                var seatReservationIds = model.ReservationIds;
 
-                TempData["Success"] = "Booking confirmed! Check your email for tickets.";
-                return RedirectToAction("Confirmation", new { bookingId });
+                var createOrderDto = new Core.DTOs.Orders.CreateOrderDTO
+                {
+                    SeatReservationIds = seatReservationIds
+                };
+
+                var order = await orderService.CreateOrderAsync(userId, createOrderDto);
+
+                return RedirectToAction("Index", "Payment", new { area = "", orderId = order.Id });
             }
             catch (HttpRequestException ex)
             {
@@ -204,19 +249,15 @@ namespace cnu_cinema_practice.Controllers
 
         private async Task<List<string>> GetOccupiedSeatsAsync(int sessionId, List<SeatDTO> seats)
         {
-            // Get all seats and check which are not available
             var occupiedSeats = new List<string>();
 
             foreach (var seat in seats)
             {
                 var isAvailable = await seatService.IsSeatAvailableAsync(seat, sessionId);
-                if (!isAvailable)
-                {
-                    // Convert seat position to seat identifier (e.g., "A5")
-                    var rowLetter = GetRowLetter(seat.RowNum);
-                    var seatIdentifier = $"{rowLetter}{seat.SeatNum}";
-                    occupiedSeats.Add(seatIdentifier);
-                }
+                if (isAvailable) continue;
+                var rowLetter = GetRowLetter(seat.RowNum);
+                var seatIdentifier = $"{rowLetter}{seat.SeatNum}";
+                occupiedSeats.Add(seatIdentifier);
             }
 
             return occupiedSeats;
@@ -224,7 +265,6 @@ namespace cnu_cinema_practice.Controllers
 
         private static string GetRowLetter(byte rowNum)
         {
-            // Convert row number to letter (1 = A, 2 = B, etc.)
             return ((char)('A' + rowNum - 1)).ToString();
         }
 

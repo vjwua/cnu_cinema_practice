@@ -215,7 +215,7 @@ public class OrderServiceTests
     }
 
     [Fact]
-    public async Task GetOrderByIdAsync_ShouldReturnOrder_WhenExists()
+    public async Task GetByIdAsync_ShouldReturnOrder_WhenExists()
     {
         var orderId = 1;
         var order = new Order { Id = orderId };
@@ -223,21 +223,20 @@ public class OrderServiceTests
         _orderRepoMock.Setup(r => r.GetByIdAsync(orderId)).ReturnsAsync(order);
         _mapperMock.Setup(m => m.Map<OrderDTO>(order)).Returns(new OrderDTO { Id = orderId });
 
-        var result = await _service.GetOrderByIdAsync(orderId);
+        var result = await _service.GetByIdAsync(orderId);
 
         result.Should().NotBeNull();
         result.Id.Should().Be(orderId);
     }
 
     [Fact]
-    public async Task GetOrderByIdAsync_ShouldThrow_WhenNotFound()
+    public async Task GetByIdAsync_ShouldReturnNull_WhenNotFound()
     {
         _orderRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Order?)null);
 
-        var act = async () => await _service.GetOrderByIdAsync(999);
+        var result = await _service.GetByIdAsync(999);
 
-        await act.Should().ThrowAsync<KeyNotFoundException>()
-            .WithMessage("Order with ID 999 not found.");
+        result.Should().BeNull();
     }
 
     [Fact]

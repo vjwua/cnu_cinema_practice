@@ -56,14 +56,22 @@ public class OrderService(
         return mapper.Map<OrderDTO>(createdOrder);
     }
 
-    public async Task<OrderDTO> GetOrderByIdAsync(int id)
+
+
+    public async Task<OrderDTO> GetByIdAsync(int id)
     {
         var order = await orderRepository.GetByIdAsync(id);
-
-        if (order == null)
-            throw new KeyNotFoundException($"Order with ID {id} not found.");
-
         return mapper.Map<OrderDTO>(order);
+    }
+
+    public async Task UpdateOrderStatusAsync(int orderId, OrderStatus status)
+    {
+        var order = await orderRepository.GetByIdAsync(orderId);
+        if (order == null)
+            throw new KeyNotFoundException($"Order with ID {orderId} not found.");
+
+        order.Status = status;
+        await orderRepository.UpdateAsync(order);
     }
 
     public async Task<IEnumerable<OrderDTO>> GetUserOrdersAsync(string userId)
