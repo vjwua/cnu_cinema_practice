@@ -155,6 +155,12 @@
                 <div class="d-flex justify-content-between mb-2">
                     <span>Ticket Price:</span>
                     <span>$@Model.BasePrice.ToString("F2")</span>
+                    <br>
+                    <span>Premium Ticket Price:</span>
+                    <span>$@((Model.BasePrice + Model.addedPrice[2]).ToString("F2"))</span>
+                    <br>
+                    <span>VIP Ticket Price:</span>
+                    <span>$@((Model.BasePrice + Model.addedPrice[3]).ToString("F2"))</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span>Quantity:</span>
