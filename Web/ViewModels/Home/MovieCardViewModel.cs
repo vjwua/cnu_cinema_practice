@@ -12,6 +12,8 @@ public class MovieCardViewModel
     public string Genre { get; set; } = string.Empty;
     public int DurationMinutes { get; set; }
     public string Description { get; set; } = string.Empty;
+    public string? TrailerUrl { get; set; }
+    public decimal MinPrice { get; set; }
 
     public List<MovieSessionTimeViewModel> Sessions { get; set; } = new();
 

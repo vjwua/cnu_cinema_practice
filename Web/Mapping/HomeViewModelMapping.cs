@@ -17,6 +17,8 @@ public class HomeViewModelMapping : Profile
                 opt => opt.MapFrom(src => src.ImdbRating != null ? src.ImdbRating.Value.ToString("F1") : null))
             .ForMember(dest => dest.Genre, opt => opt.MapFrom(src => src.Genre.ToString()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description ?? string.Empty))
+            .ForMember(dest => dest.TrailerUrl, opt => opt.MapFrom(src => src.TrailerUrl))
+            .ForMember(dest => dest.MinPrice, opt => opt.MapFrom(src => src.Sessions.Any() ? src.Sessions.Min(s => s.BasePrice) : 0))
             .ForMember(dest => dest.Sessions, opt => opt.MapFrom(src => src.Sessions.Take(2)));
 
         CreateMap<MovieListDTO, UpcomingMovieViewModel>()

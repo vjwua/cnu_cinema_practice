@@ -12,5 +12,6 @@ public class MovieWithSessionsDTO
     public MovieGenre Genre { get; set; }
     public ushort DurationMinutes { get; set; }
     public string? Description { get; set; }
+    public string? TrailerUrl { get; set; }
     public IEnumerable<SessionListDTO> Sessions { get; set; } = new List<SessionListDTO>();
 }

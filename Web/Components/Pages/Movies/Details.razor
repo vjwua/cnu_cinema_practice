@@ -168,7 +168,7 @@ else
                                 @foreach (var session in SelectedDaySessions.Sessions)
                                 {
                                     /* Use form/link to post to existing BookingController */
-                                    <a href="/Booking/SelectSeats?movieId=@Model.Id&showtimeId=@session.Id" class="session-btn"
+                                    <a href="/Booking/SelectSeats?sessionId=@session.Id" class="session-btn"
                                         style="text-decoration: none;">
                                         <span class="hall-info">@session.FormatAndHall</span>
                                         <span class="time">@session.Time</span>
@@ -203,17 +203,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        // Parse SlugString: Expecting "{Id}-{Slug}"
-        var firstHyphenIndex = SlugString.IndexOf('-');
-        if (firstHyphenIndex == -1)
-        {
-             NavigationManager.NavigateTo("/404");
-             return;
-        }
-
-        var idPart = SlugString.Substring(0, firstHyphenIndex);
-        var slugPart = SlugString.Substring(firstHyphenIndex + 1);
-        // Parse ID from SlugString (format: "id-slug")
+        // Parse ID from SlugString (format: "{Id}-{Slug}")
         var parts = SlugString.Split('-', 2);
         if (parts.Length < 1 || !int.TryParse(parts[0], out var movieId))
         {
@@ -244,6 +234,7 @@ else
             return;
         }
 
+        Id = movie.Id;
         Model = new MovieDetailsViewModel
         {
             Id = movie.Id,
