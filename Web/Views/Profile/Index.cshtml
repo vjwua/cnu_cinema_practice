@@ -216,13 +216,8 @@
                                                         </div>
 
                                                         <div class="text-end ms-3">
-                                                            @{
-                                                                var effectiveStatus = order is { IsPaid: true, Status: OrderStatus.Pending or OrderStatus.Created }
-                                                                    ? OrderStatus.Paid
-                                                                    : order.Status;
-                                                            }
-                                                            <span class="badge @StatusBadgeClass(effectiveStatus) mb-2">
-                                                                @StatusText(effectiveStatus)
+                                                            <span class="badge @StatusBadgeClass(order.Status) mb-2">
+                                                                @StatusText(order.Status)
                                                             </span>
                                                             <h4 class="mb-0 text-primary">@order.TotalAmount.ToString("C")</h4>
                                                         </div>
