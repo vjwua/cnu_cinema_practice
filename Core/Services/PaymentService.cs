@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Core.DTOs.Payments;
 using Core.Entities;
 using Core.Enums;
@@ -33,6 +33,9 @@ public class PaymentService(
 
         await unitOfWork.BeginTransactionAsync();
 
+        // Simulate payment processing delay
+        await Task.Delay(2000);
+
         try
         {
             var payment = new Payment
@@ -40,7 +43,8 @@ public class PaymentService(
                 OrderId = order.Id,
                 Amount = dto.Amount,
                 PaymentMethod = dto.PaymentMethod,
-                PaidAt = DateTime.UtcNow
+                PaidAt = DateTime.UtcNow,
+                TransactionId = Guid.NewGuid().ToString()
             };
 
             await paymentRepository.CreateAsync(payment);

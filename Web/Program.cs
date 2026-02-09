@@ -16,6 +16,8 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
+        PdfSharpCore.Fonts.GlobalFontSettings.FontResolver = new SystemFontResolver();
+
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

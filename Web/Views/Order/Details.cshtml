@@ -1,0 +1,114 @@
+@using Core.DTOs.Orders 
+@{ 
+    ViewData["Title"] = "Order Details"; 
+} 
+ 
+<div class="container py-4"> 
+    @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage)) 
+    { 
+        <div class="alert alert-success alert-dismissible fade show" role="alert"> 
+            <i class="bi bi-check-circle-fill me-2"></i> 
+            @ViewBag.SuccessMessage 
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button> 
+        </div> 
+    } 
+ 
+    @if (ViewBag.Order != null) 
+    { 
+        var order = ViewBag.Order as OrderDTO; 
+         
+        <div class="row justify-content-center"> 
+            <div class="col-lg-8"> 
+                <div class="card shadow-sm"> 
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center"> 
+                        <h5 class="mb-0"> 
+                            <i class="bi bi-receipt-cutoff"></i> Order Details 
+                        </h5> 
+                        <span class="badge bg-light text-success">Order #@order.Id</span> 
+                    </div> 
+                    <div class="card-body"> 
+                        <!-- Order Status --> 
+                        <div class="row mb-4"> 
+                            <div class="col-md-6"> 
+                                <div class="d-flex align-items-center"> 
+                                    <div class="me-3"> 
+                                        <div class="rounded-circle bg-success d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;"> 
+                                            <i class="bi bi-check-lg text-white fs-4"></i> 
+                                        </div> 
+                                    </div> 
+                                    <div> 
+                                        <h6 class="mb-1">Payment Status</h6> 
+                                        <span class="badge bg-success">Paid</span> 
+                                    </div> 
+                                </div> 
+                            </div> 
+                            <div class="col-md-6"> 
+                                <div class="text-md-end"> 
+                                    <h6 class="text-muted mb-1">Total Amount</h6> 
+                                    <h3 class="text-success mb-0">$@order.TotalPrice.ToString("F2")</h3> 
+                                </div> 
+                            </div> 
+                        </div> 
+ 
+                        <!-- Order Info --> 
+                        <div class="row mb-4"> 
+                            <div class="col-md-6"> 
+                                <h6 class="text-muted mb-2">Order Information</h6> 
+                                <p class="mb-1"><strong>Order ID:</strong> #@order.Id</p> 
+                                <p class="mb-1"><strong>Date:</strong> @order.CreatedAt.ToString("MMMM dd, yyyy HH:mm")</p> 
+                                <p class="mb-0"><strong>Status:</strong> <span class="badge bg-info">@order.Status</span></p> 
+                            </div> 
+                            <div class="col-md-6"> 
+                                <h6 class="text-muted mb-2">Customer Information</h6> 
+                                <!-- User ID is not very useful for customer, maybe show email if available or just hide -->
+                                <p class="mb-1"><strong>Movie:</strong> @order.MovieTitle</p> 
+                                <p class="mb-0"><strong>Tickets:</strong> @order.Tickets.Count</p> 
+                            </div> 
+                        </div> 
+ 
+                        <!-- Action Buttons --> 
+                        <div class="d-flex gap-2 justify-content-center"> 
+                            <a href="@Url.Action("TicketsPdf", "Order", new { orderId = order.Id })"  
+                               class="btn btn-outline-primary"> 
+                                <i class="bi bi-file-pdf me-2"></i>Download Tickets (PDF) 
+                            </a> 
+                            <a href="@Url.Action("Index", "Home")"  
+                               class="btn btn-outline-secondary"> 
+                                <i class="bi bi-house me-2"></i>Back to Home 
+                            </a> 
+                        </div> 
+                    </div> 
+                </div> 
+ 
+                <!-- Success Message Card --> 
+                <div class="card mt-4 border-success"> 
+                    <div class="card-body text-center"> 
+                        <i class="bi bi-check-circle-fill text-success fs-1 mb-3"></i> 
+                        <h5 class="text-success">Payment Successful!</h5> 
+                        <p class="text-muted mb-0"> 
+                            Your tickets have been sent to your email address.  
+                            You can also download them as PDF using the button above. 
+                        </p> 
+                    </div> 
+                </div> 
+            </div> 
+        </div> 
+    } 
+    else 
+    { 
+        <div class="row justify-content-center"> 
+            <div class="col-md-6"> 
+                <div class="alert alert-warning text-center"> 
+                    <i class="bi bi-exclamation-triangle-fill fs-1 mb-3"></i> 
+                    <h5>Order Not Found</h5> 
+                    <p class="mb-0">The order you're looking for doesn't exist or you don't have permission to view it.</p> 
+                </div> 
+                <div class="text-center"> 
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-primary"> 
+                        <i class="bi bi-house me-2"></i>Back to Home 
+                    </a> 
+                </div> 
+            </div> 
+        </div> 
+    } 
+</div>

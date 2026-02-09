@@ -58,7 +58,7 @@ public class SeatRepository : ISeatRepository
         return availiableSeats.AsEnumerable();
     } // перегляд доступних місць
     
-    public async Task<bool> ReserveSeatAsync(int seatId, int sessionId)
+    public async Task<bool> ReserveSeatAsync(int seatId, int sessionId, decimal price, string? userId = null)
     {
         var isAvailiable = await IsSeatAvailableAsync(seatId, sessionId);
         if (isAvailiable == false) return false;
@@ -70,10 +70,20 @@ public class SeatRepository : ISeatRepository
             Status = ReservationStatus.Reserved,
             ReservedAt = DateTime.Now,
             ExpiresAt = DateTime.Now + new TimeSpan(0, 15, 0),
+            ReservedByUserId = userId,
+            Price = price
         });
         await _context.SaveChangesAsync();
         return true;
     } // для покупки
+    
+    public async Task<int?> GetReservationIdAsync(int seatId, int sessionId)
+    {
+        var reservation = await _seatReservations
+            .Where(sr => sr.SeatId == seatId && sr.SessionId == sessionId && sr.Status == ReservationStatus.Reserved)
+            .FirstOrDefaultAsync();
+        return reservation?.Id;
+    } // для отримання ID резервування
     
     public async Task<bool> IsSeatAvailableAsync(int seatId, int sessionId)
     {

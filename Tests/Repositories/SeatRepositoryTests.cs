@@ -250,7 +250,7 @@ public class SeatRepositoryTests
             var hallRepo = new HallRepository(context);
             var seatRepo = new SeatRepository(context, hallRepo);
 
-            bool result = await seatRepo.ReserveSeatAsync(seatId, sessionId);
+            bool result = await seatRepo.ReserveSeatAsync(seatId, sessionId, 10.0m);
             await context.SaveChangesAsync();
 
             result.Should().BeTrue(); 
@@ -298,7 +298,7 @@ public class SeatRepositoryTests
             var hallRepo = new HallRepository(context);
             var seatRepo = new SeatRepository(context, hallRepo);
 
-            bool result = await seatRepo.ReserveSeatAsync(seatId, sessionId);
+            bool result = await seatRepo.ReserveSeatAsync(seatId, sessionId, 10.0m);
 
             result.Should().BeFalse();
         }

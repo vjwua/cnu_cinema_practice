@@ -63,15 +63,8 @@ public class BookingViewModelMapping : Profile
             .ForMember(dest => dest.PosterUrl,
                 opt => opt.Ignore()) // Set from movie
             .ForMember(dest => dest.SelectedSeats,
-                opt => opt.Ignore()) // Set from user selection
-            .ForMember(dest => dest.ServiceFee,
-                opt => opt.MapFrom(src => 2.50m)) // Fixed service fee
-            .ForMember(dest => dest.FullName,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.Email,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.Phone,
-                opt => opt.Ignore());
+                opt => opt.Ignore()); // Set from user selection
+
 
         // Seats to SeatLayout mapping
         CreateMap<IEnumerable<SeatDTO>, SeatLayout>()

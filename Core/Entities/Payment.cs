@@ -12,4 +12,5 @@ public class Payment
     public decimal Amount { get; set; }
     public PaymentMethod PaymentMethod { get; set; }
     public DateTime PaidAt { get; set; }
+    public string TransactionId { get; set; } = string.Empty;
 }
