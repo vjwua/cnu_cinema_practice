@@ -49,6 +49,8 @@ public class MovieViewModelMapping : Profile
                 opt => opt.MapFrom(src => src.ReleaseDate))
             .ForMember(dest => dest.Director,
                 opt => opt.MapFrom(src => src.Directors.Any() ? src.Directors.First().Name : "Unknown"))
+            .ForMember(dest => dest.Actors,
+                opt => opt.MapFrom(src => src.Actors.Any() ? string.Join(", ", src.Actors.Select(a => a.Name)) : string.Empty))
             .ForMember(dest => dest.Description,
                 opt => opt.MapFrom(src => src.Description ?? string.Empty))
             .ForMember(dest => dest.GenresString,
@@ -65,6 +67,8 @@ public class MovieViewModelMapping : Profile
                 opt => opt.MapFrom(src => src.ReleaseDate))
             .ForMember(dest => dest.Director,
                 opt => opt.MapFrom(src => src.Directors.Any() ? src.Directors.First().Name : "Unknown"))
+            .ForMember(dest => dest.Actors,
+                opt => opt.MapFrom(src => src.Actors.Any() ? string.Join(", ", src.Actors.Select(a => a.Name)) : string.Empty))
             .ForMember(dest => dest.Description,
                 opt => opt.MapFrom(src => src.Description ?? string.Empty))
             .ForMember(dest => dest.GenresString,

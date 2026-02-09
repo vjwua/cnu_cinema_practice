@@ -163,6 +163,7 @@
             setVal("TrailerUrl", movie.trailerUrl);
             setVal("Country", movie.country);
             setVal("Director", movie.director);
+            setVal("Actors", movie.actors);
             setVal("ImdbRating", movie.imdbRating);
             setVal("ReleaseDate", movie.releaseDate);
 

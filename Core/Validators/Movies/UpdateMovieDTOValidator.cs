@@ -20,7 +20,7 @@ public class UpdateMovieDTOValidator : AbstractValidator<UpdateMovieDTO>
             .InclusiveBetween((ushort)1, (ushort)350).WithMessage("The duration must be between 1 and 350.");
             
         RuleFor(x => x.AgeLimit)
-            .GreaterThan((byte)0).WithMessage("The age limit must be greater than 0");
+            .GreaterThanOrEqualTo((byte)0).WithMessage("The age limit must be greater than or equal to 0");
         
         RuleFor(x => x.Genre)
             .IsInEnum().WithMessage("Incorrect genre specified");

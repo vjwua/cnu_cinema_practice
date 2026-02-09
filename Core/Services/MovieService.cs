@@ -56,6 +56,12 @@ public class MovieService : IMovieService
     {
         var movie = _mapper.Map<Movie>(dto);
         
+        if (dto.ActorsIds.Any())
+        {
+            var actors = await _personRepository.GetByIdAsync(dto.ActorsIds);
+            movie.Actors = actors;
+        }
+        
         if (dto.DirectorsIds.Any())
         {
             var directors = await _personRepository.GetByIdAsync(dto.DirectorsIds);
@@ -75,6 +81,13 @@ public class MovieService : IMovieService
             throw new KeyNotFoundException($"Movie with id {dto.Id} not found.");
         
         _mapper.Map(dto, movie);
+        
+        movie.Actors.Clear();
+        if (dto.ActorsIds.Any())
+        {
+            var actors = await _personRepository.GetByIdAsync(dto.ActorsIds);
+            foreach (var a in actors) movie.Actors.Add(a);
+        }
         
         movie.Directors.Clear();
         if (dto.DirectorsIds.Any())

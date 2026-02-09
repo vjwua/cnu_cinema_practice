@@ -11,6 +11,7 @@
         public byte AgeLimit { get; set; }
         public DateOnly ReleaseDate { get; set; }
         public string Director { get; set; }
+        public string Actors { get; set; } // Comma-separated
         public string Description { get; set; }
         public string GenresString { get; set; } // Comma-separated
         public string Country { get; set; }

@@ -43,9 +43,16 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label asp-for="AgeLimit" class="form-label">Age Limit</label>
-                            <input asp-for="AgeLimit" class="form-control" type="number" min="0" />
+                            <label asp-for="AgeLimit" class="form-label">Age Rating *</label>
+                            <select asp-for="AgeLimit" class="form-select" required>
+                                <option value="">Select Rating</option>
+                                <option value="0">ЗА</option>
+                                <option value="12">12+</option>
+                                <option value="16">16+</option>
+                                <option value="18">18+</option>
+                            </select>
                         </div>
+
                     </div>
 
                     <div class="mb-3">
@@ -73,6 +80,11 @@
                             <label asp-for="Director" class="form-label">Director</label>
                             <input asp-for="Director" class="form-control" />
                         </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Actors" class="form-label">Actors (comma separated)</label>
+                        <input asp-for="Actors" class="form-control" placeholder="e.g., Keanu Reeves, Carrie-Anne Moss" />
                     </div>
 
                     <div class="row">
