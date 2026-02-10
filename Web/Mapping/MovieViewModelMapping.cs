@@ -32,7 +32,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.ReleaseDate,
                 opt => opt.MapFrom(src => src.ReleaseDate))
             .ForMember(dest => dest.Director,
-                opt => opt.MapFrom(src => src.Directors.Any() ? src.Directors.First().Name : "Unknown"))
+                opt => opt.MapFrom(src => src.Directors.Any() ? string.Join(", ", src.Directors.Select(a => a.Name)) : "Unknown"))
             .ForMember(dest => dest.Description,
                 opt => opt.MapFrom(src => src.Description ?? string.Empty))
             .ForMember(dest => dest.Genres,
@@ -47,8 +47,8 @@ public class MovieViewModelMapping : Profile
                 opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.ReleaseDate,
                 opt => opt.MapFrom(src => src.ReleaseDate))
-            .ForMember(dest => dest.Director,
-                opt => opt.MapFrom(src => src.Directors.Any() ? src.Directors.First().Name : "Unknown"))
+            .ForMember(dest => dest.Directors,
+                opt => opt.MapFrom(src => src.Directors.Any() ? string.Join(", ", src.Directors.Select(a => a.Name)) : "Unknown"))
             .ForMember(dest => dest.Actors,
                 opt => opt.MapFrom(src => src.Actors.Any() ? string.Join(", ", src.Actors.Select(a => a.Name)) : string.Empty))
             .ForMember(dest => dest.Description,
@@ -65,8 +65,8 @@ public class MovieViewModelMapping : Profile
                 opt => opt.MapFrom(src => src.ImdbRating))
             .ForMember(dest => dest.ReleaseDate,
                 opt => opt.MapFrom(src => src.ReleaseDate))
-            .ForMember(dest => dest.Director,
-                opt => opt.MapFrom(src => src.Directors.Any() ? src.Directors.First().Name : "Unknown"))
+            .ForMember(dest => dest.Directors,
+                opt => opt.MapFrom(src => src.Directors.Any() ? string.Join(", ", src.Directors.Select(a => a.Name)) : "Unknown"))
             .ForMember(dest => dest.Actors,
                 opt => opt.MapFrom(src => src.Actors.Any() ? string.Join(", ", src.Actors.Select(a => a.Name)) : string.Empty))
             .ForMember(dest => dest.Description,
