@@ -321,10 +321,11 @@
     {
         return status switch
         {
-            OrderStatus.Pending => "bg-warning",
             OrderStatus.Paid => "bg-success",
-            OrderStatus.Expired => "bg-secondary",
+            OrderStatus.Pending => "bg-warning text-dark",
             OrderStatus.Cancelled => "bg-danger",
+            OrderStatus.Refunded => "bg-info text-dark",
+            OrderStatus.Expired => "bg-secondary",
             _ => "bg-secondary"
         };
     }
@@ -333,10 +334,11 @@
     {
         return status switch
         {
-            OrderStatus.Pending => "bg-light text-dark",
             OrderStatus.Paid => "bg-light text-success",
-            OrderStatus.Expired => "bg-light text-secondary",
+            OrderStatus.Pending => "bg-light text-dark",
             OrderStatus.Cancelled => "bg-light text-danger",
+            OrderStatus.Refunded => "bg-light text-info",
+            OrderStatus.Expired => "bg-light text-secondary",
             _ => "bg-light text-secondary"
         };
     }

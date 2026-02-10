@@ -1,8 +1,9 @@
 using AutoMapper;
+using cnu_cinema_practice.ViewModels.Account;
+using Core.Enums;
 using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using cnu_cinema_practice.ViewModels.Account;
 
 namespace cnu_cinema_practice.Controllers;
 
@@ -18,24 +19,36 @@ public class OrderController(
         try
         {
             var orderDto = await orderService.GetByIdAsync(id);
-            
+
             if (orderDto == null)
             {
                 TempData["Error"] = "Order not found.";
                 return RedirectToAction("Index", "Home");
             }
-            
+
+            var parsedOrderStatus = Enum.Parse<OrderStatus>(orderDto.Status);
+
+            if (parsedOrderStatus == OrderStatus.Pending)
+            {
+                var expirationTime = orderDto.CreatedAt.AddMinutes(15);
+                if (DateTime.UtcNow > expirationTime)
+                {
+                    await orderService.ExpireOrderAsync(id);
+                    orderDto = await orderService.GetByIdAsync(id);
+                }
+            }
+
             var viewModel = mapper.Map<OrderViewModel>(orderDto);
-            
+
             if (viewModel.Status == Core.Enums.OrderStatus.Pending)
             {
                 var expirationTime = viewModel.CreatedAt.AddMinutes(15);
                 ViewBag.ExpiresAt = expirationTime;
-                ViewBag.IsExpired = DateTime.Now > expirationTime;
+                ViewBag.IsExpired = DateTime.UtcNow > expirationTime; // Use UtcNow
             }
-            
+
             ViewBag.SuccessMessage = TempData["Success"];
-            
+
             return View(viewModel);
         }
         catch (HttpRequestException ex)
