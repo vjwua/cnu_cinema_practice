@@ -3,6 +3,7 @@ using AutoMapper;
 using cnu_cinema_practice.ViewModels;
 using Core.DTOs.Sessions;
 using Core.DTOs.Seats;
+using Core.DTOs.Movies;
 
 namespace cnu_cinema_practice.Mapping;
 
@@ -49,9 +50,10 @@ public class BookingViewModelMapping : Profile
                 opt => opt.Ignore()); // Set separately
 
         // Session to CheckoutViewModel (partial)
+        // Session to CheckoutViewModel
         CreateMap<SessionDetailDTO, CheckoutViewModel>()
             .ForMember(dest => dest.Id,
-                opt => opt.MapFrom(src => src.MovieId))
+                opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.ShowDateTime,
                 opt => opt.MapFrom(src => src.StartTime))
             .ForMember(dest => dest.Hall,
@@ -59,11 +61,23 @@ public class BookingViewModelMapping : Profile
             .ForMember(dest => dest.BasePrice,
                 opt => opt.MapFrom(src => src.BasePrice))
             .ForMember(dest => dest.Name,
-                opt => opt.Ignore()) // Set from movie
+                opt => opt.MapFrom(src => src.MovieTitle))
             .ForMember(dest => dest.PosterUrl,
                 opt => opt.Ignore()) // Set from movie
             .ForMember(dest => dest.SelectedSeats,
-                opt => opt.Ignore()); // Set from user selection
+                opt => opt.Ignore()) // Set from user selection
+            .ForMember(dest => dest.ReservationIds,
+                opt => opt.Ignore())
+            .ForMember(dest => dest.SeatDetails,
+                opt => opt.Ignore())
+            .ForMember(dest => dest.Total,
+                opt => opt.Ignore());
+
+        CreateMap<MovieDetailDTO, CheckoutViewModel>()
+            .ForMember(dest => dest.Name,
+                opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.PosterUrl,
+                opt => opt.MapFrom(src => src.PosterUrl));
 
 
         // Seats to SeatLayout mapping

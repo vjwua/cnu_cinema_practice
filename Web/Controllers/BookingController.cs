@@ -4,6 +4,9 @@ using Core.DTOs.Seats;
 using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Core.DTOs.Sessions;
+using Core.DTOs.Movies;
+using Core.Entities;
 
 namespace cnu_cinema_practice.Controllers
 {
@@ -21,7 +24,6 @@ namespace cnu_cinema_practice.Controllers
             try
             {
                 if (sessionId == 0) sessionId = 1075;
-                // Get session details
                 var session = await sessionService.GetSessionByIdAsync(sessionId);
                 if (session == null)
                     return NotFound($"Session not found {sessionId}");
@@ -35,7 +37,6 @@ namespace cnu_cinema_practice.Controllers
                     viewModel.AvailableShowtimes.Add(mapper.Map<ShowtimeOption>(showTime));
                 }
 
-                // Set movie details
                 viewModel.Name = movie.Name;
                 viewModel.PosterUrl = movie.PosterUrl;
 
@@ -81,8 +82,29 @@ namespace cnu_cinema_practice.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
         public async Task<IActionResult> Checkout(int sessionId, string selectedSeats, string selectedNumeric)
+        {
+            if (User.Identity is { IsAuthenticated: false })
+            {
+                return RedirectToAction("Login", "Account", new
+                {
+                    area = "",
+                    returnUrl = Url.Action("ResumeCheckout", "Booking",
+                        new { area = "", sessionId, selectedSeats, selectedNumeric })
+                });
+            }
+
+            return await ProcessCheckout(sessionId, selectedSeats, selectedNumeric);
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> ResumeCheckout(int sessionId, string selectedSeats, string selectedNumeric)
+        {
+            return await ProcessCheckout(sessionId, selectedSeats, selectedNumeric);
+        }
+
+        private async Task<IActionResult> ProcessCheckout(int sessionId, string selectedSeats, string selectedNumeric)
         {
             if (string.IsNullOrEmpty(selectedSeats))
             {
@@ -92,37 +114,21 @@ namespace cnu_cinema_practice.Controllers
 
             try
             {
-                var seatList = selectedNumeric.Split(',').ToList();
-
                 var session = await sessionService.GetSessionByIdWithSeatsAsync(sessionId);
-                if (session == null)
-                    return NotFound("Session not found");
-
+                if (session == null) return NotFound("Session not found");
                 var movie = await movieService.GetByIdAsync(session.MovieId);
 
-                // Verify seats are available
-                var seats = (await seatService.GetBySessionIdAsync(sessionId)).ToList();
-                var availableSeats = (await seatService.GetAvailableSeatsAsync(sessionId)).Select(s => s.Id);
+                var seatList = selectedNumeric.Split(',').ToList();
+                var allSeats = (await seatService.GetBySessionIdAsync(sessionId)).ToList();
+                var desiredSeats = ParseSelectedSeats(seatList, allSeats);
 
-                var reservations = (from seat in seatList
-                    select seat.Split('-')
-                    into coords
-                    let row = Byte.Parse(coords[0])
-                    let col = Byte.Parse(coords[1])
-                    from s in seats
-                    where s.RowNum == row && s.SeatNum == col
-                    select s).ToList();
-
-                foreach (var reserve in reservations.Where(reserve => availableSeats.Contains(reserve.Id) == false))
+                var unavailableSeats = await ValidateSeatAvailabilityAsync(desiredSeats, sessionId);
+                if (unavailableSeats.Count != 0)
                 {
-                    TempData["Error"] =
-                        $"The following seats are no longer available: {string.Join(", ", reserve)}";
-                    return RedirectToAction("SelectSeats", new
-                    {
-                        sessionId,
-                        alert = $"The following seats are no longer available: {string.Join(", ", reserve)}",
-                        Area = ""
-                    });
+                    var errorMsg =
+                        $"The following seats are no longer available: {string.Join(", ", unavailableSeats.Select(s => $"Row {GetRowLetter(s.RowNum)} Seat {s.SeatNum + 1}"))}";
+                    TempData["Error"] = errorMsg;
+                    return RedirectToAction("SelectSeats", new { sessionId, alert = errorMsg, Area = "" });
                 }
 
                 var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -132,72 +138,26 @@ namespace cnu_cinema_practice.Controllers
                 }
 
                 var seatTypes = await seatService.GetSeatTypesAsync();
-                decimal totalPrice = 0;
+                var reservationResult =
+                    await ReserveSeatsAsync(desiredSeats, sessionId, userId, session.BasePrice, seatTypes);
 
-                foreach (var reserve in reservations)
+                if (reservationResult.FailedResrvation != null)
                 {
-                    var seatType = seatTypes.FirstOrDefault(st => st.Id == reserve.SeatTypeId);
-                    var addedPrice = seatType?.AddedPrice ?? 0;
-                    var seatPrice = session.BasePrice + addedPrice;
-                    totalPrice += seatPrice;
-
-                    if (await seatService.ReserveSeatAsync(reserve, sessionId, seatPrice, userId)) continue;
-                    TempData["Error"] = $"The following seats are no longer available: {string.Join(", ", reserve)}";
-                    return RedirectToAction("SelectSeats", new
-                    {
-                        sessionId,
-                        alert = $"The following seats are no longer available: {string.Join(", ", reserve)}", Area = ""
-                    });
+                    var errorMsg =
+                        $"The following seats are no longer available: Row {GetRowLetter(reservationResult.FailedResrvation.RowNum)} Seat {reservationResult.FailedResrvation.SeatNum + 1}";
+                    TempData["Error"] = errorMsg;
+                    return RedirectToAction("SelectSeats", new { sessionId, alert = errorMsg, Area = "" });
                 }
 
-                var reservationIds = new List<int>();
-                foreach (var seat in reservations)
-                {
-                    var reservationId = await seatService.GetReservationIdAsync(seat.Id, sessionId);
-                    if (reservationId.HasValue)
-                    {
-                        reservationIds.Add(reservationId.Value);
-                    }
-                }
+                var viewModel = BuildCheckoutViewModel(session, movie, seatList, reservationResult.ReservationIds,
+                    reservationResult.TotalPrice, desiredSeats, seatTypes);
 
-                var viewModel = new CheckoutViewModel
-                {
-                    Id = session.Id,
-                    BasePrice = session.BasePrice,
-                    Total = totalPrice,
-                    ShowDateTime = session.StartTime,
-                    Hall = session.HallName,
-                    Name = session.MovieTitle,
-                    PosterUrl = movie.PosterUrl,
-                    SelectedSeats = seatList,
-                    ReservationIds = reservationIds,
-                    SeatDetails = []
-                };
-
-                foreach (var reserve in reservations)
-                {
-                    var seatType = seatTypes.FirstOrDefault(st => st.Id == reserve.SeatTypeId);
-                    var addedPrice = seatType?.AddedPrice ?? 0;
-                    var seatPrice = session.BasePrice + addedPrice;
-
-                    var rowLetter = GetRowLetter(reserve.RowNum);
-                    var seatNumber = $"{rowLetter}{reserve.SeatNum}";
-
-                    viewModel.SeatDetails.Add(new SeatCheckoutItem
-                    {
-                        SeatNumber = seatNumber,
-                        Type = seatType?.Name ?? "Standard",
-                        Price = seatPrice
-                    });
-                }
-
-                return View(viewModel);
+                return View("Checkout", viewModel);
             }
             catch (HttpRequestException ex)
             {
                 TempData["Error"] = $"Error processing checkout: {ex.Message}";
                 return NotFound(ex.Message);
-                return RedirectToAction("SelectSeats", new { sessionId });
             }
         }
 
@@ -247,25 +207,98 @@ namespace cnu_cinema_practice.Controllers
 
         #region Private Helper Methods
 
-        private async Task<List<string>> GetOccupiedSeatsAsync(int sessionId, List<SeatDTO> seats)
+        private static string GetRowLetter(byte rowNum)
         {
-            var occupiedSeats = new List<string>();
+            return ((char)('A' + rowNum)).ToString();
+        }
+
+        private static List<SeatDTO> ParseSelectedSeats(List<string> seatList, List<SeatDTO> allSeats)
+        {
+            var desiredSeats = new List<SeatDTO>();
+            foreach (var coords in seatList.Select(seatStr => seatStr.Split('-')).Where(coords => coords.Length == 2))
+            {
+                if (!byte.TryParse(coords[0], out var row)) continue;
+                if (!byte.TryParse(coords[1], out var col)) continue;
+
+                var seat = allSeats.FirstOrDefault(s => s.RowNum == row && s.SeatNum == col);
+                if (seat != null)
+                {
+                    desiredSeats.Add(seat);
+                }
+            }
+
+            return desiredSeats;
+        }
+
+        private async Task<List<SeatDTO>> ValidateSeatAvailabilityAsync(List<SeatDTO> desiredSeats, int sessionId)
+        {
+            var availableSeats = (await seatService.GetAvailableSeatsAsync(sessionId)).Select(s => s.Id).ToHashSet();
+
+            return desiredSeats.Where(seat => !availableSeats.Contains(seat.Id)).ToList();
+        }
+
+        private async Task<(List<int> ReservationIds, decimal TotalPrice, SeatDTO? FailedResrvation)> ReserveSeatsAsync(
+            List<SeatDTO> seats, int sessionId, string userId, decimal basePrice, IEnumerable<SeatType> seatTypes)
+        {
+            var reservationIds = new List<int>();
+            decimal totalPrice = 0;
+            var typesList = seatTypes.ToList();
 
             foreach (var seat in seats)
             {
-                var isAvailable = await seatService.IsSeatAvailableAsync(seat, sessionId);
-                if (isAvailable) continue;
-                var rowLetter = GetRowLetter(seat.RowNum);
-                var seatIdentifier = $"{rowLetter}{seat.SeatNum}";
-                occupiedSeats.Add(seatIdentifier);
+                var seatType = typesList.FirstOrDefault(st => st.Id == seat.SeatTypeId);
+                var addedPrice = seatType?.AddedPrice ?? 0;
+                var seatPrice = basePrice + addedPrice;
+
+                var success = await seatService.ReserveSeatAsync(seat, sessionId, seatPrice, userId);
+                if (!success)
+                {
+                    return ([], 0, seat);
+                }
+
+                totalPrice += seatPrice;
+
+                var reservationId = await seatService.GetReservationIdAsync(seat.Id, sessionId);
+                if (reservationId.HasValue)
+                {
+                    reservationIds.Add(reservationId.Value);
+                }
             }
 
-            return occupiedSeats;
+            return (reservationIds, totalPrice, null);
         }
 
-        private static string GetRowLetter(byte rowNum)
+        private CheckoutViewModel BuildCheckoutViewModel(
+            SessionDetailDTO session, MovieDetailDTO movie, List<string> originalIds, List<int> reservationIds, decimal totalPrice,
+            List<SeatDTO> seats, IEnumerable<SeatType> seatTypes)
         {
-            return ((char)('A' + rowNum - 1)).ToString();
+            var viewModel = mapper.Map<CheckoutViewModel>(session);
+            mapper.Map(movie, viewModel);
+
+            viewModel.SelectedSeats = originalIds;
+            viewModel.ReservationIds = reservationIds;
+            viewModel.Total = totalPrice;
+            viewModel.SeatDetails = new List<SeatCheckoutItem>();
+
+            var typesList = seatTypes.ToList();
+            foreach (var seat in seats)
+            {
+                var seatType = typesList.FirstOrDefault(st => st.Id == seat.SeatTypeId);
+                var addedPrice = seatType?.AddedPrice ?? 0;
+                var seatPrice = session.BasePrice + addedPrice;
+
+                var rowLetter = GetRowLetter(seat.RowNum);
+                var seatNumber = $"{rowLetter}{seat.SeatNum + 1}";
+
+                viewModel.SeatDetails.Add(new SeatCheckoutItem
+                {
+                    SeatNumber = seatNumber,
+                    Type = seatType?.Name ?? "Standard",
+                    Price = seatPrice
+                });
+            }
+
+            return viewModel;
         }
 
         #endregion
