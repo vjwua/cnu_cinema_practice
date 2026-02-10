@@ -2,6 +2,7 @@
 using Core.DTOs.External;
 using Core.DTOs.Movies;
 using Core.Enums;
+using Core.Helpers;
 using cnu_cinema_practice.ViewModels.Movies;
 
 namespace cnu_cinema_practice.Mapping;
@@ -20,7 +21,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.Description,
                 opt => opt.MapFrom(src => string.Empty))
             .ForMember(dest => dest.Genres,
-                opt => opt.MapFrom(src => new List<string> { src.Genre.ToString() }))
+                opt => opt.MapFrom(src => GenreFlagsToList(src.Genre)))
             .ForMember(dest => dest.TrailerUrl,
                 opt => opt.MapFrom(src => src.TrailerUrl ?? string.Empty))
             .ForMember(dest => dest.AgeLimit,
@@ -36,7 +37,7 @@ public class MovieViewModelMapping : Profile
             .ForMember(dest => dest.Description,
                 opt => opt.MapFrom(src => src.Description ?? string.Empty))
             .ForMember(dest => dest.Genres,
-                opt => opt.MapFrom(src => new List<string> { src.Genre.ToString() }))
+                opt => opt.MapFrom(src => GenreFlagsToList(src.Genre)))
             .ForMember(dest => dest.TrailerUrl,
                 opt => opt.MapFrom(src => src.TrailerUrl ?? string.Empty))
             .ForMember(dest => dest.AgeLimit,
@@ -131,14 +132,19 @@ public class MovieViewModelMapping : Profile
                 opt => opt.MapFrom(src => src.ReleaseDate));
     }
 
-    private static MovieGenre ParseGenre(string genresString)
+    private static MovieGenre ParseGenre(string? genresString)
     {
-        if (string.IsNullOrEmpty(genresString))
-            return MovieGenre.Action;
+        var parsed = GenreMapper.ToGenreFlags(genresString);
+        
+        return parsed == MovieGenre.None ? MovieGenre.None : parsed;
+    }
 
-        var firstGenre = genresString.Split(',').FirstOrDefault()?.Trim();
-        return Enum.TryParse<MovieGenre>(firstGenre, out var genre)
-            ? genre
-            : MovieGenre.Action;
+    private static List<string> GenreFlagsToList(MovieGenre genre)
+    {
+        if (genre == MovieGenre.None) return new List<string>();
+        return genre
+            .ToString()
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
     }
 }
