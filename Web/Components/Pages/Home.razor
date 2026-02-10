@@ -1,68 +1,153 @@
+@using cnu_cinema_practice.Web.Helpers
 @using cnu_cinema_practice.ViewModels.Home
+@inject NavigationManager NavigationManager
 @layout HomeLayout
 @rendermode RenderMode.InteractiveServer
 
 <PageTitle>Головна - CNU Cinema</PageTitle>
 
-<!-- === HERO SECTION === -->
-@if (Model.FeaturedMovie != null)
-{
-    <section class="hero-section">
-        <div class="hero-backdrop">
-            @if (!string.IsNullOrEmpty(Model.FeaturedMovie.PosterUrl))
+<section class="hero-section">
+    <div id="heroCarousel" class="carousel slide carousel-fade h-100 w-100" data-bs-ride="carousel"
+        data-bs-interval="8000">
+        <div class="carousel-indicators" style="z-index: 5;">
+            @for (int i = 0; i < Model.Movies.Count; i++)
             {
-                <img src="@Model.FeaturedMovie.PosterUrl" alt="@Model.FeaturedMovie.Name"/>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")"
+                    aria-current="@(i == 0 ? "true" : "false")" aria-label="Slide @(i + 1)"></button>
             }
-            <div class="hero-gradient"></div>
         </div>
 
-        <div class="container-custom relative" style="z-index: 2;">
-            <div class="flex-row">
-                <div class="w-full md-flex flex-column items-start animate-fade-in" style="max-width: 800px;">
-                    <div class="mb-4 flex-row items-center gap-3">
-                        <span class="hero-badge">Рекомендовано</span>
-                        <span class="text-white font-black tracking-widest text-uppercase" style="font-size: 0.8rem;">IMAX
-                            Laser 4K</span>
-                    </div>
-
-                    <h1 class="hero-title">
-                        @{
-                            var titleParts = Model.FeaturedMovie.Name.Split(':');
-                            if (titleParts.Length > 1)
+        <div class="carousel-inner h-100">
+            @for (int i = 0; i < Model.Movies.Count; i++)
+            {
+                var movie = Model.Movies[i];
+                <div class="carousel-item h-100 @(i == 0 ? "active" : "")">
+                    <div class="hero-backdrop">
+                        @if (!string.IsNullOrEmpty(movie.TrailerUrl))
+                        {
+                            @if (VideoHelper.IsYouTube(movie.TrailerUrl))
                             {
-                                <span class="block text-white">@titleParts[0]</span>
-                                <span class="block text-cyan">@titleParts[1]</span>
+                                <div class="video-background-container">
+                                    <iframe src="@VideoHelper.GetYouTubeEmbedUrl(movie.TrailerUrl)" frameborder="0"
+                                        allow="autoplay; encrypted-media" allowfullscreen class="video-background-iframe"></iframe>
+                                </div>
                             }
                             else
                             {
-                                <span class="block text-white">@Model.FeaturedMovie.Name</span>
+                                <video class="w-100 h-100 object-cover" autoplay muted loop playsinline>
+                                    <source src="@movie.TrailerUrl" type="video/mp4">
+                                </video>
                             }
                         }
-                    </h1>
+                        else if (!string.IsNullOrEmpty(movie.PosterUrl))
+                        {
+                            <img src="@movie.PosterUrl" alt="@movie.Name" class="w-100 h-100 object-cover" />
+                        }
+                        <div class="hero-gradient"></div>
+                    </div>
 
-                    <p class="text-break mb-5 dynamic-description"
-                       style="color: #cbd5e1; max-width: 600px; font-size: 1.1rem; line-height: 1.6;">
-                        @Model.FeaturedMovie.Description
-                    </p>
+                    <div class="container-custom relative h-100 d-flex align-items-center" style="z-index: 2;">
+                        <div class="flex-row w-100">
+                            <div class="w-full md-flex flex-column items-start animate-fade-in" style="max-width: 800px;">
+                                <div class="mb-4 flex-row items-center gap-3">
+                                    <span class="hero-badge">Зараз у кіно</span>
+                                    <span class="text-white font-black tracking-widest text-uppercase"
+                                        style="font-size: 0.8rem;">
+                                        IMAX Laser 4K
+                                    </span>
+                                </div>
 
-                    <div class="flex-row gap-3" style="flex-wrap: wrap;">
-                        <button @onclick="ScrollToGrid" class="btn-primary-custom text-decoration-none">
-                            Квитки від 160 ₴
-                        </button>
-                        <button class="btn-glass-hero">
-                            Трейлер
-                        </button>
+                                <h1 class="hero-title">
+                                    @{
+                                        var titleParts = movie.Name.Split(':');
+                                        if (titleParts.Length > 1)
+                                        {
+                                            <span class="block text-white">@titleParts[0]</span>
+                                            <span class="block text-cyan">@titleParts[1]</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="block text-white">@movie.Name</span>
+                                        }
+                                    }
+                                </h1>
+
+                                <p class="text-break mb-5 dynamic-description"
+                                    style="color: #cbd5e1; max-width: 600px; font-size: 1.1rem; line-height: 1.6;">
+                                    @movie.Description
+                                </p>
+
+                                <div class="flex-row gap-3" style="flex-wrap: wrap;">
+                                    <button @onclick="() => NavigateToMovie(movie.Id, movie.Name)"
+                                        class="btn-primary-custom text-decoration-none">
+                                        Квитки від @((int)movie.MinPrice) ₴
+                                    </button>
+                                    <button @onclick="() => OpenTrailer(movie.TrailerUrl)" class="btn-glass-hero">
+                                        Трейлер
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Controls -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev"
+            style="z-index: 6;">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next"
+            style="z-index: 6;">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator-wrapper" style="z-index: 10;">
+        <span class="uppercase-nav mb-2" style="font-size: 0.6rem;">ПРОГОРНІТЬ</span>
+        <div class="scroll-line"></div>
+    </div>
+</section>
+
+<!-- Trailer Modal -->
+@if (showTrailerModal && !string.IsNullOrEmpty(currentTrailerUrl))
+{
+    <div class="modal fade show d-block" style="background: rgba(0,0,0,0.9); z-index: 9999;" tabindex="-1"
+    @onclick="CloseTrailer">
+        <div class="modal-dialog modal-dialog-centered modal-xl" @onclick:stopPropagation>
+            <div class="modal-content border-0 bg-transparent text-white">
+                <div class="modal-header border-0 p-0 justify-content-end">
+                    <button type="button" class="btn-close btn-close-white mb-2" @onclick="CloseTrailer"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="ratio ratio-16x9 shadow-lg"
+                        style="border-radius: 1rem; overflow: hidden; background: #000;">
+                        @if (VideoHelper.IsYouTube(currentTrailerUrl))
+                        {
+                            <iframe src="@VideoHelper.GetYouTubeEmbedUrl(currentTrailerUrl, false)"
+                                allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen class="border-0"></iframe>
+                        }
+                        else
+                        {
+                            <video controls autoplay class="w-100 h-100">
+                                <source src="@currentTrailerUrl" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        }
+                    </div>
+                    <div class="mt-3 text-center opacity-75">
+                        <p class="small italic">Трейлер на паузі? Натисніть кнопку "Play" або перевірте інтернет-з'єднання.
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Scroll Indicator -->
-        <div class="scroll-indicator-wrapper">
-            <span class="uppercase-nav mb-2" style="font-size: 0.6rem;">ПРОГОРНІТЬ</span>
-            <div class="scroll-line"></div>
-        </div>
-    </section>
+    </div>
 }
 
 <!-- === MOVIES GRID SECTION === -->
@@ -79,20 +164,19 @@
         </div>
 
         <div class="genre-filter-container">
-            <button class="genre-btn @(ActiveGenre == "all" ? "active" : "")"
-                    @onclick="@(() => SelectGenre("all"))">Всі
+            <button class="genre-btn @(ActiveGenre == "all" ? "active" : "")" @onclick="@(() => SelectGenre("all"))">Всі
             </button>
             <button class="genre-btn @(ActiveGenre == "Action" ? "active" : "")"
-                    @onclick="@(() => SelectGenre("Action"))">Екшн
+            @onclick="@(() => SelectGenre("Action"))">Екшн
             </button>
             <button class="genre-btn @(ActiveGenre == "Drama" ? "active" : "")"
-                    @onclick="@(() => SelectGenre("Drama"))">Драма
+            @onclick="@(() => SelectGenre("Drama"))">Драма
             </button>
             <button class="genre-btn @(ActiveGenre == "Comedy" ? "active" : "")"
-                    @onclick="@(() => SelectGenre("Comedy"))">Комедія
+            @onclick="@(() => SelectGenre("Comedy"))">Комедія
             </button>
             <button class="genre-btn @(ActiveGenre == "SciFi" ? "active" : "")"
-                    @onclick="@(() => SelectGenre("SciFi"))">Фантастика
+            @onclick="@(() => SelectGenre("SciFi"))">Фантастика
             </button>
         </div>
     </div>
@@ -102,7 +186,7 @@
         @foreach (var movie in FilteredMovies)
         {
             <div class="movie-card-wrapper">
-                <div class="movie-card">
+                <div class="movie-card" @onclick="() => NavigateToMovie(movie.Id, movie.Name)">
                     <!-- Rating -->
                     <div class="rating-badge">
                         <span style="color: #fbbf24;">★</span>
@@ -112,7 +196,7 @@
                     <!-- Image -->
                     @if (!string.IsNullOrEmpty(movie.PosterUrl))
                     {
-                        <img src="@movie.PosterUrl" alt="@movie.Name" class="movie-poster"/>
+                        <img src="@movie.PosterUrl" alt="@movie.Name" class="movie-poster" />
                     }
                     else
                     {
@@ -134,18 +218,18 @@
                             <p class="movie-description">
                                 @movie.Description
                             </p>
+                        </div>
 
-                            <!-- Sessions Preview -->
-                            <div class="mt-2 pt-2 w-full flex-column items-center">
-                                <div class="uppercase-nav text-cyan mb-2" style="font-size: 0.6rem;">Сеанси</div>
-                                <div class="flex-row gap-2 justify-center" style="flex-wrap: wrap;">
-                                    @foreach (var session in movie.Sessions.Take(2))
-                                    {
-                                        <div class="glass font-black text-white session-btn">
-                                            @session.FormattedTime
-                                        </div>
-                                    }
-                                </div>
+                        <!-- Sessions Preview (Stabilized) -->
+                        <div class="movie-sessions-preview mt-2 w-full flex-column items-center">
+                            <div class="uppercase-nav text-cyan mb-2" style="font-size: 0.6rem;">Сеанси</div>
+                            <div class="flex-row gap-2 justify-center" style="flex-wrap: wrap;">
+                                @foreach (var session in movie.Sessions.Take(2))
+                                {
+                                    <div class="glass font-black text-white session-btn">
+                                        @session.FormattedTime
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>
@@ -172,11 +256,11 @@
         <div class="coming-soon-grid">
             @foreach (var movie in Model.UpcomingMovies.Take(4))
             {
-                <div class="coming-soon-card">
+                <div class="coming-soon-card" @onclick="() => NavigateToMovie(movie.Id, movie.Name)">
                     <div class="coming-soon-card-inner">
                         @if (!string.IsNullOrEmpty(movie.PosterUrl))
                         {
-                            <img src="@movie.PosterUrl" alt="@movie.Name" class="coming-soon-poster"/>
+                            <img src="@movie.PosterUrl" alt="@movie.Name" class="coming-soon-poster" />
                         }
                         <div class="coming-soon-overlay">
                             <div class="flex-column gap-3">
@@ -198,13 +282,15 @@
     [Parameter] public HomeIndexViewModel Model { get; set; } = new();
 
     private string ActiveGenre { get; set; } = "all";
+    private bool showTrailerModal = false;
+    private string? currentTrailerUrl;
 
     private IEnumerable<MovieCardViewModel> FilteredMovies =>
-        Model?.Movies == null
-            ? Enumerable.Empty<MovieCardViewModel>()
-            : ActiveGenre == "all"
-                ? Model.Movies
-                : Model.Movies.Where(m => m.Genre.Contains(ActiveGenre, StringComparison.OrdinalIgnoreCase));
+    Model?.Movies == null
+    ? Enumerable.Empty<MovieCardViewModel>()
+    : ActiveGenre == "all"
+    ? Model.Movies
+    : Model.Movies.Where(m => m.Genre.Contains(ActiveGenre, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -212,6 +298,21 @@
         {
             await JS.InvokeVoidAsync("HomeHelpers.initHeroScroll");
         }
+    }
+
+    private void OpenTrailer(string? url)
+    {
+        if (string.IsNullOrEmpty(url)) return;
+        currentTrailerUrl = url;
+        showTrailerModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseTrailer()
+    {
+        showTrailerModal = false;
+        currentTrailerUrl = null;
+        StateHasChanged();
     }
 
     private async Task ScrollToGrid()
@@ -222,6 +323,12 @@
     private void SelectGenre(string genre)
     {
         ActiveGenre = genre;
+    }
+
+    private void NavigateToMovie(int id, string name)
+    {
+        var slug = SlugHelper.GenerateSlug(name);
+        NavigationManager.NavigateTo($"/movies/{id}-{slug}");
     }
 
 }
