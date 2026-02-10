@@ -76,21 +76,13 @@
                                     int r = i;
                                     int c = j - 1;
                                     
-                                    <form asp-action="ToggleSeat"
-                                          asp-route-r="@r"
-                                          asp-route-c="@c"
-                                          asp-route-id="@hallId"
-                                          asp-route-name="@hallName"
-                                          asp-route-rc="@rowCount"
-                                          asp-route-cc="@columnCount"
-                                          asp-route-ls="@layoutString"
-                                          method="post">
-                                        <button type="submit" class="seat @(seatClases[Model.SeatLayout[r, c]])"
-                                                data-seat="@seatId"
-                                                title="Seat @seatId - Click to toggle">
-                                            @(c + 1)
-                                        </button>
-                                    </form>
+                                    <div class="seat @(seatClases[Model.SeatLayout[r, c]])"
+                                         data-seat="@seatId"
+                                         row="@r"
+                                         column="@c"
+                                         title="Seat @seatId - Click to toggle">
+                                        @(c + 1)
+                                    </div>
                                 }
                                 <span class="row-label">@rows[i]</span>
                             </div>
@@ -127,7 +119,7 @@
                 <h5 class="mb-0"><i class="bi bi-tools"></i> Configuration</h5>
             </div>
             <div class="card-body">
-                <h6>Disabled Seats:</h6>
+                <h6>Unavailable Seats:</h6>
                 <p id="disabled-seats-display" class="text-muted small">
                     @(DisabledSeats.Any() ? string.Join(", ", DisabledSeats) : "None")
                 </p>
@@ -136,7 +128,7 @@
 
                 <div class="mb-3">
                     <strong>Total Seats:</strong> @(rowCount * columnCount)<br>
-                    <strong>Disabled:</strong> <span id="disabled-count">@DisabledSeats.Count</span><br>
+                    <strong>Unavailable:</strong> <span id="disabled-count">@DisabledSeats.Count</span><br>
                     <strong>Available:</strong> <span id="available-count">@(rowCount * columnCount - DisabledSeats.Count)</span>
                 </div>
 
@@ -146,29 +138,99 @@
                       asp-route-id="@hallId"
                       asp-route-r="@rowCount"
                       asp-route-c="@columnCount"
-                      asp-route-ls="@layoutString"
                       method="post">
-                    <input type="hidden" name="hallId" value="@Model.Id" />
-                    <input type="hidden" id="disabled-seats-input" name="disabledSeats" value="@string.Join(",", DisabledSeats)" />
+                    <input type="hidden" id="ls-input" name="ls" value="" />
 
                     <button type="submit" class="btn btn-success w-100 mb-2">
                         <i class="bi bi-save"></i> Save Layout
                     </button>
                 </form>
-                    <form asp-action="ResetLayout"
-                          asp-route-id="@hallId"
-                          asp-route-name="@hallName"
-                          asp-route-r="@rowCount"
-                          asp-route-c="@columnCount"
-                          method="post">
-                        <button type="submit" class="btn btn-outline-secondary w-100 mb-2" id="reset-btn">
-                            <i class="bi bi-arrow-counterclockwise"></i> Reset 
-                        </button>
-                    </form>
-                    <a asp-action="Index" class="btn btn-outline-dark w-100">
-                        <i class="bi bi-arrow-left"></i> Back to Halls
-                    </a>
+                <form asp-action="ResetLayout"
+                      asp-route-id="@hallId"
+                      asp-route-name="@hallName"
+                      asp-route-r="@rowCount"
+                      asp-route-c="@columnCount"
+                      method="post">
+                    <button type="submit" class="btn btn-outline-secondary w-100 mb-2" id="reset-btn">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset 
+                    </button>
+                </form>
+                <a asp-action="Index" class="btn btn-outline-dark w-100">
+                    <i class="bi bi-arrow-left"></i> Back to Halls
+                </a>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let disabledSeats = [];
+            const totalSeats = @(Model.SeatLayout.GetLength(0) * Model.SeatLayout.GetLength(1));
+            let ls = "@Model.Ls"
+            const colCount = @Model.SeatLayout.GetLength(1);
+
+            // Add click handlers to all seats
+            document.querySelectorAll('.seat').forEach(seat => {
+                if (seat.classList.contains("disabled-seat")) {
+                    disabledSeats.push(seat.getAttribute("data-seat"))
+                }
+                seat.addEventListener('click', function() {
+                    const seatId = this.getAttribute('data-seat');
+                    let r = parseInt(this.getAttribute("row"))
+                    let c = parseInt(this.getAttribute("column"))
+                    let stringIndex = r * colCount + c
+                    let lsEdit = "1"
+                    
+                    if (this.classList.contains('disabled-seat')) {
+                        // Enable the seat
+                        this.classList.remove('disabled-seat');
+                        this.classList.add("standard-seat");
+                        lsEdit = "1"
+                        disabledSeats = disabledSeats.filter(s => s !== seatId);
+                    } else  if (this.classList.contains("standard-seat")) {
+                        // Disable the seat
+                        this.classList.remove("standard-seat");
+                        this.classList.add("premium-seat");
+                        lsEdit = "2"
+                    } else if (this.classList.contains("premium-seat")) {
+                        this.classList.remove("premium-seat");
+                        this.classList.add("vip-seat");
+                        lsEdit = "3"
+                    } else if (this.classList.contains("vip-seat")) {
+                        this.classList.remove("vip-seat");
+                        this.classList.add("disabled-seat");
+                        lsEdit = "0"
+                        disabledSeats.push(seatId);
+                    }
+                    let charLayout = ls.split("")
+                    charLayout[stringIndex] = lsEdit
+                    ls = charLayout.join("")
+
+                    updateSummary();
+                });
+
+                seat.style.cursor = 'pointer';
+            });
+
+            updateSummary()
+
+            function updateSummary() {
+                const disabledCount = disabledSeats.length;
+                const availableCount = totalSeats - disabledCount;
+
+                document.getElementById('disabled-count').textContent = disabledCount;
+                document.getElementById('available-count').textContent = availableCount;
+                document.getElementById('ls-input').value = ls;
+
+                if (disabledSeats.length > 0) {
+                    disabledSeats.sort();
+                    document.getElementById('disabled-seats-display').textContent = disabledSeats.join(', ');
+                } else {
+                    document.getElementById('disabled-seats-display').textContent = 'None';
+                }
+            }
+        });
+    </script>
+}

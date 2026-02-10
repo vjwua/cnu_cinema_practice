@@ -9,4 +9,5 @@ public class UpdateHallViewModel
     
     public string? Name { get; set; }
     public byte[,]? SeatLayout { get; set; }
+    public string? Ls { get; set; }
 }
