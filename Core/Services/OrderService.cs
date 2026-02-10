@@ -4,6 +4,7 @@ using Core.Entities;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using System.Net.NetworkInformation;
 
 namespace Core.Services;
 
@@ -90,5 +91,56 @@ public class OrderService(
     public async Task<int> CountUserOrdersAsync(string userId)
     {
         return await orderRepository.CountByUserIdAsync(userId);
+    }
+
+    public async Task ExpireOrderAsync(int orderId)
+    {
+        var order = await orderRepository.GetByIdAsync(orderId);
+
+        if (order == null)
+            throw new KeyNotFoundException($"Order with ID {orderId} not found.");
+
+        if (order.Status != OrderStatus.Pending)
+            return;
+
+        order.Status = OrderStatus.Expired;
+
+        // Release seat reservations
+        foreach (var ticket in order.Tickets)
+        {
+            if (ticket.SeatReservation != null)
+            {
+                ticket.SeatReservation.Status = ReservationStatus.Reserved;
+                ticket.SeatReservation.ReservedByUserId = null;
+                ticket.SeatReservation.ExpiresAt = null;
+            }
+        }
+
+        await orderRepository.UpdateAsync(order);
+    }
+
+    public async Task CancelOrderAsync(int orderId)
+    {
+        var order = await orderRepository.GetByIdAsync(orderId);
+
+        if (order == null)
+            throw new KeyNotFoundException($"Order with ID {orderId} not found.");
+
+        if (order.Status == OrderStatus.Cancelled || order.Status == OrderStatus.Expired)
+            throw new InvalidOperationException($"Cannot cancel an order with status '{order.Status}'.");
+
+        order.Status = OrderStatus.Cancelled;
+
+        foreach (var ticket in order.Tickets)
+        {
+            if (ticket.SeatReservation != null)
+            {
+                ticket.SeatReservation.Status = ReservationStatus.Reserved;
+                ticket.SeatReservation.ReservedByUserId = null;
+                ticket.SeatReservation.ExpiresAt = null;
+            }
+        }
+
+        await orderRepository.UpdateAsync(order);
     }
 }

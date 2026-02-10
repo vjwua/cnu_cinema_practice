@@ -15,4 +15,6 @@ public interface IOrderService
         OrderStatus? status);
 
     Task<int> CountUserOrdersAsync(string userId);
+    Task ExpireOrderAsync(int orderId);
+    Task CancelOrderAsync(int orderId);
 }

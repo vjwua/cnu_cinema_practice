@@ -7,4 +7,5 @@ public class TicketViewModel
     public int RowNum { get; set; }
     public int SeatNum { get; set; }
     public string SeatTypeName { get; set; } = null!;
+    public string? QrCode { get; set; }
 }

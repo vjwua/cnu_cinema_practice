@@ -1,114 +1,345 @@
-@using Core.DTOs.Orders 
-@{ 
-    ViewData["Title"] = "Order Details"; 
-} 
- 
-<div class="container py-4"> 
-    @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage)) 
-    { 
-        <div class="alert alert-success alert-dismissible fade show" role="alert"> 
-            <i class="bi bi-check-circle-fill me-2"></i> 
-            @ViewBag.SuccessMessage 
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button> 
-        </div> 
-    } 
- 
-    @if (ViewBag.Order != null) 
-    { 
-        var order = ViewBag.Order as OrderDTO; 
-         
-        <div class="row justify-content-center"> 
-            <div class="col-lg-8"> 
-                <div class="card shadow-sm"> 
-                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center"> 
-                        <h5 class="mb-0"> 
-                            <i class="bi bi-receipt-cutoff"></i> Order Details 
-                        </h5> 
-                        <span class="badge bg-light text-success">Order #@order.Id</span> 
-                    </div> 
-                    <div class="card-body"> 
-                        <!-- Order Status --> 
-                        <div class="row mb-4"> 
-                            <div class="col-md-6"> 
-                                <div class="d-flex align-items-center"> 
-                                    <div class="me-3"> 
-                                        <div class="rounded-circle bg-success d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;"> 
-                                            <i class="bi bi-check-lg text-white fs-4"></i> 
-                                        </div> 
-                                    </div> 
-                                    <div> 
-                                        <h6 class="mb-1">Payment Status</h6> 
-                                        <span class="badge bg-success">Paid</span> 
-                                    </div> 
-                                </div> 
-                            </div> 
-                            <div class="col-md-6"> 
-                                <div class="text-md-end"> 
-                                    <h6 class="text-muted mb-1">Total Amount</h6> 
-                                    <h3 class="text-success mb-0">$@order.TotalPrice.ToString("F2")</h3> 
-                                </div> 
-                            </div> 
-                        </div> 
- 
-                        <!-- Order Info --> 
-                        <div class="row mb-4"> 
-                            <div class="col-md-6"> 
-                                <h6 class="text-muted mb-2">Order Information</h6> 
-                                <p class="mb-1"><strong>Order ID:</strong> #@order.Id</p> 
-                                <p class="mb-1"><strong>Date:</strong> @order.CreatedAt.ToString("MMMM dd, yyyy HH:mm")</p> 
-                                <p class="mb-0"><strong>Status:</strong> <span class="badge bg-info">@order.Status</span></p> 
-                            </div> 
-                            <div class="col-md-6"> 
-                                <h6 class="text-muted mb-2">Customer Information</h6> 
-                                <!-- User ID is not very useful for customer, maybe show email if available or just hide -->
-                                <p class="mb-1"><strong>Movie:</strong> @order.MovieTitle</p> 
-                                <p class="mb-0"><strong>Tickets:</strong> @order.Tickets.Count</p> 
-                            </div> 
-                        </div> 
- 
-                        <!-- Action Buttons --> 
-                        <div class="d-flex gap-2 justify-content-center"> 
-                            <a href="@Url.Action("TicketsPdf", "Order", new { orderId = order.Id, area = "" })"  
-                               class="btn btn-outline-primary"> 
-                                <i class="bi bi-file-pdf me-2"></i>Download Tickets (PDF) 
-                            </a> 
-                            <a href="@Url.Action("Index", "Home", new { area = "" })"  
-                               class="btn btn-outline-secondary"> 
-                                <i class="bi bi-house me-2"></i>Back to Home 
-                            </a> 
-                        </div> 
-                    </div> 
-                </div> 
- 
-                <!-- Success Message Card --> 
-                <div class="card mt-4 border-success"> 
-                    <div class="card-body text-center"> 
-                        <i class="bi bi-check-circle-fill text-success fs-1 mb-3"></i> 
-                        <h5 class="text-success">Payment Successful!</h5> 
-                        <p class="text-muted mb-0"> 
-                            Your tickets have been sent to your email address.  
-                            You can also download them as PDF using the button above. 
-                        </p> 
-                    </div> 
-                </div> 
-            </div> 
-        </div> 
-    } 
-    else 
-    { 
-        <div class="row justify-content-center"> 
-            <div class="col-md-6"> 
-                <div class="alert alert-warning text-center"> 
-                    <i class="bi bi-exclamation-triangle-fill fs-1 mb-3"></i> 
-                    <h5>Order Not Found</h5> 
-                    <p class="mb-0">The order you're looking for doesn't exist or you don't have permission to view it.</p> 
-                </div> 
-                <div class="text-center"> 
-                    <a href="@Url.Action("Index", "Home", new { area = "" })" class="btn btn-primary"> 
-                        <i class="bi bi-house me-2"></i>Back to Home 
-                    </a> 
-                </div> 
-            </div> 
-        </div> 
-    } 
+@model cnu_cinema_practice.ViewModels.Account.OrderViewModel
+@using cnu_cinema_practice.ViewModels.Account
+
+@using Core.Enums
+@{
+    ViewData["Title"] = "Order Details";
+    var isExpired = ViewBag.IsExpired as bool? ?? false;
+    var expiresAt = ViewBag.ExpiresAt as DateTime?;
+}
+
+@section css {
+    <style>
+        .timer-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #dc3545;
+        }
+
+        .timer-expired {
+            color: #6c757d;
+        }
+
+        .qr-code-container {
+            display: flex;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+
+        .ticket-card {
+            border-left: 4px solid #28a745;
+        }
+    </style>
+}
+
+<div class="container py-4">
+    @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            @ViewBag.SuccessMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Order Header Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header @GetHeaderClass(Model.Status) text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-receipt-cutoff"></i> Order #@Model.Id
+                    </h5>
+                    <span class="badge @GetStatusBadgeClass(Model.Status)">
+                        @Model.Status
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Movie Info -->
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            @if (!string.IsNullOrEmpty(Model.MoviePosterUrl))
+                            {
+                                <img src="@Model.MoviePosterUrl" alt="@Model.MovieName" class="img-fluid rounded shadow-sm">
+                            }
+                        </div>
+                        <div class="col-md-8">
+                            <h4 class="mb-3">@Model.MovieName</h4>
+                            <div class="row mb-3">
+                                <div class="col-sm-6">
+                                    <p class="mb-2">
+                                        <i class="bi bi-calendar3 text-muted me-2"></i>
+                                        <strong>Session:</strong> @Model.SessionStartTime.ToString("MMM dd, yyyy")
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="bi bi-clock text-muted me-2"></i>
+                                        <strong>Time:</strong> @Model.SessionStartTime.ToString("h:mm tt")
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="bi bi-geo-alt text-muted me-2"></i>
+                                        <strong>Hall:</strong> @Model.HallName
+                                    </p>
+                                </div>
+                                <div class="col-sm-6">
+                                    <p class="mb-2">
+                                        <i class="bi bi-calendar-check text-muted me-2"></i>
+                                        <strong>Ordered:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="bi bi-ticket-perforated text-muted me-2"></i>
+                                        <strong>Tickets:</strong> @Model.Tickets.Count
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="bi bi-currency-dollar text-muted me-2"></i>
+                                        <strong>Total:</strong> <span class="fs-5 text-success">$@Model.TotalAmount.ToString("F2")</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Status == OrderStatus.Pending)
+            {
+                <!-- PENDING ORDER -->
+                <div class="card shadow-sm mb-4 border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="bi bi-hourglass-split"></i> Payment Pending
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        @if (isExpired)
+                        {
+                            <div class="alert alert-danger mb-0">
+                                <i class="bi bi-exclamation-triangle-fill fs-1 mb-3 d-block"></i>
+                                <h5>Order Expired</h5>
+                                <p class="mb-0">This order has expired. The seats have been released.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <h6 class="text-muted mb-3">Complete your payment within:</h6>
+                            <div id="timer" class="timer-display mb-4">15:00</div>
+                            <p class="text-muted mb-4">Your seats are reserved until the timer expires.</p>
+                            <a href="@Url.Action("Payment", "Payment", new { orderId = Model.Id, area = "" })"
+                               class="btn btn-success btn-lg px-5">
+                                <i class="bi bi-credit-card me-2"></i>Pay Now
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <!-- Reserved Seats -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-bookmark-check"></i> Reserved Seats
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var ticket in Model.Tickets)
+                            {
+                                <span class="badge bg-secondary fs-6 py-2 px-3">
+                                    @ticket.SeatNum - $@ticket.Price.ToString("F2")
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (Model.Status == OrderStatus.Paid)
+            {
+                <!-- PAID ORDER -->
+                <div class="card shadow-sm mb-4 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-check-circle-fill"></i> Payment Successful
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <strong>Payment Method:</strong> @(Model.PaymentMethod ?? "N/A")
+                                </p>
+                                <p class="mb-2">
+                                    <strong>Payment Date:</strong> @(Model.PaidAt?.ToString("MMM dd, yyyy HH:mm") ?? "N/A")
+                                </p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p class="mb-2">
+                                    <strong>Amount Paid:</strong> <span class="text-success fs-5">$@Model.TotalAmount.ToString("F2")</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Your tickets have been sent to your email address.
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-center mt-4">
+                            <a href="@Url.Action("TicketsPdf", "Order", new { orderId = Model.Id, area = "" })"
+                               class="btn btn-primary">
+                                <i class="bi bi-file-pdf me-2"></i>Download All Tickets (PDF)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tickets with QR Codes -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-ticket-detailed"></i> Your Tickets
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @foreach (var ticket in Model.Tickets)
+                            {
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card ticket-card h-100">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Seat @ticket.SeatNum</h6>
+                                            @if (!string.IsNullOrEmpty(ticket.QrCode))
+                                            {
+                                                <div class="qr-code-container">
+                                                    <img src="data:image/png;base64,@ticket.QrCode"
+                                                         alt="QR Code for seat @ticket.SeatNum"
+                                                         class="img-fluid"
+                                                         style="max-width: 150px;">
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-light p-4 rounded">
+                                                    <i class="bi bi-qr-code fs-1 text-muted"></i>
+                                                </div>
+                                            }
+                                            <p class="mb-0 mt-2 text-muted small">
+                                                Ticket #@ticket.Id
+                                            </p>
+                                            <p class="mb-0 fw-bold">
+                                                $@ticket.Price.ToString("F2")
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (Model.Status == OrderStatus.Expired || Model.Status == OrderStatus.Cancelled)
+            {
+                <!-- EXPIRED/CANCELLED ORDER -->
+                <div class="card shadow-sm mb-4 border-danger">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-x-circle-fill text-danger fs-1 mb-3 d-block"></i>
+                        <h4 class="text-danger mb-3">
+                            @(Model.Status == OrderStatus.Expired ? "Order Expired" : "Order Cancelled")
+                        </h4>
+                        <p class="text-muted mb-4">
+                            @if (Model.Status == OrderStatus.Expired)
+                            {
+                                <text>This order expired because payment was not completed within 15 minutes. The reserved seats have been released.</text>
+                            }
+                            else
+                            {
+                                <text>This order has been cancelled. If you were charged, a refund will be processed shortly.</text>
+                            }
+                        </p>
+                        <a href="@Url.Action("Index", "Home", new { area = "" })" class="btn btn-primary">
+                            <i class="bi bi-house me-2"></i>Return to Home
+                        </a>
+                    </div>
+                </div>
+            }
+
+            <!-- Back Button -->
+            <div class="text-center mt-4">
+                <a href="@Url.Action("Index", "Account", new { area = "" })" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to My Orders
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    @if (Model.Status == OrderStatus.Pending && !isExpired && expiresAt.HasValue)
+    {
+        <script>
+            const expiresAt = new Date('@expiresAt.Value.ToString("o")');
+            const timerElement = document.getElementById('timer');
+
+            function updateTimer() {
+                const now = new Date();
+                const timeLeft = expiresAt - now;
+
+                if (timeLeft <= 0) {
+                    timerElement.textContent = 'EXPIRED';
+                    timerElement.classList.add('timer-expired');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                    return;
+                }
+
+                const minutes = Math.floor(timeLeft / 60000);
+                const seconds = Math.floor((timeLeft % 60000) / 1000);
+                timerElement.textContent = minutes + ':' + seconds.toString().padStart(2, '0');
+
+                if (minutes < 5) {
+                    timerElement.style.color = '#dc3545';
+                } else {
+                    timerElement.style.color = '#ffc107';
+                }
+            }
+
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        </script>
+    }
+}
+
+@functions {
+    string GetHeaderClass(OrderStatus status)
+    {
+        return status switch
+        {
+            OrderStatus.Paid => "bg-success",
+            OrderStatus.Pending => "bg-warning text-dark",
+            OrderStatus.Cancelled => "bg-danger",
+            OrderStatus.Refunded => "bg-info text-dark",
+            OrderStatus.Expired => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+
+    string GetStatusBadgeClass(OrderStatus status)
+    {
+        return status switch
+        {
+            OrderStatus.Paid => "bg-light text-success",
+            OrderStatus.Pending => "bg-light text-dark",
+            OrderStatus.Cancelled => "bg-light text-danger",
+            OrderStatus.Refunded => "bg-light text-info",
+            OrderStatus.Expired => "bg-light text-secondary",
+            _ => "bg-light text-secondary"
+        };
+    }
+}
