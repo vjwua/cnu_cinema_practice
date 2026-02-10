@@ -40,11 +40,15 @@ public class OrderController(
 
             var viewModel = mapper.Map<OrderViewModel>(orderDto);
 
-            if (viewModel.Status == Core.Enums.OrderStatus.Pending)
+            if (viewModel.Status == OrderStatus.Pending)
             {
-                var expirationTime = viewModel.CreatedAt.AddMinutes(15);
+                var createdAtUtc = viewModel.CreatedAt.Kind == DateTimeKind.Utc
+                    ? viewModel.CreatedAt
+                    : DateTime.SpecifyKind(viewModel.CreatedAt, DateTimeKind.Utc);
+
+                var expirationTime = createdAtUtc.AddMinutes(15);
                 ViewBag.ExpiresAt = expirationTime;
-                ViewBag.IsExpired = DateTime.UtcNow > expirationTime; // Use UtcNow
+                ViewBag.IsExpired = DateTime.UtcNow > expirationTime;
             }
 
             ViewBag.SuccessMessage = TempData["Success"];
