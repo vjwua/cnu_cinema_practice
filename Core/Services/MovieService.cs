@@ -103,10 +103,21 @@ public class MovieService : IMovieService
     public async Task DeleteAsync(int id)
     {
         var movie = await _movieRepository.GetByIdAsync(id);
-        
+
         if (movie == null)
             throw new KeyNotFoundException($"Movie with id {id} not found.");
-        
+
+        // ✅ Allow deleting only movies without sessions
+        if (movie.Sessions.Any())
+            throw new InvalidOperationException("You can't delete this movie because it has sessions. Delete the sessions first.");
+
+        // ✅ Break many-to-many links (people must remain)
+        movie.Actors.Clear();
+        movie.Directors.Clear();
+
+        // Persist junction table changes first (no cascade delete is used)
+        await _movieRepository.UpdateAsync(movie);
+
         await _movieRepository.DeleteAsync(movie);
     }
 

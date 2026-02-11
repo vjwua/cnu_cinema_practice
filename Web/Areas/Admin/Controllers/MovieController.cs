@@ -149,6 +149,10 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
             {
                 TempData["Error"] = "Movie not found.";
             }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error deleting movie: {ex.Message}";
