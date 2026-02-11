@@ -26,7 +26,6 @@ namespace cnu_cinema_practice.Controllers
             Console.WriteLine($"[DEBUG] BookingController.SelectSeats hit with sessionId={sessionId}");
             try
             {
-                if (sessionId == 0) sessionId = 1075;
                 var session = await sessionService.GetSessionByIdAsync(sessionId);
                 if (session == null)
                     return Results.NotFound($"Session not found {sessionId}");
@@ -55,10 +54,6 @@ namespace cnu_cinema_practice.Controllers
                 // Nullify collections to avoid circular references during Blazor parameter serialization
                 viewModel.HallData.Seats = null;
                 viewModel.HallData.Sessions = null;
-
-                // Get seats for this session
-                /*var seats = await seatService.GetBySessionIdAsync(sessionId);
-                var seatsList = seats.ToList();*/
 
                 // Create seat layout
                 viewModel.SeatLayout = await seatService.GetAvailableSeatsAsync(sessionId);
