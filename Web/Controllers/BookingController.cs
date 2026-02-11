@@ -18,15 +18,18 @@ namespace cnu_cinema_practice.Controllers
         IOrderService orderService,
         IMapper mapper) : Controller
     {
-        [HttpGet]
-        public async Task<IActionResult> SelectSeats(int sessionId, string alert = "")
+        [HttpGet("Booking/SelectSeats")]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IResult> SelectSeats(int sessionId, string alert = "")
         {
+            Console.WriteLine($"[DEBUG] BookingController.SelectSeats hit with sessionId={sessionId}");
             try
             {
                 if (sessionId == 0) sessionId = 1075;
                 var session = await sessionService.GetSessionByIdAsync(sessionId);
                 if (session == null)
-                    return NotFound($"Session not found {sessionId}");
+                    return Results.NotFound($"Session not found {sessionId}");
                 var movie = await movieService.GetByIdAsync(session.MovieId);
 
                 var viewModel = mapper.Map<BookingViewModel>(session);
@@ -39,8 +42,19 @@ namespace cnu_cinema_practice.Controllers
 
                 viewModel.Name = movie.Name;
                 viewModel.PosterUrl = movie.PosterUrl;
+                viewModel.alertMessage = alert;
 
+                Console.WriteLine($"[DEBUG] Fetching hall details for HallId={viewModel.HallId}");
                 viewModel.HallData = await halLService.GetByIdAsync(viewModel.HallId);
+                if (viewModel.HallData == null)
+                {
+                    Console.WriteLine($"[DEBUG] HallData is NULL for HallId={viewModel.HallId}");
+                    return Results.NotFound($"Hall not found {viewModel.HallId}");
+                }
+                Console.WriteLine($"[DEBUG] Fetched hall: {viewModel.HallData.Name}");
+                // Nullify collections to avoid circular references during Blazor parameter serialization
+                viewModel.HallData.Seats = null;
+                viewModel.HallData.Sessions = null;
 
                 // Get seats for this session
                 /*var seats = await seatService.GetBySessionIdAsync(sessionId);
@@ -48,21 +62,26 @@ namespace cnu_cinema_practice.Controllers
 
                 // Create seat layout
                 viewModel.SeatLayout = await seatService.GetAvailableSeatsAsync(sessionId);
-                byte[,] layout = new byte[viewModel.HallData.Rows, viewModel.HallData.Columns];
+                byte[][] layout = new byte[viewModel.HallData.Rows][];
+                for (int i = 0; i < viewModel.HallData.Rows; i++)
+                {
+                    layout[i] = new byte[viewModel.HallData.Columns];
+                }
+
                 foreach (var seat in viewModel.SeatLayout)
                 {
                     if (seat.RowNum < viewModel.HallData.Rows
                         && seat.SeatNum < viewModel.HallData.Columns)
                     {
-                        layout[seat.RowNum, seat.SeatNum] = (byte)seat.SeatTypeId;
+                        layout[seat.RowNum][seat.SeatNum] = (byte)seat.SeatTypeId;
                     }
                 }
 
                 viewModel.LayoutArray = layout;
                 viewModel.alertMessage = alert;
 
-                var seattypes = await seatService.GetSeatTypesAsync();
-                decimal[] seatprices = new decimal[seattypes.Count()];
+                var seattypes = (await seatService.GetSeatTypesAsync()).ToList();
+                decimal[] seatprices = new decimal[seattypes.Any() ? seattypes.Max(t => t.Id) + 1 : 10];
                 foreach (var type in seattypes)
                 {
                     seatprices[type.Id] = type.AddedPrice;
@@ -70,13 +89,13 @@ namespace cnu_cinema_practice.Controllers
 
                 viewModel.addedPrice = seatprices;
 
-                return View(viewModel);
+                return new Microsoft.AspNetCore.Http.HttpResults.RazorComponentResult<cnu_cinema_practice.Components.Pages.Movies.SelectSeats>(new { Model = viewModel });
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
+                Console.WriteLine($"[ERROR] BookingController.SelectSeats failed: {ex}");
                 TempData["Error"] = $"Error loading booking page: {ex.Message}";
-                return NotFound(ex.Message);
-                return RedirectToAction("Index", "Home");
+                return Results.Problem(ex.Message);
             }
         }
 
