@@ -108,7 +108,7 @@ public class TicketService : ITicketService
             var seatNum = ticket.SeatReservation.Seat.SeatNum;
             var seatType = ticket.SeatReservation.Seat.SeatTypeId;
          
-            DrawRow(gfx, "Seat: ", $"{(char)('A' + rowNum - 1)}{seatNum} • ({(ReservedSeatType)seatType})", margin, ref y, labelFont, valueFont);
+            DrawRow(gfx, "Seat: ", $"{(char)('A' + rowNum)}{seatNum} • ({(ReservedSeatType)seatType})", margin, ref y, labelFont, valueFont);
             
             DrawRow(gfx, "Price: ", $"{ticket.Price.ToString("0.00", CultureInfo.InvariantCulture)} ₴", margin, ref y, labelFont, valueFont);
 
