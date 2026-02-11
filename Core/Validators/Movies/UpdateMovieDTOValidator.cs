@@ -1,5 +1,6 @@
 using FluentValidation;
 using Core.DTOs.Movies;
+using Core.Enums;
 
 namespace Core.Validators.Movies;
 
@@ -23,7 +24,8 @@ public class UpdateMovieDTOValidator : AbstractValidator<UpdateMovieDTO>
             .GreaterThanOrEqualTo((byte)0).WithMessage("The age limit must be greater than or equal to 0");
         
         RuleFor(x => x.Genre)
-            .IsInEnum().WithMessage("Incorrect genre specified");
+            .Must(BeAValidGenreFlags)
+            .WithMessage("Incorrect genre specified");
         
         RuleFor(x => x.Description)
             .MaximumLength(1000).WithMessage("The description must not exceed 1000 characters");
@@ -55,6 +57,40 @@ public class UpdateMovieDTOValidator : AbstractValidator<UpdateMovieDTO>
             .WithMessage("The directors ids must be unique");
     }
     
+    
+    private static bool BeAValidGenreFlags(MovieGenre genre)
+    {
+        const ulong allowedMask =
+            (ulong)MovieGenre.Action |
+            (ulong)MovieGenre.Adventure |
+            (ulong)MovieGenre.Animation |
+            (ulong)MovieGenre.Biography |
+            (ulong)MovieGenre.Comedy |
+            (ulong)MovieGenre.Crime |
+            (ulong)MovieGenre.Documentary |
+            (ulong)MovieGenre.Drama |
+            (ulong)MovieGenre.Family |
+            (ulong)MovieGenre.Fantasy |
+            (ulong)MovieGenre.FilmNoir |
+            (ulong)MovieGenre.History |
+            (ulong)MovieGenre.Horror |
+            (ulong)MovieGenre.Music |
+            (ulong)MovieGenre.Musical |
+            (ulong)MovieGenre.Mystery |
+            (ulong)MovieGenre.Romance |
+            (ulong)MovieGenre.SciFi |
+            (ulong)MovieGenre.Short |
+            (ulong)MovieGenre.Sport |
+            (ulong)MovieGenre.Superhero |
+            (ulong)MovieGenre.Thriller |
+            (ulong)MovieGenre.War |
+            (ulong)MovieGenre.Western;
+
+        var value = (ulong)genre;
+        if (value == 0) return false; 
+        return (value & ~allowedMask) == 0;
+    }
+
     private bool BeAValidUrl(string? url)
     {
         return Uri.TryCreate(url, UriKind.Absolute, out _);

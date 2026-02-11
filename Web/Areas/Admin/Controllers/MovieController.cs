@@ -49,10 +49,13 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
             {
                 var createDto = mapper.Map<CreateMovieDTO>(model);
                 
-                if (!string.IsNullOrWhiteSpace(model.Director))
+                var directorNames = ParsePersonNames(model.Directors);
+                if (directorNames.Count > 0)
                 {
-                    var directorId = await personService.GetOrCreatePersonIdByNameAsync(model.Director);
-                    createDto.DirectorsIds = new List<int> { directorId };
+                    var directorIds = new List<int>(directorNames.Count);
+                    foreach (var name in directorNames)
+                        directorIds.Add(await personService.GetOrCreatePersonIdByNameAsync(name));
+                    createDto.DirectorsIds = directorIds;
                 }
                 
                 var actorNames = ParsePersonNames(model.Actors);
@@ -99,10 +102,13 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
             {
                 var updateDto = mapper.Map<UpdateMovieDTO>(model);
                 
-                if (!string.IsNullOrWhiteSpace(model.Director))
+                var directorNames = ParsePersonNames(model.Directors);
+                if (directorNames.Count > 0)
                 {
-                    var directorId = await personService.GetOrCreatePersonIdByNameAsync(model.Director);
-                    updateDto.DirectorsIds = new List<int> { directorId };
+                    var directorIds = new List<int>(directorNames.Count);
+                    foreach (var name in directorNames)
+                        directorIds.Add(await personService.GetOrCreatePersonIdByNameAsync(name));
+                    updateDto.DirectorsIds = directorIds;
                 }
                 
                 var actorNames = ParsePersonNames(model.Actors);
@@ -209,7 +215,7 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
             if (dto == null)
                 return Json(new { success = false, message = "Movie not found." });
 
-            var director = dto.Directors.FirstOrDefault() ?? string.Empty;
+            var directors = dto.Directors?.Any() == true ? string.Join(", ", dto.Directors) : string.Empty;
             var actors = dto.Actors?.Any() == true ? string.Join(", ", dto.Actors) : string.Empty;
 
             return Json(new
@@ -227,7 +233,7 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
                     posterUrl = dto.PosterUrl ?? string.Empty,
                     trailerUrl = dto.TrailerUrl ?? string.Empty,
                     country = dto.Country ?? string.Empty,
-                    director = director,
+                    directors = directors,
                     actors = actors
                 }
             });

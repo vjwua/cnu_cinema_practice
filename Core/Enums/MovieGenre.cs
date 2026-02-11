@@ -2,6 +2,7 @@ using Core.Entities;
 
 namespace Core.Enums;
 
+[Flags]
 public enum MovieGenre : ulong
 {
     None = 0,
