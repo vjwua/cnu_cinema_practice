@@ -18,7 +18,7 @@ namespace cnu_cinema_practice.Controllers
         IMapper mapper) : Controller
     {
         [HttpGet]
-        public async Task<IActionResult> Index(int orderId)
+        public async Task<IResult> Index(int orderId)
         {
             try
             {
@@ -35,25 +35,25 @@ namespace cnu_cinema_practice.Controllers
                 viewModel.AvailablePaymentMethods = GetAvailablePaymentMethods();
                 viewModel.SelectedPaymentMethod = PaymentMethod.Card;
 
-                return View(viewModel);
+                return new Microsoft.AspNetCore.Http.HttpResults.RazorComponentResult<cnu_cinema_practice.Components.Pages.Payment.Payment>(new { Model = viewModel });
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error loading payment page: {ex.Message}";
-                return RedirectToAction("Index", "Home");
+                return Results.Redirect(Url.Action("Index", "Home")!);
             }
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ProcessPayment(PaymentViewModel paymentViewModel)
+        [IgnoreAntiforgeryToken]
+        public async Task<IResult> ProcessPayment(PaymentViewModel paymentViewModel)
         {
             ValidatePaymentModel(paymentViewModel);
 
             if (!ModelState.IsValid)
             {
                 paymentViewModel.AvailablePaymentMethods = GetAvailablePaymentMethods();
-                return View("Index", paymentViewModel);
+                return new Microsoft.AspNetCore.Http.HttpResults.RazorComponentResult<cnu_cinema_practice.Components.Pages.Payment.Payment>(new { Model = paymentViewModel });
             }
 
             try
@@ -67,7 +67,7 @@ namespace cnu_cinema_practice.Controllers
                 await emailService.SendTicketsAsync(paymentViewModel.OrderId);
 
                 TempData["Success"] = "Payment successful! Your tickets have been sent to your email.";
-                return RedirectToAction("Details", "Order", new { id = paymentViewModel.OrderId, area = "" });
+                return Results.Redirect(Url.Action("Details", "Order", new { id = paymentViewModel.OrderId, area = "" })!);
             }
             catch (InvalidOperationException ex)
             {
@@ -80,7 +80,28 @@ namespace cnu_cinema_practice.Controllers
             }
 
             paymentViewModel.AvailablePaymentMethods = GetAvailablePaymentMethods();
-            return View("Index", paymentViewModel);
+            await ReloadPaymentViewModelAsync(paymentViewModel);
+            paymentViewModel.Errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+            return new Microsoft.AspNetCore.Http.HttpResults.RazorComponentResult<cnu_cinema_practice.Components.Pages.Payment.Payment>(new { Model = paymentViewModel });
+        }
+
+        private async Task ReloadPaymentViewModelAsync(PaymentViewModel viewModel)
+        {
+            var order = await orderService.GetByIdAsync(viewModel.OrderId);
+
+            viewModel.MovieTitle = order.MovieTitle;
+            viewModel.MoviePosterUrl = order.MoviePosterUrl ?? string.Empty;
+            viewModel.ShowDateTime = order.SessionStart;
+            viewModel.HallName = order.HallName;
+
+            var ticketSubtotal = order.Tickets.Sum(t => t.Price);
+            viewModel.TotalAmount = ticketSubtotal > 0 ? ticketSubtotal : order.TotalPrice;
+            viewModel.BasePrice = order.Tickets.Count > 0 ? ticketSubtotal / order.Tickets.Count : 0;
+
+            viewModel.SelectedSeats = GetSelectedSeats(order);
         }
 
         #region Helper Methods
@@ -88,9 +109,9 @@ namespace cnu_cinema_practice.Controllers
         private static List<string> GetSelectedSeats(OrderDTO order)
         {
             return (from ticket in order.Tickets
-                let rowLetter = (char)('A' + ticket.RowNum)
-                let seatNumber = ticket.SeatNum + 1
-                select $"{rowLetter}{seatNumber}").ToList();
+                    let rowLetter = (char)('A' + ticket.RowNum)
+                    let seatNumber = ticket.SeatNum + 1
+                    select $"{rowLetter}{seatNumber}").ToList();
         }
 
         private void ValidatePaymentModel(PaymentViewModel model)

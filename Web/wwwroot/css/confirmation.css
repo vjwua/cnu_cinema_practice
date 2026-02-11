@@ -1,0 +1,114 @@
+@import url('checkout.css');
+
+.confirmation-container {
+    max-width: 600px;
+    margin: 100px auto 40px;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.success-icon-wrapper {
+    width: 120px;
+    height: 120px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 2px solid var(--success-green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.2);
+    animation: iconPulse 2s infinite;
+}
+
+.success-icon {
+    font-size: 60px;
+    color: var(--success-green);
+}
+
+.confirmation-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-white);
+    margin-bottom: 15px;
+}
+
+.booking-id {
+    font-size: 18px;
+    color: var(--cyan);
+    margin-bottom: 25px;
+    background: rgba(34, 211, 238, 0.1);
+    padding: 10px 20px;
+    border-radius: 12px;
+    display: inline-block;
+    border: 1px solid rgba(34, 211, 238, 0.3);
+}
+
+.confirmation-message {
+    color: var(--text-slate);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.btn-home {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-white);
+    border: 1px solid var(--glass-border);
+    padding: 18px;
+    border-radius: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-home:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-white);
+    transform: translateY(-2px);
+}
+
+.btn-print {
+    background: transparent;
+    color: var(--text-slate);
+    border: 1px dashed var(--glass-border);
+    padding: 15px;
+    border-radius: 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-print:hover {
+    color: var(--cyan);
+    border-color: var(--cyan);
+}
+
+@keyframes iconPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 20px rgba(34, 197, 94, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+}

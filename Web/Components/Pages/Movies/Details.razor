@@ -167,8 +167,9 @@ else
                             {
                                 @foreach (var session in SelectedDaySessions.Sessions)
                                 {
-                                    /* Use form/link to post to existing BookingController */
+                                    /* Use link to the existing BookingController path */
                                     <a href="/Booking/SelectSeats?sessionId=@session.Id" class="session-btn"
+                                        data-enhance-nav="false"
                                         style="text-decoration: none;">
                                         <span class="hall-info">@session.FormatAndHall</span>
                                         <span class="time">@session.Time</span>

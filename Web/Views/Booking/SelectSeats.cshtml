@@ -1,252 +1,248 @@
-﻿@using cnu_cinema_practice.ViewModels
+﻿@*
+@using cnu_cinema_practice.ViewModels
 @using Microsoft.IdentityModel.Tokens
 @model BookingViewModel
 @{
-    ViewData["Title"] = "Select Seats";
+ViewData["Title"] = "Select Seats";
 }
 
 @section css {
-    <link rel="stylesheet" href="~/css/halls.css" />
-    <link rel="stylesheet" href="~/css/seats.css" />
-    <style>
-        .seat.premium {
-            background-color: #00ffd9;
-            border: 2px solid #004dd1;
-            color: #666;
-        }
+<link rel="stylesheet" href="~/css/halls.css" />
+<link rel="stylesheet" href="~/css/seats.css" />
+<style>
+.seat.premium {
+background-color: #00ffd9;
+border: 2px solid #004dd1;
+color: #666;
+}
 
-        .seat.vip {
-            background-color: #ffec3d;
-            border: 2px solid #e3cd05;
-            color: #666;
-        }
+.seat.vip {
+background-color: #ffec3d;
+border: 2px solid #e3cd05;
+color: #666;
+}
 
-        .seat.selected {
-            background-color: #28a745 !important;
-            border: 2px solid #1e7e34 !important;
-            color: white;
-        }
-    </style>
+.seat.selected {
+background-color: #28a745 !important;
+border: 2px solid #1e7e34 !important;
+color: white;
+}
+</style>
 }
 
 <div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="bi bi-film"></i> @Model.Name</h5>
-            </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <img src="@Model.PosterUrl" alt="@Model.Name" class="img-fluid rounded" style="max-height: 200px;">
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Select Showtime:</h6>
-                        <div class="btn-group-vertical w-100" role="group">
-                            @foreach (var showtime in Model.AvailableShowtimes)
-                            {
-                                <a asp-controller="Booking"
-                                   asp-area=""
-                                   asp-action="SelectSeats"
-                                   asp-route-sessionId="@showtime.Id"
-                                   class="btn btn-outline-primary text-start @(showtime.Id == Model.ShowtimeId ? "active" : "")">
-                                    <strong>@showtime.FormattedTime</strong> - @showtime.Hall
-                                </a>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="col-lg-8">
+<div class="card shadow-sm mb-4">
+<div class="card-header bg-dark text-white">
+<h5 class="mb-0"><i class="bi bi-film"></i> @Model.Name</h5>
+</div>
+<div class="card-body">
+<div class="row mb-3">
+<div class="col-md-6">
+<img src="@Model.PosterUrl" alt="@Model.Name" class="img-fluid rounded"
+style="max-height: 200px;">
+</div>
+<div class="col-md-6">
+<h6>Select Showtime:</h6>
+<div class="btn-group-vertical w-100" role="group">
+@foreach (var showtime in Model.AvailableShowtimes)
+{
+<a asp-controller="Booking" asp-area="" asp-action="SelectSeats"
+asp-route-sessionId="@showtime.Id"
+class="btn btn-outline-primary text-start @(showtime.Id == Model.ShowtimeId ? "active" : "")">
+<strong>@showtime.FormattedTime</strong> - @showtime.Hall
+</a>
+}
+</div>
+</div>
+</div>
+</div>
+</div>
 
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-grid-3x3"></i> Select Your Seats</h5>
-            </div>
-            <div class="card-body">
-                <!-- Screen -->
-                <div class="text-center mb-4">
-                    <div class="screen">SCREEN</div>
-                </div>
+<div class="card shadow-sm">
+<div class="card-header bg-primary text-white">
+<h5 class="mb-0"><i class="bi bi-grid-3x3"></i> Select Your Seats</h5>
+</div>
+<div class="card-body">
+<!-- Screen -->
+<div class="text-center mb-4">
+<div class="screen">SCREEN</div>
+</div>
 
-                <!-- Seat Map -->
-                <div class="seat-map">
-                    @{
-                        var rows = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".Substring(0, Model.HallData.Rows).ToCharArray();
-                        string[] seatClasses =
-                        [
-                            "occupied",
-                            "available",
-                            "premium",
-                            "vip",
-                        ];
-                        for (int i = 0; i < Model.HallData.Rows; i++)
-                        {
-                            <div class="seat-row">
-                                <span class="row-label">@rows[i]</span>
-                                @for (int j = 1; j <= Model.HallData.Columns; j++)
-                                {
-                                    var seatId = $"{rows[i]}{j}";
-                                    var seatType = Model.LayoutArray[i, j - 1];
-                                    <div class="seat @seatClasses[seatType]"
-                                         data-seat="@seatId"
-                                         numeric="@($"{i}-{j-1}")"
-                                         added-price="@(Model.addedPrice[seatType])"
-                                         id="@seatId"
-                                         title="Seat @seatId">
-                                        @j
-                                    </div>
-                                }
-                                <span class="row-label">@rows[i]</span>
-                            </div>
-                        }
-                    }
-                </div>
+<!-- Seat Map -->
+<div class="seat-map">
+@{
+var rows = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".Substring(0, Model.HallData.Rows).ToCharArray();
+string[] seatClasses =
 
-                <!-- Legend -->
-                <div class="seat-legend mt-4">
-                    <div class="legend-item">
-                        <div class="seat available"></div>
-                        <span>Available</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="seat premium"></div>
-                        <span>Premium</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="seat vip"></div>
-                        <span>VIP</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="seat selected"></div>
-                        <span>Selected</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="seat occupied"></div>
-                        <span>Occupied</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+[
+"occupied",
+"available",
+"premium",
+"vip",
 
-    <div class="col-lg-4">
-        <div class="card shadow-sm sticky-top" style="top: 20px;">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-cart"></i> Booking Summary</h5>
-            </div>
-            <div class="card-body">
-                <h6>@Model.Name</h6>
-                <p class="text-muted small mb-3">
-                    <i class="bi bi-calendar"></i> @Model.ShowDateTime.ToString("MMM dd, yyyy")<br>
-                    <i class="bi bi-clock"></i> @Model.ShowDateTime.ToString("h:mm tt")<br>
-                    <i class="bi bi-geo-alt"></i> @Model.HallData.Name
-                </p>
+];
+for (int i = 0; i < Model.HallData.Rows; i++)
+{
+<div class="seat-row">
+<span class="row-label">@rows[i]</span>
+@for (int j = 1; j <= Model.HallData.Columns; j++)
+{
+var seatId = $"{rows[i]}{j}";
+var seatType = Model.LayoutArray[i, j - 1];
+<div class="seat @seatClasses[seatType]" data-seat="@seatId" numeric="@($"{i}-{j-1}")"
+added-price="@(Model.addedPrice[seatType])" id="@seatId" title="Seat @seatId">
+@j
+</div>
+}
+<span class="row-label">@rows[i]</span>
+</div>
+}
+}
+</div>
 
-                <hr>
+<!-- Legend -->
+<div class="seat-legend mt-4">
+<div class="legend-item">
+<div class="seat available"></div>
+<span>Available</span>
+</div>
+<div class="legend-item">
+<div class="seat premium"></div>
+<span>Premium</span>
+</div>
+<div class="legend-item">
+<div class="seat vip"></div>
+<span>VIP</span>
+</div>
+<div class="legend-item">
+<div class="seat selected"></div>
+<span>Selected</span>
+</div>
+<div class="legend-item">
+<div class="seat occupied"></div>
+<span>Occupied</span>
+</div>
+</div>
+</div>
+</div>
+</div>
 
-                <div id="selected-seats-container">
-                    <h6>Selected Seats:</h6>
-                    <p id="selected-seats-display" class="text-muted">No seats selected</p>
-                </div>
+<div class="col-lg-4">
+<div class="card shadow-sm sticky-top" style="top: 20px;">
+<div class="card-header bg-success text-white">
+<h5 class="mb-0"><i class="bi bi-cart"></i> Booking Summary</h5>
+</div>
+<div class="card-body">
+<h6>@Model.Name</h6>
+<p class="text-muted small mb-3">
+<i class="bi bi-calendar"></i> @Model.ShowDateTime.ToString("MMM dd, yyyy")<br>
+<i class="bi bi-clock"></i> @Model.ShowDateTime.ToString("h:mm tt")<br>
+<i class="bi bi-geo-alt"></i> @Model.HallData.Name
+</p>
 
-                <hr>
+<hr>
 
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Ticket Price:</span>
-                    <span>@Model.BasePrice.ToString("F2")₴</span>
-                    <br>
-                    <span>Premium Ticket Price:</span>
-                    <span>@((Model.BasePrice + Model.addedPrice[2]).ToString("F2"))₴</span>
-                    <br>
-                    <span>VIP Ticket Price:</span>
-                    <span>@((Model.BasePrice + Model.addedPrice[3]).ToString("F2"))₴</span>
-                </div>
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Quantity:</span>
-                    <span id="ticket-quantity">0</span>
-                </div>
-                <div class="d-flex justify-content-between mb-3">
-                    <strong>Subtotal:</strong>
-                    <strong id="subtotal">0.00₴</strong>
-                </div>
+<div id="selected-seats-container">
+<h6>Selected Seats:</h6>
+<p id="selected-seats-display" class="text-muted">No seats selected</p>
+</div>
 
-                <form asp-area="" 
-                      asp-controller="Booking" 
-                      asp-action="Checkout" 
-                      method="post">
-                    <input type="hidden" name="sessionId" value="@Model.ShowtimeId"/>
-                    <input type="hidden" id="selected-seats-input" name="selectedSeats" value="" />
-                    <input type="hidden" id="selected-seats-numeric-input" name="selectedNumeric" value="" />
-                    <button type="submit" class="btn btn-success w-100" id="proceed-btn" disabled>
-                        Proceed to Checkout
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
+<hr>
+
+<div class="d-flex justify-content-between mb-2">
+<span>Ticket Price:</span>
+<span>@Model.BasePrice.ToString("F2")₴</span>
+<br>
+<span>Premium Ticket Price:</span>
+<span>@((Model.BasePrice + Model.addedPrice[2]).ToString("F2"))₴</span>
+<br>
+<span>VIP Ticket Price:</span>
+<span>@((Model.BasePrice + Model.addedPrice[3]).ToString("F2"))₴</span>
+</div>
+<div class="d-flex justify-content-between mb-2">
+<span>Quantity:</span>
+<span id="ticket-quantity">0</span>
+</div>
+<div class="d-flex justify-content-between mb-3">
+<strong>Subtotal:</strong>
+<strong id="subtotal">0.00₴</strong>
+</div>
+
+<form asp-area="" asp-controller="Booking" asp-action="Checkout" method="post">
+<input type="hidden" name="sessionId" value="@Model.ShowtimeId" />
+<input type="hidden" id="selected-seats-input" name="selectedSeats" value="" />
+<input type="hidden" id="selected-seats-numeric-input" name="selectedNumeric" value="" />
+<button type="submit" class="btn btn-success w-100" id="proceed-btn" disabled>
+Proceed to Checkout
+</button>
+</form>
+</div>
+</div>
+</div>
 </div>
 
 @section Scripts {
-    <script>
-        let False = false
-        let True = true
-        if (@(Model.alertMessage.IsNullOrEmpty() == false)) {
-            alert(@Model.alertMessage)
-        }
-        const ticketPrice = @Model.BasePrice.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        let selectedSeats = [];
-        let selectedSeatsNumeric = [];
-
-        document.querySelectorAll('.seat').forEach(seat => {
-            seat.addEventListener('click', function() {
-                if (this.classList.contains("occupied")) {
-                    return;
-                }
-                const seatId = this.getAttribute('data-seat');
-                const numeric = this.getAttribute("numeric")
-
-                if (this.classList.contains('selected')) {
-                    // Deselect
-                    this.classList.remove('selected');
-                    selectedSeats = selectedSeats.filter(s => s !== seatId);
-                    selectedSeatsNumeric = selectedSeatsNumeric.filter(s => s !== numeric)
-                } else {
-                    // Select
-                    if (selectedSeatsNumeric.length >= 10) {
-                        alert("You cannot book more than 10 seats at a time")
-                        return
-                    }
-                    
-                    selectedSeatsNumeric.push(numeric)
-                    this.classList.add('selected');
-                    selectedSeats.push(seatId);
-                }
-
-                updateSummary();
-            });
-        });
-
-        function updateSummary() {
-            let subtotal = 0
-            let quantity = selectedSeats.length
-            selectedSeats.forEach(numeric => {
-                subtotal += @Model.BasePrice
-                subtotal += parseFloat(document.getElementById(numeric).getAttribute("added-price"))
-            })
-
-            document.getElementById('ticket-quantity').textContent = quantity;
-            document.getElementById('subtotal').textContent = subtotal.toFixed(2) + '₴';
-            document.getElementById('selected-seats-input').value = selectedSeats.join(',');
-            document.getElementById('selected-seats-numeric-input').value = selectedSeatsNumeric.join(',');
-            document.getElementById('proceed-btn').disabled = quantity === 0;
-
-            if (quantity > 0) {
-                selectedSeats.sort();
-                document.getElementById('selected-seats-display').textContent = selectedSeats.join(', ');
-            } else {
-                document.getElementById('selected-seats-display').textContent = 'No seats selected';
-            }
-        }
-    </script>
+<script>
+let False = false
+let True = true
+if (@(Model.alertMessage.IsNullOrEmpty() == false)) {
+alert(@Model.alertMessage)
 }
+const ticketPrice = @Model.BasePrice.ToString(System.Globalization.CultureInfo.InvariantCulture);
+let selectedSeats = [];
+let selectedSeatsNumeric = [];
+
+document.querySelectorAll('.seat').forEach(seat => {
+seat.addEventListener('click', function () {
+if (this.classList.contains("occupied")) {
+return;
+}
+const seatId = this.getAttribute('data-seat');
+const numeric = this.getAttribute("numeric")
+
+if (this.classList.contains('selected')) {
+// Deselect
+this.classList.remove('selected');
+selectedSeats = selectedSeats.filter(s => s !== seatId);
+selectedSeatsNumeric = selectedSeatsNumeric.filter(s => s !== numeric)
+} else {
+// Select
+if (selectedSeatsNumeric.length >= 10) {
+alert("You cannot book more than 10 seats at a time")
+return
+}
+
+selectedSeatsNumeric.push(numeric)
+this.classList.add('selected');
+selectedSeats.push(seatId);
+}
+
+updateSummary();
+});
+});
+
+function updateSummary() {
+let subtotal = 0
+let quantity = selectedSeats.length
+selectedSeats.forEach(numeric => {
+subtotal += @Model.BasePrice
+subtotal += parseFloat(document.getElementById(numeric).getAttribute("added-price"))
+})
+
+document.getElementById('ticket-quantity').textContent = quantity;
+document.getElementById('subtotal').textContent = subtotal.toFixed(2) + '₴';
+document.getElementById('selected-seats-input').value = selectedSeats.join(',');
+document.getElementById('selected-seats-numeric-input').value = selectedSeatsNumeric.join(',');
+document.getElementById('proceed-btn').disabled = quantity === 0;
+
+if (quantity > 0) {
+selectedSeats.sort();
+document.getElementById('selected-seats-display').textContent = selectedSeats.join(', ');
+} else {
+document.getElementById('selected-seats-display').textContent = 'No seats selected';
+}
+}
+</script>
+}
+*@

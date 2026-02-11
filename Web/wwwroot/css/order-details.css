@@ -1,0 +1,203 @@
+@import "checkout.css";
+
+.order-details-container {
+    max-width: 850px;
+    margin: 100px auto 40px;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.order-status-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--glass-border);
+}
+
+.status-paid {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success-green);
+    border-color: rgba(34, 197, 94, 0.2);
+}
+
+.status-pending {
+    background: rgba(251, 191, 36, 0.1);
+    color: var(--premium-gold);
+    border-color: rgba(251, 191, 36, 0.2);
+}
+
+.status-expired,
+.status-cancelled {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Timer Card */
+.timer-card {
+    text-align: center;
+    padding: 30px;
+    background: rgba(251, 191, 36, 0.05);
+    border: 1px dashed var(--premium-gold);
+}
+
+.countdown-timer {
+    font-size: 48px;
+    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--premium-gold);
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+    margin: 15px 0;
+}
+
+/* Movie Card details */
+.order-movie-card {
+    display: flex;
+    gap: 30px;
+}
+
+.movie-poster-large {
+    width: 200px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.order-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    flex: 1;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.info-label {
+    color: var(--text-dark-slate);
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.info-value {
+    color: var(--text-white);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Ticket List (Horizontal) */
+.tickets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.ticket-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    transition: transform 0.3s ease;
+}
+
+.ticket-item:hover {
+    transform: translateX(10px);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ticket-qr-container {
+    background: white;
+    padding: 15px;
+    border-radius: 15px;
+    flex-shrink: 0;
+}
+
+.ticket-qr-container img {
+    width: 350px;
+    height: 350px;
+}
+
+.ticket-info-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    text-align: left;
+    flex: 1;
+}
+
+.ticket-seat-large {
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--cyan);
+    line-height: 1;
+}
+
+.ticket-meta-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.btn-download-pdf {
+    background: var(--cyan);
+    color: var(--bg-dark);
+    font-weight: 800;
+    padding: 15px 30px;
+    border-radius: 15px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-download-pdf:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--cyan-glow);
+    color: var(--bg-dark);
+}
+
+@media (max-width: 600px) {
+    .ticket-item {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+
+    .ticket-info-content {
+        text-align: center;
+    }
+
+    .ticket-qr-container img {
+        width: 100%;
+        max-width: 350px;
+        height: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .order-movie-card {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .order-info-grid {
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+}

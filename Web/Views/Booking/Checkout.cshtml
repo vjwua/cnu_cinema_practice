@@ -1,126 +1,129 @@
-﻿@using cnu_cinema_practice.ViewModels
+﻿@*
+@using cnu_cinema_practice.ViewModels
 @model CheckoutViewModel
 @{
-    ViewData["Title"] = "Checkout";
+ViewData["Title"] = "Checkout";
 }
 
 <div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
-                <h5 class="mb-0"><i class="bi bi-cart-check me-2"></i>Review Order</h5>
-                <span class="badge bg-light text-primary">Step 2 of 3</span>
-            </div>
-            <div class="card-body p-4">
-                <!-- Order Details Section -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <img src="@Model.PosterUrl" alt="@Model.Name" class="img-fluid rounded shadow-sm">
-                    </div>
-                    <div class="col-md-9">
-                        <h4 class="mb-3">@Model.Name</h4>
-                        <div class="mb-2">
-                            <i class="bi bi-calendar-event me-2 text-muted"></i>
-                            <strong>@Model.FormattedShowTime</strong>
-                        </div>
-                        <div class="mb-3">
-                            <i class="bi bi-geo-alt me-2 text-muted"></i>
-                            <span>@Model.Hall</span>
-                        </div>
-                        <div class="mb-4">
-                            <h6 class="text-muted mb-3"><i class="bi bi-grid-3x3-gap me-2"></i>Selected Seats</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm table-borderless">
-                                    <thead class="text-secondary" style="font-size: 0.9rem;">
-                                        <tr>
-                                            <th>Seat</th>
-                                            <th>Type</th>
-                                            <th class="text-end">Price</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var seat in Model.SeatDetails)
-                                        {
-                                            <tr>
-                                                <td class="fw-medium">@seat.SeatNumber</td>
-                                                <td class="text-muted">@seat.Type</td>
-                                                <td class="text-end">@seat.Price.ToString("F2")₴</td>
-                                            </tr>
-                                        }
-                                        <tr class="border-top">
-                                            <td colspan="2" class="fw-bold pt-3">Total (Base + Extras)</td>
-                                            <td class="text-end fw-bold pt-3 text-success">@Model.Total.ToString("F2")₴</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+<div class="col-lg-8">
+<div class="card shadow-sm mb-4">
+<div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
+<h5 class="mb-0"><i class="bi bi-cart-check me-2"></i>Review Order</h5>
+<span class="badge bg-light text-primary">Step 2 of 3</span>
+</div>
+<div class="card-body p-4">
+<!-- Order Details Section -->
+<div class="row mb-4">
+<div class="col-md-3">
+<img src="@Model.PosterUrl" alt="@Model.Name" class="img-fluid rounded shadow-sm">
+</div>
+<div class="col-md-9">
+<h4 class="mb-3">@Model.Name</h4>
+<div class="mb-2">
+<i class="bi bi-calendar-event me-2 text-muted"></i>
+<strong>@Model.FormattedShowTime</strong>
+</div>
+<div class="mb-3">
+<i class="bi bi-geo-alt me-2 text-muted"></i>
+<span>@Model.Hall</span>
+</div>
+<div class="mb-4">
+<h6 class="text-muted mb-3"><i class="bi bi-grid-3x3-gap me-2"></i>Selected Seats</h6>
+<div class="table-responsive">
+<table class="table table-sm table-borderless">
+<thead class="text-secondary" style="font-size: 0.9rem;">
+<tr>
+<th>Seat</th>
+<th>Type</th>
+<th class="text-end">Price</th>
+</tr>
+</thead>
+<tbody>
+@foreach (var seat in Model.SeatDetails)
+{
+<tr>
+<td class="fw-medium">@seat.SeatNumber</td>
+<td class="text-muted">@seat.Type</td>
+<td class="text-end">@seat.Price.ToString("F2")₴</td>
+</tr>
+}
+<tr class="border-top">
+<td colspan="2" class="fw-bold pt-3">Total (Base + Extras)</td>
+<td class="text-end fw-bold pt-3 text-success">@Model.Total.ToString("F2")₴
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 
-                    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        Please review your selected seats and total price before proceeding to payment.
-                    </div>
-                    </div>
-                </div>
+<div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+<i class="bi bi-info-circle-fill me-2"></i>
+Please review your selected seats and total price before proceeding to payment.
+</div>
+</div>
+</div>
 
-                <hr class="my-4">
+<hr class="my-4">
 
-                <form asp-area="" asp-controller="Booking" asp-action="ConfirmBooking" method="post" id="checkout-form">
-                    <input type="hidden" asp-for="Id" />
-                    <input type="hidden" asp-for="Name" />
-                    <input type="hidden" asp-for="PosterUrl" />
-                    <input type="hidden" asp-for="ShowDateTime" />
-                    <input type="hidden" asp-for="Hall" />
+<form asp-area="" asp-controller="Booking" asp-action="ConfirmBooking" method="post" id="checkout-form">
+<input type="hidden" asp-for="Id" />
+<input type="hidden" asp-for="Name" />
+<input type="hidden" asp-for="PosterUrl" />
+<input type="hidden" asp-for="ShowDateTime" />
+<input type="hidden" asp-for="Hall" />
 
-                    @for (int i = 0; i < Model.SelectedSeats.Count; i++)
-                    {
-                        <input type="hidden" name="SelectedSeats[@i]" value="@Model.SelectedSeats[i]" />
-                    }
+@for (int i = 0; i < Model.SelectedSeats.Count; i++)
+{
+<input type="hidden" name="SelectedSeats[@i]" value="@Model.SelectedSeats[i]" />
+}
 
-                    @for (int i = 0; i < Model.ReservationIds.Count; i++)
-                    {
-                        <input type="hidden" name="ReservationIds[@i]" value="@Model.ReservationIds[i]" />
-                    }
+@for (int i = 0; i < Model.ReservationIds.Count; i++)
+{
+<input type="hidden" name="ReservationIds[@i]" value="@Model.ReservationIds[i]" />
+}
 
 
 
-                    <button type="submit" class="btn btn-success btn-lg w-100 shadow-sm">
-                        <i class="bi bi-credit-card-2-front me-2"></i>Proceed to Payment
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
+<button type="submit" class="btn btn-success btn-lg w-100 shadow-sm">
+<i class="bi bi-credit-card-2-front me-2"></i>Proceed to Payment
+</button>
+</form>
+</div>
+</div>
+</div>
 </div>
 
 <!-- Terms Modal -->
 <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <h6>Booking Terms</h6>
-                <p>By proceeding with this booking, you agree to the following terms:</p>
-                <ul>
-                    <li>All ticket sales are final and non-refundable</li>
-                    <li>You must arrive at least 15 minutes before the showtime</li>
-                    <li>Outside food and beverages are not permitted</li>
-                    <li>The cinema is not responsible for lost or stolen tickets</li>
-                    <li>Prices are subject to change without notice</li>
-                </ul>
-                
-                <h6>Privacy Policy</h6>
-                <p>We protect your personal information and use it only for ticketing purposes.</p>
-                
-                <h6>Cancellation Policy</h6>
-                <p>In case of show cancellation, refunds will be processed automatically.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
+<div class="modal-body">
+<h6>Booking Terms</h6>
+<p>By proceeding with this booking, you agree to the following terms:</p>
+<ul>
+<li>All ticket sales are final and non-refundable</li>
+<li>You must arrive at least 15 minutes before the showtime</li>
+<li>Outside food and beverages are not permitted</li>
+<li>The cinema is not responsible for lost or stolen tickets</li>
+<li>Prices are subject to change without notice</li>
+</ul>
+
+<h6>Privacy Policy</h6>
+<p>We protect your personal information and use it only for ticketing purposes.</p>
+
+<h6>Cancellation Policy</h6>
+<p>In case of show cancellation, refunds will be processed automatically.</p>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+</div>
+</div>
+</div>
+</div>
+*@

@@ -1,0 +1,280 @@
+@using cnu_cinema_practice.ViewModels
+@using cnu_cinema_practice.Web.Helpers
+@using cnu_cinema_practice.Components.Layout
+@using Core.Interfaces.Services
+@using Core.Entities
+@using Core.DTOs.Seats
+@using Core.DTOs.Sessions
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+@layout BookingLayout
+@rendermode RenderMode.InteractiveServer
+
+<HeadContent>
+    <link rel="stylesheet" href="css/select-seats.css" />
+</HeadContent>
+
+<div class="bg-ambience"></div>
+
+@if (Model == null)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="spinner-border text-cyan" role="status">
+            <span class="visually-hidden">Завантаження...</span>
+        </div>
+    </div>
+}
+else
+{
+    <main class="select-seats-container animate-fade-in">
+        <div class="hall-section">
+            <div class="back-nav">
+                <a href="@($"/movies/{(int)Model.Id}-{SlugHelper.GenerateSlug(Model.Name)}")" class="back-link">
+                    <span>←</span> ПОВЕРНУТИСЬ ДО ОПИСУ
+                </a>
+            </div>
+
+            <div class="screen-container">
+                <div class="screen"></div>
+                <div class="screen-label">ЕКРАН</div>
+            </div>
+
+            <div class="hall-layout">
+                <div class="seats-grid">
+                    @for (int i = 0; i < Model.HallData.Rows; i++)
+                    {
+                        var rowIdx = i;
+                        var rowLetter = GetRowLetter(rowIdx);
+                        <div class="seat-row">
+                            <span class="row-label">@rowLetter</span>
+                            @for (int j = 1; j <= Model.HallData.Columns; j++)
+                            {
+                                var colIdx = j - 1;
+                                var localRow = rowIdx;
+                                var localCol = colIdx;
+
+                                <div class="seat @GetSeatCssClass(localRow, localCol)"
+                                @onclick="() => ToggleSeat(localRow, localCol)"
+                                    title="@($"Ряд {rowLetter}, Місце {j} ({(Model.LayoutArray[localRow][localCol] == 2 ? "Premium" : (Model.LayoutArray[localRow][localCol] == 3 ? "VIP" : "Standard"))})")">
+                                    @j
+                                </div>
+                            }
+                            <span class="row-label">@rowLetter</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box available"></div>
+                    <span>Вільне</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box selected"></div>
+                    <span>Ваш вибір</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box occupied"></div>
+                    <span>Зайняте</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box premium"></div>
+                    <span>Premium</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box vip"></div>
+                    <span>VIP</span>
+                </div>
+            </div>
+        </div>
+
+        <aside class="booking-sidebar">
+            <div class="glass-card">
+                <div class="movie-mini-info">
+                    <img src="@Model.PosterUrl" alt="@Model.Name" class="mini-poster" />
+                    <div class="mini-details">
+                        <h2 class="mini-title">@Model.Name</h2>
+                        <div class="mini-meta">
+                            <span>@Model.ShowDateTime.ToString("dd MMMM, HH:mm")</span>
+                            <span class="mx-2">•</span>
+                            <span>@Model.HallData.Name</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <span class="section-label">ОБРАНІ МІСЦЯ</span>
+                    <div class="selected-seats-list">
+                        @if (!SelectedSeats.Any())
+                        {
+                            <span class="text-slate italic" style="font-size: 13px;">Місця не обрано</span>
+                        }
+                        else
+                        {
+                            @foreach (var seat in SelectedSeats.OrderBy(s => s.Row).ThenBy(s => s.Col))
+                            {
+                                <div class="seat-tag">
+                                    @GetRowLetter(seat.Row)@(seat.Col + 1)
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <span class="section-label">ВАРТІСТЬ</span>
+                    @if (SelectedSeats.Any() && Model?.LayoutArray != null && Model?.addedPrice != null)
+                    {
+                        var grouped = SelectedSeats
+                        .Where(s => s.Row < Model.LayoutArray.Length && s.Col < Model.LayoutArray[s.Row].Length)
+                        .GroupBy(s => Model.LayoutArray[s.Row][s.Col])
+                        .OrderBy(g => g.Key)
+                        .Select(g => new
+                        {
+                            TypeId = g.Key,
+                            Count = g.Count(),
+                            Price = Model.BasePrice + (g.Key < Model.addedPrice.Length ? Model.addedPrice[g.Key] : 0),
+                            Name = GetTypeName(g.Key)
+                        });
+
+                        @foreach (var item in grouped)
+                        {
+                            <div class="price-row">
+                                <span class="price-label">@item.Name (@item.Count x @item.Price.ToString("0") ₴)</span>
+                                <span class="price-value">@((item.Price * item.Count).ToString("F2")) ₴</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="price-row">
+                            <span class="price-label">Квитки (0)</span>
+                            <span class="price-value">0.00 ₴</span>
+                        </div>
+                    }
+
+                    <div class="price-row total-row">
+                        <span class="price-label" style="font-weight: 800;">РАЗОМ</span>
+                        <span class="total-value">@TicketsTotal.ToString("F2") ₴</span>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.alertMessage))
+                {
+                    <div class="alert alert-danger py-2 px-3 mb-3"
+                        style="font-size: 12px; border-radius: 12px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">
+                        @Model.alertMessage
+                    </div>
+                }
+
+                <button @onclick="ProceedToCheckout" class="btn-proceed" disabled="@(!SelectedSeats.Any())">
+                    ПЕРЕЙТИ ДО ОПЛАТИ
+                </button>
+            </div>
+        </aside>
+    </main>
+}
+
+@code {
+    [Parameter] public BookingViewModel Model { get; set; }
+
+    private string AlertMessage = "";
+    private List<(int Row, int Col)> SelectedSeats = new();
+
+    private string GetRowLetter(int rowNum) => ((char)('A' + rowNum)).ToString();
+
+    private string GetTypeName(int typeId) => typeId switch
+    {
+        1 => "Standard",
+        2 => "Premium",
+        3 => "VIP",
+        _ => "Standard"
+    };
+
+    private bool IsSeatOccupied(int row, int col)
+    {
+        // LayoutArray 0 = occupied, 1 = available, 2 = premium, 3 = vip
+        return Model.LayoutArray[row][col] == 0;
+    }
+
+    private string GetSeatCssClass(int row, int col)
+    {
+        if (IsSeatOccupied(row, col)) return "occupied";
+
+        var type = Model.LayoutArray[row][col];
+        var classes = type switch
+        {
+            2 => "premium",
+            3 => "vip",
+            _ => "available"
+        };
+
+        if (SelectedSeats.Contains((row, col))) classes += " selected";
+
+        return classes;
+    }
+
+    private bool GetSeatState(int row, int col) => SelectedSeats.Contains((row, col));
+
+    private void ToggleSeat(int row, int col)
+    {
+        if (IsSeatOccupied(row, col)) return;
+
+        var seat = (row, col);
+        if (SelectedSeats.Contains(seat))
+        {
+            SelectedSeats.Remove(seat);
+        }
+        else
+        {
+            if (SelectedSeats.Count >= 10)
+            {
+                // We could use JS to show this alert if it's a dummy component
+                return;
+            }
+            SelectedSeats.Add(seat);
+        }
+    }
+
+    private decimal TicketsTotal
+    {
+        get
+        {
+            if (Model?.addedPrice == null || Model?.LayoutArray == null) return 0;
+            decimal total = 0;
+            foreach (var seat in SelectedSeats)
+            {
+                if (seat.Row < Model.LayoutArray.Length && seat.Col < Model.LayoutArray[seat.Row].Length)
+                {
+                    var typeId = Model.LayoutArray[seat.Row][seat.Col];
+                    if (typeId < Model.addedPrice.Length)
+                    {
+                        total += Model.BasePrice + Model.addedPrice[typeId];
+                    }
+                }
+            }
+            return total;
+        }
+    }
+
+    private string GetSelectedSeatsString()
+    {
+        return string.Join(",", SelectedSeats.Select(s => $"{GetRowLetter(s.Row)}{s.Col + 1}"));
+    }
+
+    private string GetSelectedNumericString()
+    {
+        return string.Join(",", SelectedSeats.Select(s => $"{s.Row}-{s.Col}"));
+    }
+
+    private void ProceedToCheckout()
+    {
+        if (!SelectedSeats.Any()) return;
+
+        var url =
+        $"/Booking/ResumeCheckout?sessionId={Model.ShowtimeId}&selectedSeats={GetSelectedSeatsString()}&selectedNumeric={GetSelectedNumericString()}";
+        NavigationManager.NavigateTo(url);
+    }
+}

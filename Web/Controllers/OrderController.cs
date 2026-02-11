@@ -5,16 +5,20 @@ using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http.HttpResults;
+
 namespace cnu_cinema_practice.Controllers;
 
 [Authorize]
 public class OrderController(
-    ITicketService ticketService, 
+    ITicketService ticketService,
     IOrderService orderService,
-    IMapper mapper) : Controller
+    IMapper mapper,
+    ILogger<OrderController> logger) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> Details(int id)
+    public async Task<IResult> Details(int id)
     {
         try
         {
@@ -23,7 +27,7 @@ public class OrderController(
             if (orderDto == null)
             {
                 TempData["Error"] = "Order not found.";
-                return RedirectToAction("Index", "Home");
+                return Results.Redirect(Url.Action("Index", "Home", new { area = "" })!);
             }
 
             var parsedOrderStatus = Enum.Parse<OrderStatus>(orderDto.Status);
@@ -47,18 +51,16 @@ public class OrderController(
                     : DateTime.SpecifyKind(viewModel.CreatedAt, DateTimeKind.Utc);
 
                 var expirationTime = createdAtUtc.AddMinutes(15);
-                ViewBag.ExpiresAt = expirationTime;
-                ViewBag.IsExpired = DateTime.UtcNow > expirationTime;
+                viewModel.ExpiresAt = expirationTime;
             }
 
-            ViewBag.SuccessMessage = TempData["Success"];
-
-            return View(viewModel);
+            return new RazorComponentResult<cnu_cinema_practice.Components.Pages.Order.OrderDetails>(new { Model = viewModel });
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex)
         {
+            logger.LogError(ex, "Error loading order details for ID {OrderId}", id);
             TempData["Error"] = $"Error loading order details: {ex.Message}";
-            return RedirectToAction("Index", "Home");
+            return Results.Redirect(Url.Action("Index", "Home", new { area = "" })!);
         }
     }
 
@@ -76,7 +78,7 @@ public class OrderController(
             return RedirectToAction("Details", new { id = orderId });
         }
     }
-    
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CancelOrder(int id)

@@ -1,0 +1,262 @@
+@using cnu_cinema_practice.ViewModels.Account
+@using Core.Enums
+@using Microsoft.AspNetCore.Components.Authorization
+@using cnu_cinema_practice.Components.Layout
+@layout BookingLayout
+@rendermode RenderMode.InteractiveServer
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<HeadContent>
+    <link rel="stylesheet" href="/css/order-details.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+</HeadContent>
+
+<div class="bg-ambience"></div>
+
+<div class="order-details-container animate-fade-up">
+    <!-- Header with Breadcrumbs/Back -->
+    <div class="flex justify-between items-center">
+        <a href="/Profile" class="back-link">
+            <i class="bi bi-person-circle me-2"></i> Мій профіль
+        </a>
+        <div class="step-badge">Деталі замовлення</div>
+    </div>
+
+    <!-- Status Banner -->
+    <div class="order-status-banner @GetStatusClass()">
+        <div class="flex items-center gap-3">
+            <i class="@GetStatusIcon()"></i>
+            <span>Статус: @Model.Status</span>
+        </div>
+        <div>#@Model.Id</div>
+    </div>
+
+    <!-- Main Info Card -->
+    <div class="glass-card">
+        <div class="order-movie-card">
+            @if (!string.IsNullOrEmpty(Model.MoviePosterUrl))
+            {
+                <img src="@Model.MoviePosterUrl" alt="@Model.MovieName" class="movie-poster-large" />
+            }
+
+            <div class="order-info-grid">
+                <div class="info-item col-span-2">
+                    <div class="info-label">Фільм</div>
+                    <div class="info-value text-2xl">@Model.MovieName</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Дата сеансу</div>
+                    <div class="info-value">@Model.SessionStartTime.ToString("dd MMMM yyyy")</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Час</div>
+                    <div class="info-value">@Model.SessionStartTime.ToString("HH:mm")</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Зал</div>
+                    <div class="info-value">@Model.HallName</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Кількість квитків</div>
+                    <div class="info-value">@Model.Tickets.Count</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Дата замовлення</div>
+                    <div class="info-value">@Model.CreatedAt.ToString("g")</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Разом до сплати</div>
+                    <div class="info-value text-cyan text-xl">@Model.TotalAmount.ToString("F2") ₴</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Status == OrderStatus.Pending)
+    {
+        <!-- Pending Section -->
+        <div class="glass-card timer-card">
+            @if (IsExpired)
+            {
+                <div class="text-danger flex flex-col items-center gap-3 py-4">
+                    <i class="bi bi-exclamation-triangle-fill text-4xl"></i>
+                    <h3 class="font-bold">Термін оплати вичерпано</h3>
+                    <p class="text-slate opacity-70">Ці місця були вивільнені. Будь ласка, створіть нове замовлення.</p>
+                    <a href="/" class="btn-download-pdf mt-4" style="background: rgba(255,255,255,0.1); color: white;">На
+                        головну</a>
+                </div>
+            }
+            else
+            {
+                <div class="text-slate mb-2 uppercase font-bold text-xs tracking-widest">Очікуємо оплату протягом</div>
+                <div class="countdown-timer">@TimeLeftString</div>
+                <p class="text-slate opacity-60 text-sm mb-6">Ваші місця заброньовані. Оплатіть їх, поки таймер не вичерпався.
+                </p>
+                <a href="/Payment?orderId=@Model.Id" class="btn-confirm">
+                    <i class="bi bi-credit-card me-2"></i> Оплатити зараз
+                </a>
+            }
+        </div>
+    }
+    else if (Model.Status == OrderStatus.Paid)
+    {
+        <!-- Paid Section -->
+        <div class="glass-card">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold flex items-center gap-3">
+                    <i class="bi bi-ticket-detailed text-cyan"></i> Ваші квитки
+                </h3>
+                <a href="/Order/TicketsPdf?orderId=@Model.Id" class="btn-download-pdf">
+                    <i class="bi bi-file-pdf"></i> Завантажити PDF
+                </a>
+            </div>
+
+            <div class="tickets-list">
+                @foreach (var ticket in Model.Tickets)
+                {
+                    <div class="ticket-item">
+                        @if (!string.IsNullOrEmpty(ticket.QrCode))
+                        {
+                            <div class="ticket-qr-container">
+                                <img src="data:image/png;base64,@ticket.QrCode" alt="Ticket QR" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="ticket-qr-container"
+                                style="background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; width: 380px; height: 380px;">
+                                <i class="bi bi-qr-code text-6xl opacity-20"></i>
+                            </div>
+                        }
+
+                        <div class="ticket-info-content">
+                            <div>
+                                <div class="info-label">Обране місце</div>
+                                <div class="ticket-seat-large">Ряд @ticket.RowNum, Місце @ticket.SeatNum</div>
+                            </div>
+
+                            <div class="ticket-meta-info">
+                                <div class="info-item">
+                                    <div class="info-label">Тип квитка</div>
+                                    <div class="info-value">@ticket.SeatTypeName</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Вартість</div>
+                                    <div class="info-value">@ticket.Price.ToString("F2") ₴</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Номер квитка</div>
+                                    <div class="info-value">#@ticket.Id</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">ID Замовлення</div>
+                                    <div class="info-value">#@Model.Id</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="info-alert">
+            <i class="bi bi-info-circle"></i>
+            <div>
+                Квитки також були надіслані на вашу електронну адресу. Ви можете пред'явити QR-код на вході до залу
+                безпосередньо з екрана телефону.
+            </div>
+        </div>
+    }
+    else if (Model.Status == OrderStatus.Expired || Model.Status == OrderStatus.Cancelled)
+    {
+        <div class="glass-card text-center py-12">
+            <i class="bi bi-x-circle text-6xl text-danger mb-4 opacity-50"></i>
+            <h2 class="text-2xl font-bold mb-4">
+                @(Model.Status == OrderStatus.Expired ? "Замовлення анульовано" : "Замовлення скасовано")
+            </h2>
+            <p class="text-slate opacity-70 mb-8 max-w-md mx-auto">
+                @(Model.Status == OrderStatus.Expired
+                    ? "Час на оплату вичерпано. Місця знову доступні для бронювання іншими глядачами."
+                    : "Це замовлення було скасовано за вашим запитом або адміністратором.")
+            </p>
+            <a href="/" class="btn-download-pdf" style="background: rgba(255,255,255,0.1); color: white;">
+                <i class="bi bi-arrow-left"></i> Повернутися до афіші
+            </a>
+        </div>
+    }
+
+</div>
+
+@code {
+    [Parameter] public int OrderId { get; set; }
+    [Parameter] public OrderViewModel Model { get; set; } = new();
+
+    private System.Threading.Timer? _timer;
+    private TimeSpan _timeLeft;
+    private string TimeLeftString => $"{_timeLeft.Minutes:D2}:{_timeLeft.Seconds:D2}";
+    private bool IsExpired => _timeLeft.TotalSeconds <= 0;
+
+    protected override void OnInitialized()
+    {
+        if (Model.Status == OrderStatus.Pending && Model.ExpiresAt.HasValue)
+        {
+            CalculateTimeLeft();
+            if (!IsExpired)
+            {
+                _timer = new System.Threading.Timer(_ =>
+                {
+                    InvokeAsync(() =>
+    {
+    CalculateTimeLeft();
+    if (IsExpired)
+    {
+        _timer?.Dispose();
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+    StateHasChanged();
+                    });
+                }, null, 1000, 1000);
+            }
+        }
+    }
+
+    private void CalculateTimeLeft()
+    {
+        if (Model.ExpiresAt.HasValue)
+        {
+            var now = DateTime.UtcNow;
+            _timeLeft = Model.ExpiresAt.Value - now;
+            if (_timeLeft.TotalSeconds < 0) _timeLeft = TimeSpan.Zero;
+        }
+    }
+
+    private string GetStatusClass() => Model.Status switch
+    {
+        OrderStatus.Paid => "status-paid",
+        OrderStatus.Pending => "status-pending",
+        OrderStatus.Expired => "status-expired",
+        OrderStatus.Cancelled => "status-cancelled",
+        _ => ""
+    };
+
+    private string GetStatusIcon() => Model.Status switch
+    {
+        OrderStatus.Paid => "bi bi-check-circle-fill",
+        OrderStatus.Pending => "bi bi-clock-history",
+        OrderStatus.Expired => "bi bi-exclamation-triangle",
+        OrderStatus.Cancelled => "bi bi-dash-circle",
+        _ => "bi bi-info-circle"
+    };
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

@@ -16,9 +16,9 @@ namespace cnu_cinema_practice.ViewModels
         public decimal BasePrice { get; set; }
         public List<ShowtimeOption> AvailableShowtimes { get; set; }
         public IEnumerable<SeatDTO> SeatLayout { get; set; }
-        public byte[, ] LayoutArray { get; set; }
-        public string alertMessage = "";
-        public decimal[] addedPrice;
+        public byte[][] LayoutArray { get; set; }
+        public string alertMessage { get; set; } = "";
+        public decimal[] addedPrice { get; set; }
     }
 
     public class ShowtimeOption

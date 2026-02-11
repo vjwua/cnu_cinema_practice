@@ -1,211 +1,215 @@
+@*
 @using cnu_cinema_practice.ViewModels
 @using Core.Enums
 @model PaymentViewModel
 @{
-    ViewData["Title"] = "Payment";
+ViewData["Title"] = "Payment";
 }
 
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0"><i class="bi bi-credit-card me-2"></i>Payment Details</h5>
-                    <span class="badge bg-light text-success">Step 3 of 3</span>
-                </div>
-                <div class="card-body p-4">
-                    
-                    <div class="text-center mb-4 pb-3 border-bottom">
-                        <h6 class="text-muted text-uppercase small">Total to Pay</h6>
-                        <h2 class="text-success fw-bold display-4">@Model.TotalAmount.ToString("F2")₴</h2>
-                    </div>
+<div class="row justify-content-center">
+<div class="col-lg-6">
+<div class="card shadow-sm">
+<div class="card-header bg-success text-white d-flex align-items-center justify-content-between">
+<h5 class="mb-0"><i class="bi bi-credit-card me-2"></i>Payment Details</h5>
+<span class="badge bg-light text-success">Step 3 of 3</span>
+</div>
+<div class="card-body p-4">
 
-                    <form asp-area="" asp-controller="Payment" asp-action="ProcessPayment" method="post" id="payment-form">
-                        <input type="hidden" asp-for="OrderId" />
-                        <input type="hidden" asp-for="TotalAmount" />
+<div class="text-center mb-4 pb-3 border-bottom">
+<h6 class="text-muted text-uppercase small">Total to Pay</h6>
+<h2 class="text-success fw-bold display-4">@Model.TotalAmount.ToString("F2")₴</h2>
+</div>
 
-                        @if (!ViewData.ModelState.IsValid)
-                        {
-                            <div asp-validation-summary="All" class="alert alert-danger mb-4" role="alert"></div>
-                        }
+<form asp-area="" asp-controller="Payment" asp-action="ProcessPayment" method="post" id="payment-form">
+<input type="hidden" asp-for="OrderId" />
+<input type="hidden" asp-for="TotalAmount" />
 
-                        <!-- Payment Method Selection -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Select Payment Method</label>
-                            <div class="row g-2">
-                                @foreach (var method in Model.AvailablePaymentMethods)
-                                {
-                                    <div class="col-6">
-                                        <div class="form-check border rounded p-3 cursor-pointer hover-shadow transition-all">
-                                            <input class="form-check-input" type="radio" name="SelectedPaymentMethod" 
-                                                   id="payment_@method" value="@((int)method)" required
-                                                   @(Model.SelectedPaymentMethod == method ? "checked" : "") style="cursor: pointer;">
-                                            <label class="form-check-label w-100 ps-2" for="payment_@method" style="cursor: pointer;">
-                                                <i class="bi @(GetPaymentIcon(method)) me-2"></i>@GetPaymentDisplayName(method)
-                                            </label>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
+@if (!ViewData.ModelState.IsValid)
+{
+<div asp-validation-summary="All" class="alert alert-danger mb-4" role="alert"></div>
+}
 
-                        <!-- Card Details (shown when Card is selected) -->
-                        <div id="card-details" class="@(Model.SelectedPaymentMethod == PaymentMethod.Card ? "" : "d-none") bg-light p-3 rounded mb-4">
-                            <h6 class="mb-3 border-bottom pb-2">Enter Card Information</h6>
+<!-- Payment Method Selection -->
+<div class="mb-4">
+<label class="form-label fw-bold">Select Payment Method</label>
+<div class="row g-2">
+@foreach (var method in Model.AvailablePaymentMethods)
+{
+<div class="col-6">
+<div class="form-check border rounded p-3 cursor-pointer hover-shadow transition-all">
+<input class="form-check-input" type="radio" name="SelectedPaymentMethod"
+id="payment_@method" value="@((int)method)" required
+@(Model.SelectedPaymentMethod == method ? "checked" : "") style="cursor: pointer;">
+<label class="form-check-label w-100 ps-2" for="payment_@method" style="cursor: pointer;">
+<i class="bi @(GetPaymentIcon(method)) me-2"></i>@GetPaymentDisplayName(method)
+</label>
+</div>
+</div>
+}
+</div>
+</div>
 
-                            <div class="mb-3">
-                                <label asp-for="CardNumber" class="form-label">Card Number *</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="bi bi-credit-card"></i></span>
-                                    <input asp-for="CardNumber" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" />
-                                </div>
-                                <span asp-validation-for="CardNumber" class="text-danger"></span>
-                            </div>
+<!-- Card Details (shown when Card is selected) -->
+<div id="card-details" class="@(Model.SelectedPaymentMethod == PaymentMethod.Card ? "" : "d-none") bg-light p-3 rounded
+mb-4">
+<h6 class="mb-3 border-bottom pb-2">Enter Card Information</h6>
 
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label asp-for="ExpiryDate" class="form-label">Expiry Date *</label>
-                                    <input asp-for="ExpiryDate" class="form-control" placeholder="MM/YY" maxlength="5" />
-                                    <span asp-validation-for="ExpiryDate" class="text-danger"></span>
-                                </div>
-                                <div class="col-md-6">
-                                    <label asp-for="Cvv" class="form-label">CVV *</label>
-                                    <input asp-for="Cvv" class="form-control" placeholder="123" maxlength="4" />
-                                    <span asp-validation-for="Cvv" class="text-danger"></span>
-                                </div>
-                            </div>
+<div class="mb-3">
+<label asp-for="CardNumber" class="form-label">Card Number *</label>
+<div class="input-group">
+<span class="input-group-text bg-white"><i class="bi bi-credit-card"></i></span>
+<input asp-for="CardNumber" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" />
+</div>
+<span asp-validation-for="CardNumber" class="text-danger"></span>
+</div>
 
-                            <div class="mb-0">
-                                <label asp-for="CardholderName" class="form-label">Cardholder Name *</label>
-                                <input asp-for="CardholderName" class="form-control" placeholder="Name on Card" />
-                                <span asp-validation-for="CardholderName" class="text-danger"></span>
-                            </div>
-                        </div>
+<div class="row mb-3">
+<div class="col-md-6">
+<label asp-for="ExpiryDate" class="form-label">Expiry Date *</label>
+<input asp-for="ExpiryDate" class="form-control" placeholder="MM/YY" maxlength="5" />
+<span asp-validation-for="ExpiryDate" class="text-danger"></span>
+</div>
+<div class="col-md-6">
+<label asp-for="Cvv" class="form-label">CVV *</label>
+<input asp-for="Cvv" class="form-control" placeholder="123" maxlength="4" />
+<span asp-validation-for="Cvv" class="text-danger"></span>
+</div>
+</div>
 
-                        <!-- Terms and Conditions -->
-                        <div class="form-check mb-4">
-                            <input asp-for="AgreeToTerms" class="form-check-input" type="checkbox" required>
-                            <label asp-for="AgreeToTerms" class="form-check-label">
-                                I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal" class="text-decoration-none">terms and conditions</a>
-                            </label>
-                            <span asp-validation-for="AgreeToTerms" class="text-danger"></span>
-                        </div>
+<div class="mb-0">
+<label asp-for="CardholderName" class="form-label">Cardholder Name *</label>
+<input asp-for="CardholderName" class="form-control" placeholder="Name on Card" />
+<span asp-validation-for="CardholderName" class="text-danger"></span>
+</div>
+</div>
 
-                        <!-- Submit Button -->
-                        <button type="submit" class="btn btn-success btn-lg w-100 py-3 shadow-sm" id="submit-btn" style="transition: all 0.2s;">
-                            <i class="bi bi-lock-fill me-2"></i> Pay @Model.TotalAmount.ToString("F2")₴
-                        </button>
+<!-- Terms and Conditions -->
+<div class="form-check mb-4">
+<input asp-for="AgreeToTerms" class="form-check-input" type="checkbox" required>
+<label asp-for="AgreeToTerms" class="form-check-label">
+I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal" class="text-decoration-none">terms and
+conditions</a>
+</label>
+<span asp-validation-for="AgreeToTerms" class="text-danger"></span>
+</div>
 
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- Submit Button -->
+<button type="submit" class="btn btn-success btn-lg w-100 py-3 shadow-sm" id="submit-btn" style="transition: all 0.2s;">
+<i class="bi bi-lock-fill me-2"></i> Pay @Model.TotalAmount.ToString("F2")₴
+</button>
+
+</form>
+</div>
+</div>
+</div>
+</div>
 </div>
 
 <!-- Terms Modal -->
 <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <h6>Payment Terms</h6>
-                <p>By proceeding with this payment, you agree to the following terms:</p>
-                <ul>
-                    <li>All ticket sales are final and non-refundable</li>
-                    <li>You must arrive at least 15 minutes before the showtime</li>
-                    <li>Outside food and beverages are not permitted</li>
-                    <li>The cinema is not responsible for lost or stolen tickets</li>
-                    <li>Prices are subject to change without notice</li>
-                </ul>
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+<h6>Payment Terms</h6>
+<p>By proceeding with this payment, you agree to the following terms:</p>
+<ul>
+<li>All ticket sales are final and non-refundable</li>
+<li>You must arrive at least 15 minutes before the showtime</li>
+<li>Outside food and beverages are not permitted</li>
+<li>The cinema is not responsible for lost or stolen tickets</li>
+<li>Prices are subject to change without notice</li>
+</ul>
 
-                <h6>Privacy Policy</h6>
-                <p>We protect your personal information and use it only for ticketing purposes.</p>
+<h6>Privacy Policy</h6>
+<p>We protect your personal information and use it only for ticketing purposes.</p>
 
-                <h6>Cancellation Policy</h6>
-                <p>In case of show cancellation, refunds will be processed automatically.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
+<h6>Cancellation Policy</h6>
+<p>In case of show cancellation, refunds will be processed automatically.</p>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+</div>
+</div>
+</div>
 </div>
 
 @section Scripts {
-    <script>
-        $(document).ready(function () {
-            // Handle payment method selection
-            $('input[name="SelectedPaymentMethod"]').change(function () {
-                const selectedValue = $(this).val();
-                // Compare with integer value (Card is 1)
-                if (selectedValue === '@((int)PaymentMethod.Card)') {
-                    $('#card-details').removeClass('d-none');
-                } else {
-                    $('#card-details').addClass('d-none');
-                }
-            });
+<script>
+$(document).ready(function () {
+// Handle payment method selection
+$('input[name="SelectedPaymentMethod"]').change(function () {
+const selectedValue = $(this).val();
+// Compare with integer value (Card is 1)
+if (selectedValue === '@((int)PaymentMethod.Card)') {
+$('#card-details').removeClass('d-none');
+} else {
+$('#card-details').addClass('d-none');
+}
+});
 
-            // Handle form submission
-            $('#payment-form').submit(function (e) {
-                // Disable submit button and show spinner
-                $('#submit-btn').prop('disabled', true);
-                $('#submit-btn').html('<span class="spinner-border spinner-border-sm me-2"></span>Processing...');
+// Handle form submission
+$('#payment-form').submit(function (e) {
+// Disable submit button and show spinner
+$('#submit-btn').prop('disabled', true);
+$('#submit-btn').html('<span class="spinner-border spinner-border-sm me-2"></span>Processing...');
 
-                // Form will submit normally
-            });
+// Form will submit normally
+});
 
-            // Format card number input
-            $('#CardNumber').on('input', function () {
-                let value = $(this).val().replace(/\s/g, '');
-                let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-                $(this).val(formattedValue);
-            });
+// Format card number input
+$('#CardNumber').on('input', function () {
+let value = $(this).val().replace(/\s/g, '');
+let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+$(this).val(formattedValue);
+});
 
-            // Format expiry date input
-            $('#ExpiryDate').on('input', function () {
-                let value = $(this).val().replace(/\D/g, '');
-                if (value.length >= 2) {
-                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
-                }
-                $(this).val(value);
-            });
+// Format expiry date input
+$('#ExpiryDate').on('input', function () {
+let value = $(this).val().replace(/\D/g, '');
+if (value.length >= 2) {
+value = value.substring(0, 2) + '/' + value.substring(2, 4);
+}
+$(this).val(value);
+});
 
-            // Only allow numbers for CVV
-            $('#Cvv').on('input', function () {
-                $(this).val($(this).val().replace(/\D/g, ''));
-            });
-        });
-    </script>
+// Only allow numbers for CVV
+$('#Cvv').on('input', function () {
+$(this).val($(this).val().replace(/\D/g, ''));
+});
+});
+</script>
 }
 
 @functions {
 
-    private static string GetPaymentIcon(PaymentMethod method)
-    {
-        return method switch
-        {
-            PaymentMethod.Card => "bi-credit-card",
-            PaymentMethod.Cash => "bi-cash",
-            PaymentMethod.ApplePay => "bi-apple",
-            PaymentMethod.GooglePay => "bi-google",
-            _ => "bi-question-circle"
-        };
-    }
+private static string GetPaymentIcon(PaymentMethod method)
+{
+return method switch
+{
+PaymentMethod.Card => "bi-credit-card",
+PaymentMethod.Cash => "bi-cash",
+PaymentMethod.ApplePay => "bi-apple",
+PaymentMethod.GooglePay => "bi-google",
+_ => "bi-question-circle"
+};
+}
 
-    private static string GetPaymentDisplayName(PaymentMethod method)
-    {
-        return method switch
-        {
-            PaymentMethod.Card => "Card",
-            PaymentMethod.Cash => "Cash",
-            PaymentMethod.ApplePay => "Apple Pay",
-            PaymentMethod.GooglePay => "Google Pay",
-            _ => method.ToString()
-        };
-    }
+private static string GetPaymentDisplayName(PaymentMethod method)
+{
+return method switch
+{
+PaymentMethod.Card => "Card",
+PaymentMethod.Cash => "Cash",
+PaymentMethod.ApplePay => "Apple Pay",
+PaymentMethod.GooglePay => "Google Pay",
+_ => method.ToString()
+};
+}
 
 }
+*@

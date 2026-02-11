@@ -22,6 +22,7 @@ public class OrderMapping : Profile
             .ForMember(dest => dest.SeatNum, opt => opt.MapFrom(src => src.SeatReservation.Seat.SeatNum))
             .ForMember(dest => dest.SeatType,
                 opt => opt.MapFrom(src =>
-                    src.SeatReservation.Seat.SeatType != null ? src.SeatReservation.Seat.SeatType.Name : "Standard"));
+                    src.SeatReservation.Seat.SeatType != null ? src.SeatReservation.Seat.SeatType.Name : "Standard"))
+            .ForMember(dest => dest.QrCode, opt => opt.MapFrom(src => src.QrCodeBase64));
     }
 }
