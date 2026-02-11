@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Core.Interfaces.Services;
@@ -8,6 +8,7 @@ using PdfSharpCore.Drawing;
 using PdfSharpCore.Pdf;
 using QRCoder;
 using Core.DTOs.Ticket;
+using Core.Enums;
 
 namespace Infrastructure.Services;
 
@@ -105,9 +106,11 @@ public class TicketService : ITicketService
 
             var rowNum = ticket.SeatReservation.Seat.RowNum;
             var seatNum = ticket.SeatReservation.Seat.SeatNum;
-            DrawRow(gfx, "Seat: ", $"Row {rowNum}, Seat {seatNum}", margin, ref y, labelFont, valueFont);
+            var seatType = ticket.SeatReservation.Seat.SeatTypeId;
+         
+            DrawRow(gfx, "Seat: ", $"{(char)('A' + rowNum - 1)}{seatNum} • ({(ReservedSeatType)seatType})", margin, ref y, labelFont, valueFont);
             
-            DrawRow(gfx, "Price: ", ticket.Price.ToString("0.00", CultureInfo.InvariantCulture), margin, ref y, labelFont, valueFont);
+            DrawRow(gfx, "Price: ", $"{ticket.Price.ToString("0.00", CultureInfo.InvariantCulture)} ₴", margin, ref y, labelFont, valueFont);
 
             var qrBase64 = ticket.QrCodeBase64;
             if (!string.IsNullOrWhiteSpace(qrBase64))
