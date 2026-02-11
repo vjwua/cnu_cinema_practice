@@ -1,0 +1,157 @@
+@import "checkout.css";
+
+/* Payment Specific Styles */
+.payment-methods {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.payment-method-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-slate);
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+}
+
+.payment-method-label:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.payment-method-input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Selected State */
+.payment-method-input:checked+.payment-method-label {
+    background: rgba(34, 211, 238, 0.1);
+    border-color: var(--cyan);
+    color: var(--text-white);
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.1);
+}
+
+.payment-icon {
+    font-size: 20px;
+}
+
+/* Card Form */
+.card-details-form {
+    display: none;
+    /* Hidden by default, toggled via CSS/JS logic if needed, or by Blazor state */
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+    padding: 25px;
+    border: 1px solid var(--glass-border);
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    color: var(--text-slate);
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form-control {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--text-white);
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--cyan);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.1);
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Validation Errors */
+.text-danger {
+    color: #f87171;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Terms Checkbox */
+.terms-check {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+    color: var(--text-slate);
+    font-size: 13px;
+}
+
+.form-check-input {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.form-check-input:checked {
+    background: var(--cyan);
+    border-color: var(--cyan);
+}
+
+.form-check-input:checked::after {
+    content: '✓';
+    position: absolute;
+    color: var(--bg-dark);
+    font-size: 14px;
+    font-weight: bold;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.terms-link {
+    color: var(--cyan);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.terms-link:hover {
+    text-decoration: underline;
+}

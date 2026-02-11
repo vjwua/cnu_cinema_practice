@@ -101,16 +101,16 @@ namespace cnu_cinema_practice.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Checkout(int sessionId, string selectedSeats, string selectedNumeric)
+        public async Task<IResult> Checkout(int sessionId, string selectedSeats, string selectedNumeric)
         {
             if (User.Identity is { IsAuthenticated: false })
             {
-                return RedirectToAction("Login", "Account", new
+                return Results.Redirect(Url.Action("Login", "Account", new
                 {
                     area = "",
                     returnUrl = Url.Action("ResumeCheckout", "Booking",
                         new { area = "", sessionId, selectedSeats, selectedNumeric })
-                });
+                })!);
             }
 
             return await ProcessCheckout(sessionId, selectedSeats, selectedNumeric);
@@ -118,23 +118,23 @@ namespace cnu_cinema_practice.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> ResumeCheckout(int sessionId, string selectedSeats, string selectedNumeric)
+        public async Task<IResult> ResumeCheckout(int sessionId, string selectedSeats, string selectedNumeric)
         {
             return await ProcessCheckout(sessionId, selectedSeats, selectedNumeric);
         }
 
-        private async Task<IActionResult> ProcessCheckout(int sessionId, string selectedSeats, string selectedNumeric)
+        private async Task<IResult> ProcessCheckout(int sessionId, string selectedSeats, string selectedNumeric)
         {
             if (string.IsNullOrEmpty(selectedSeats))
             {
                 TempData["Error"] = "Please select at least one seat.";
-                return RedirectToAction("SelectSeats", new { sessionId = sessionId, Area = "" });
+                return Results.Redirect(Url.Action("SelectSeats", new { sessionId = sessionId, Area = "" })!);
             }
 
             try
             {
                 var session = await sessionService.GetSessionByIdWithSeatsAsync(sessionId);
-                if (session == null) return NotFound("Session not found");
+                if (session == null) return Results.NotFound("Session not found");
                 var movie = await movieService.GetByIdAsync(session.MovieId);
 
                 var seatList = selectedNumeric.Split(',').ToList();
@@ -147,13 +147,13 @@ namespace cnu_cinema_practice.Controllers
                     var errorMsg =
                         $"The following seats are no longer available: {string.Join(", ", unavailableSeats.Select(s => $"Row {GetRowLetter(s.RowNum)} Seat {s.SeatNum + 1}"))}";
                     TempData["Error"] = errorMsg;
-                    return RedirectToAction("SelectSeats", new { sessionId, alert = errorMsg, Area = "" });
+                    return Results.Redirect(Url.Action("SelectSeats", new { sessionId, alert = errorMsg, Area = "" })!);
                 }
 
                 var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return RedirectToAction("Login", "Account");
+                    return Results.Redirect(Url.Action("Login", "Account")!);
                 }
 
                 var seatTypes = await seatService.GetSeatTypesAsync();
@@ -165,29 +165,29 @@ namespace cnu_cinema_practice.Controllers
                     var errorMsg =
                         $"The following seats are no longer available: Row {GetRowLetter(reservationResult.FailedResrvation.RowNum)} Seat {reservationResult.FailedResrvation.SeatNum + 1}";
                     TempData["Error"] = errorMsg;
-                    return RedirectToAction("SelectSeats", new { sessionId, alert = errorMsg, Area = "" });
+                    return Results.Redirect(Url.Action("SelectSeats", new { sessionId, alert = errorMsg, Area = "" })!);
                 }
 
                 var viewModel = BuildCheckoutViewModel(session, movie, seatList, reservationResult.ReservationIds,
                     reservationResult.TotalPrice, desiredSeats, seatTypes);
 
-                return View("Checkout", viewModel);
+                return new Microsoft.AspNetCore.Http.HttpResults.RazorComponentResult<cnu_cinema_practice.Components.Pages.Movies.Checkout>(new { Model = viewModel });
             }
             catch (HttpRequestException ex)
             {
                 TempData["Error"] = $"Error processing checkout: {ex.Message}";
-                return NotFound(ex.Message);
+                return Results.NotFound(ex.Message);
             }
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         [Authorize]
-        public async Task<IActionResult> ConfirmBooking(CheckoutViewModel model)
+        public async Task<IResult> ConfirmBooking(CheckoutViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                return View("Checkout", model);
+                return new Microsoft.AspNetCore.Http.HttpResults.RazorComponentResult<cnu_cinema_practice.Components.Pages.Movies.Checkout>(new { Model = model });
             }
 
             try
@@ -195,7 +195,7 @@ namespace cnu_cinema_practice.Controllers
                 var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    return RedirectToAction("Login", "Account");
+                    return Results.Redirect(Url.Action("Login", "Account")!);
                 }
 
                 var seatReservationIds = model.ReservationIds;
@@ -207,21 +207,19 @@ namespace cnu_cinema_practice.Controllers
 
                 var order = await orderService.CreateOrderAsync(userId, createOrderDto);
 
-                return RedirectToAction("Index", "Payment", new { area = "", orderId = order.Id });
+                return Results.Redirect(Url.Action("Index", "Payment", new { area = "", orderId = order.Id })!);
             }
             catch (HttpRequestException ex)
             {
                 ModelState.AddModelError(string.Empty, $"Error confirming booking: {ex.Message}");
-                return View("Checkout", model);
+                return new Microsoft.AspNetCore.Http.HttpResults.RazorComponentResult<cnu_cinema_practice.Components.Pages.Movies.Checkout>(new { Model = model });
             }
         }
 
         [Authorize]
-        public IActionResult Confirmation(int bookingId)
+        public IResult Confirmation(int bookingId)
         {
-            // TODO: Fetch booking details from database
-            ViewBag.BookingId = bookingId;
-            return View();
+            return new Microsoft.AspNetCore.Http.HttpResults.RazorComponentResult<cnu_cinema_practice.Components.Pages.Booking.Confirmation>(new { BookingId = bookingId });
         }
 
         #region Private Helper Methods

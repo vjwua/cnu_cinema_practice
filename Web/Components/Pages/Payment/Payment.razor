@@ -1,0 +1,165 @@
+@using cnu_cinema_practice.ViewModels
+@using cnu_cinema_practice.Components.Layout
+@using Core.Enums
+@layout BookingLayout
+@rendermode RenderMode.InteractiveServer
+
+<HeadContent>
+    <link rel="stylesheet" href="/css/checkout.css" />
+    <link rel="stylesheet" href="/css/payment.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+</HeadContent>
+
+<div class="bg-ambience"></div>
+
+<div class="checkout-container animate-fade-up">
+    <div class="glass-card">
+        <div class="checkout-header">
+            <h1 class="header-title">Оплата</h1>
+            <span class="step-badge">Крок 3 з 3</span>
+        </div>
+
+        <div class="movie-summary">
+            <img src="@Model.MoviePosterUrl" alt="@Model.MovieTitle" class="movie-poster" />
+            <div class="movie-details">
+                <h2 class="movie-title">@Model.MovieTitle</h2>
+                <div class="meta-row">
+                    <i class="bi bi-calendar-event"></i>
+                    <span>@Model.ShowDateTime.ToString("MMMM dd, yyyy 'at' h:mm tt")</span>
+                </div>
+                <div class="meta-row">
+                    <i class="bi bi-geo-alt"></i>
+                    <span>@Model.HallName</span>
+                </div>
+                <div class="meta-row">
+                    <i class="bi bi-ticket-perforated"></i>
+                    <span>@string.Join(", ", Model.SelectedSeats)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="total-section"
+            style="justify-content: center; border: none; margin-top: 0; padding-top: 0; margin-bottom: 30px;">
+            <div style="text-align: center;">
+                <span class="total-label" style="display: block; margin-bottom: 10px; font-size: 14px;">ДО СПЛАТИ</span>
+                <span class="total-amount" style="font-size: 48px;">@Model.TotalAmount.ToString("F2") ₴</span>
+            </div>
+        </div>
+
+        @if (Model.Errors != null && Model.Errors.Any())
+        {
+            <div class="alert alert-danger" role="alert"
+                style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <ul style="margin: 0; padding-left: 20px;">
+                    @foreach (var error in Model.Errors)
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <form action="/Payment/ProcessPayment" method="post">
+            <input type="hidden" name="OrderId" value="@Model.OrderId" />
+            <input type="hidden" name="TotalAmount" value="@Model.TotalAmount" />
+            <input type="hidden" name="BasePrice" value="@Model.BasePrice" />
+
+            <h6 class="section-label" style="color: var(--text-white); margin-bottom: 15px;">Спосіб оплати</h6>
+
+            <div class="payment-methods">
+                @foreach (var method in Model.AvailablePaymentMethods)
+                {
+                    <div style="position: relative;">
+                        <input class="payment-method-input" type="radio" name="SelectedPaymentMethod" id="method_@method"
+                            value="@method" checked="@(Model.SelectedPaymentMethod == method)"
+                        @onchange="@(() => SelectMethod(method))" />
+                        <label class="payment-method-label" for="method_@method"
+                            style="@(Model.SelectedPaymentMethod == method ? "background: rgba(34, 211, 238, 0.1); border-color: var(--cyan); color: var(--text-white);" : "")">
+                            <i class="bi @GetPaymentIcon(method) payment-icon"></i>
+                            <span>@GetPaymentDisplayName(method)</span>
+                        </label>
+                    </div>
+                }
+            </div>
+
+            @if (Model.SelectedPaymentMethod == PaymentMethod.Card)
+            {
+                <div class="card-details-form animate-fade-in" style="display: block;">
+                    <h6 class="form-label" style="margin-bottom: 20px; font-size: 14px;">Деталі картки</h6>
+
+                    <div class="form-group">
+                        <label class="form-label" for="CardNumber">Номер картки</label>
+                        <div style="position: relative;">
+                            <i class="bi bi-credit-card"
+                                style="position: absolute; left: 15px; top: 15px; color: var(--text-dark-slate);"></i>
+                            <input type="text" class="form-control" name="CardNumber" id="CardNumber"
+                                placeholder="0000 0000 0000 0000" style="padding-left: 45px;" value="@Model.CardNumber" />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="ExpiryDate">Термін (ММ/РР)</label>
+                            <input type="text" class="form-control" name="ExpiryDate" id="ExpiryDate" placeholder="MM/YY"
+                                maxlength="5" value="@Model.ExpiryDate" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="Cvv">CVV</label>
+                            <input type="text" class="form-control" name="Cvv" id="Cvv" placeholder="123" maxlength="3"
+                                value="@Model.Cvv" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="CardholderName">Власник картки</label>
+                        <input type="text" class="form-control" name="CardholderName" id="CardholderName"
+                            placeholder="IVAN IVANOV" value="@Model.CardholderName" style="text-transform: uppercase;" />
+                    </div>
+                </div>
+            }
+
+            <div class="terms-check">
+                <input type="checkbox" class="form-check-input" name="AgreeToTerms" id="AgreeToTerms" value="true"
+                    required checked="@Model.AgreeToTerms" />
+                <label for="AgreeToTerms">
+                    Я погоджуюсь з <a href="#" class="terms-link">умовами надання послуг</a> та політикою
+                    конфіденційності
+                </label>
+            </div>
+
+            <button type="submit" class="btn-confirm">
+                <i class="bi bi-lock-fill"></i>
+                Сплатити @Model.TotalAmount.ToString("F2") ₴
+            </button>
+        </form>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public PaymentViewModel Model { get; set; }
+
+    private void SelectMethod(PaymentMethod method)
+    {
+        Model.SelectedPaymentMethod = method;
+        StateHasChanged();
+    }
+
+    private string GetPaymentIcon(PaymentMethod method) => method switch
+    {
+        PaymentMethod.Card => "bi-credit-card",
+        PaymentMethod.Cash => "bi-cash",
+        PaymentMethod.ApplePay => "bi-apple",
+        PaymentMethod.GooglePay => "bi-google-play",
+        _ => "bi-question-circle"
+    };
+
+    private string GetPaymentDisplayName(PaymentMethod method) => method switch
+    {
+        PaymentMethod.Card => "Банківська картка",
+        PaymentMethod.Cash => "Готівка",
+        PaymentMethod.ApplePay => "Apple Pay",
+        PaymentMethod.GooglePay => "Google Pay",
+        _ => method.ToString()
+    };
+}

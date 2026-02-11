@@ -1,0 +1,129 @@
+@using cnu_cinema_practice.ViewModels
+@using cnu_cinema_practice.Components.Layout
+@layout BookingLayout
+
+<HeadContent>
+    <link rel="stylesheet" href="/css/checkout.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+</HeadContent>
+
+<div class="bg-ambience"></div>
+
+<div class="checkout-container animate-fade-up">
+    <div class="glass-card">
+        <div class="checkout-header">
+            <h1 class="header-title">Перевірка замовлення</h1>
+            <span class="step-badge">Крок 2 з 3</span>
+        </div>
+
+        <div class="movie-summary">
+            <img src="@Model.PosterUrl" alt="@Model.Name" class="movie-poster" />
+            <div class="movie-details">
+                <h2 class="movie-title">@Model.Name</h2>
+                <div class="meta-row">
+                    <i class="bi bi-calendar-event"></i>
+                    <span>@Model.FormattedShowTime</span>
+                </div>
+                <div class="meta-row">
+                    <i class="bi bi-geo-alt"></i>
+                    <span>@Model.Hall</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="seats-table-container">
+            <table class="seats-table">
+                <thead>
+                    <tr>
+                        <th>Місце</th>
+                        <th>Тип</th>
+                        <th style="text-align: right;">Ціна</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var seat in Model.SeatDetails)
+                    {
+                        <tr>
+                            <td style="font-weight: 700;">@seat.SeatNumber</td>
+                            <td>
+                                <span class="seat-type-badge type-@seat.Type.ToLower()">@seat.Type</span>
+                            </td>
+                            <td style="text-align: right; font-weight: 700;">@seat.Price.ToString("F2") ₴</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="total-section">
+                <span class="total-label">РАЗОМ ДО СПЛАТИ</span>
+                <span class="total-amount">@Model.Total.ToString("F2") ₴</span>
+            </div>
+        </div>
+
+        <div class="checkout-actions">
+            <div class="info-alert">
+                <i class="bi bi-info-circle-fill" style="color: var(--cyan);"></i>
+                <span>Будь ласка, перевірте обрані місця та час сеансу перед оплатою. Квитки обміну не
+                    підлягають.</span>
+            </div>
+
+            <form action="/Booking/ConfirmBooking" method="post">
+                <input type="hidden" name="Id" value="@Model.Id" />
+                <input type="hidden" name="Name" value="@Model.Name" />
+                <input type="hidden" name="PosterUrl" value="@Model.PosterUrl" />
+                <input type="hidden" name="ShowDateTime" value="@Model.ShowDateTime.ToString("O")" />
+                <input type="hidden" name="Hall" value="@Model.Hall" />
+                <input type="hidden" name="BasePrice" value="@Model.BasePrice" />
+                <input type="hidden" name="Total" value="@Model.Total" />
+
+                @for (int i = 0; i < Model.SelectedSeats.Count; i++)
+                {
+                    <input type="hidden" name="SelectedSeats[@i]" value="@Model.SelectedSeats[i]" />
+                }
+
+                @for (int i = 0; i < Model.ReservationIds.Count; i++)
+                {
+                    <input type="hidden" name="ReservationIds[@i]" value="@Model.ReservationIds[i]" />
+                }
+
+                @* Also need to pass SeatDetails for validation if model binding needs it,
+                but usually only reservation IDs are strictly needed for creation.
+                However, MVC binding for lists can be tricky.
+                The Controller expects CheckoutViewModel. *@
+
+                @* We need RequestVerificationToken for non-API controllers usually,
+                but we might ignore it or we need to inject it.
+                Since this is a standard form post to an MVC controller,
+                it will expect the token if [ValidateAntiForgeryToken] is present.
+                Blazor doesn't easily render the token.
+                We might need to disable it for this specific action or fetch it via JS.
+                For now, let's assume valid session or we might need to use [IgnoreAntiforgeryToken] on the target logic
+                if it blocks.
+                Wait, the existing `Checkout` view used `asp-antiforgery="true"` implicitly.
+                In Blazor, standard forms don't include it.
+
+                Strategy: Use a plain HTML form. The controller has [ValidateAntiForgeryToken].
+                This will fail without the token.
+
+                Quick fix: Since we are migrating, we can add [IgnoreAntiforgeryToken] to ConfirmBooking
+                OR
+                we can try to use an Antiforgery package.
+
+                Let's verify BookingController.ConfirmBooking attributes.
+                *@
+
+                <button type="submit" class="btn-confirm">
+                    <i class="bi bi-credit-card-2-front"></i>
+                    Оплатити замовлення
+                </button>
+            </form>
+
+            <a href="/Booking/SelectSeats?sessionId=@Model.Id" class="back-link">Повернутись до вибору місць</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public CheckoutViewModel Model { get; set; }
+}

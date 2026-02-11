@@ -10,7 +10,8 @@ public class OrderProfileViewModelMapping : Profile
     public OrderProfileViewModelMapping()
     {
         CreateMap<TicketDTO, TicketViewModel>()
-            .ForMember(dest => dest.SeatTypeName, opt => opt.MapFrom(src => src.SeatType));
+            .ForMember(dest => dest.SeatTypeName, opt => opt.MapFrom(src => src.SeatType))
+            .ForMember(dest => dest.QrCode, opt => opt.MapFrom(src => src.QrCode));
 
         CreateMap<OrderDTO, OrderViewModel>()
             .ForMember(dest => dest.MovieName, opt => opt.MapFrom(src => src.MovieTitle))

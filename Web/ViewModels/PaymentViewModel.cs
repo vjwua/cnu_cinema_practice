@@ -22,5 +22,6 @@ namespace cnu_cinema_practice.ViewModels
         public string? CardholderName { get; set; }
         public PaymentMethod SelectedPaymentMethod { get; set; }
         public bool AgreeToTerms { get; set; }
+        public List<string> Errors { get; set; } = new();
     }
 }
