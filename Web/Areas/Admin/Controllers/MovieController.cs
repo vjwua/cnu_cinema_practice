@@ -55,6 +55,15 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
                     createDto.DirectorsIds = new List<int> { directorId };
                 }
                 
+                var actorNames = ParsePersonNames(model.Actors);
+                if (actorNames.Count > 0)
+                {
+                    var actorIds = new List<int>(actorNames.Count);
+                    foreach (var name in actorNames)
+                        actorIds.Add(await personService.GetOrCreatePersonIdByNameAsync(name));
+                    createDto.ActorsIds = actorIds;
+                }
+                
                 await movieService.CreateAsync(createDto);
 
                 TempData["Success"] = $"Movie '{model.Name}' created successfully!";
@@ -94,6 +103,15 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
                 {
                     var directorId = await personService.GetOrCreatePersonIdByNameAsync(model.Director);
                     updateDto.DirectorsIds = new List<int> { directorId };
+                }
+                
+                var actorNames = ParsePersonNames(model.Actors);
+                if (actorNames.Count > 0)
+                {
+                    var actorIds = new List<int>(actorNames.Count);
+                    foreach (var name in actorNames)
+                        actorIds.Add(await personService.GetOrCreatePersonIdByNameAsync(name));
+                    updateDto.ActorsIds = actorIds;
                 }
                 
                 await movieService.UpdateAsync(updateDto);
@@ -192,6 +210,7 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Movie not found." });
 
             var director = dto.Directors.FirstOrDefault() ?? string.Empty;
+            var actors = dto.Actors?.Any() == true ? string.Join(", ", dto.Actors) : string.Empty;
 
             return Json(new
             {
@@ -208,9 +227,22 @@ namespace cnu_cinema_practice.Areas.Admin.Controllers
                     posterUrl = dto.PosterUrl ?? string.Empty,
                     trailerUrl = dto.TrailerUrl ?? string.Empty,
                     country = dto.Country ?? string.Empty,
-                    director = director
+                    director = director,
+                    actors = actors
                 }
             });
+        }
+        
+        private static List<string> ParsePersonNames(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return new List<string>();
+
+            return input
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
         private bool AllowSearchRequest()
