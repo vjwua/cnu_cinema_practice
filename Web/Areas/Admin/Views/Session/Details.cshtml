@@ -100,7 +100,7 @@
                             </div>
                             <div class="detail-content">
                                 <label>Base Price</label>
-                                <strong>$@Model.BasePrice.ToString("F2")</strong>
+                                <strong>@Model.BasePrice.ToString("F2")₴</strong>
                             </div>
                         </div>
 
@@ -165,7 +165,7 @@
                                              data-seat-id="@seat.SeatId"
                                              data-row="@seat.RowNum"
                                              data-seat="@seat.SeatNum"
-                                             title="Seat @((char)('A' + seat.RowNum - 1))@seat.SeatNum - @seat.SeatType - $@seat.TotalPrice.ToString("F2")">
+                                             title="Seat @((char)('A' + seat.RowNum - 1))@seat.SeatNum - @seat.SeatType - @seat.TotalPrice.ToString("F2")₴">
                                             <span>@seat.SeatNum</span>
                                         </div>
                                     }
@@ -226,7 +226,7 @@
                     <div class="revenue-estimate">
                         <label>Potential Revenue</label>
                         <h4 class="text-primary">
-                            $@Model.Seats.Sum(s => s.TotalPrice).ToString("F2")
+                            @Model.Seats.Sum(s => s.TotalPrice).ToString("F2")₴
                         </h4>
                         <small class="text-muted">If fully booked</small>
                     </div>

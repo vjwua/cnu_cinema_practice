@@ -44,12 +44,12 @@
                                             <tr>
                                                 <td class="fw-medium">@seat.SeatNumber</td>
                                                 <td class="text-muted">@seat.Type</td>
-                                                <td class="text-end">$@seat.Price.ToString("F2")</td>
+                                                <td class="text-end">@seat.Price.ToString("F2")₴</td>
                                             </tr>
                                         }
                                         <tr class="border-top">
                                             <td colspan="2" class="fw-bold pt-3">Total (Base + Extras)</td>
-                                            <td class="text-end fw-bold pt-3 text-success">$@Model.Total.ToString("F2")</td>
+                                            <td class="text-end fw-bold pt-3 text-success">@Model.Total.ToString("F2")₴</td>
                                         </tr>
                                     </tbody>
                                 </table>

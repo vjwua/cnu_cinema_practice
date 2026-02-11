@@ -154,13 +154,13 @@
 
                 <div class="d-flex justify-content-between mb-2">
                     <span>Ticket Price:</span>
-                    <span>$@Model.BasePrice.ToString("F2")</span>
+                    <span>@Model.BasePrice.ToString("F2")₴</span>
                     <br>
                     <span>Premium Ticket Price:</span>
-                    <span>$@((Model.BasePrice + Model.addedPrice[2]).ToString("F2"))</span>
+                    <span>@((Model.BasePrice + Model.addedPrice[2]).ToString("F2"))₴</span>
                     <br>
                     <span>VIP Ticket Price:</span>
-                    <span>$@((Model.BasePrice + Model.addedPrice[3]).ToString("F2"))</span>
+                    <span>@((Model.BasePrice + Model.addedPrice[3]).ToString("F2"))₴</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span>Quantity:</span>
@@ -168,7 +168,7 @@
                 </div>
                 <div class="d-flex justify-content-between mb-3">
                     <strong>Subtotal:</strong>
-                    <strong id="subtotal">$0.00</strong>
+                    <strong id="subtotal">0.00₴</strong>
                 </div>
 
                 <form asp-area="" 
@@ -236,7 +236,7 @@
             })
 
             document.getElementById('ticket-quantity').textContent = quantity;
-            document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2) + '₴';
             document.getElementById('selected-seats-input').value = selectedSeats.join(',');
             document.getElementById('selected-seats-numeric-input').value = selectedSeatsNumeric.join(',');
             document.getElementById('proceed-btn').disabled = quantity === 0;

@@ -17,7 +17,7 @@
                     
                     <div class="text-center mb-4 pb-3 border-bottom">
                         <h6 class="text-muted text-uppercase small">Total to Pay</h6>
-                        <h2 class="text-success fw-bold display-4">$@Model.TotalAmount.ToString("F2")</h2>
+                        <h2 class="text-success fw-bold display-4">@Model.TotalAmount.ToString("F2")₴</h2>
                     </div>
 
                     <form asp-area="" asp-controller="Payment" asp-action="ProcessPayment" method="post" id="payment-form">
@@ -93,7 +93,7 @@
 
                         <!-- Submit Button -->
                         <button type="submit" class="btn btn-success btn-lg w-100 py-3 shadow-sm" id="submit-btn" style="transition: all 0.2s;">
-                            <i class="bi bi-lock-fill me-2"></i> Pay $@Model.TotalAmount.ToString("F2")
+                            <i class="bi bi-lock-fill me-2"></i> Pay @Model.TotalAmount.ToString("F2")₴
                         </button>
 
                     </form>
