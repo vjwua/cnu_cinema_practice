@@ -116,28 +116,6 @@ public class HallController(
         }
         return RedirectToAction("Index");
     }
-    
-    [HttpPost]
-    public IActionResult ToggleSeat(int id, string name, int r, int c, int rc, int cc, string ls)
-    {
-        byte row = (byte) r;
-        byte col = (byte) c;
-        UpdateHallViewModel vm = new UpdateHallViewModel()
-        {
-            SeatLayout = new byte[rc, cc],
-            Name = name,
-            Id = id,
-        };
-        for (int i = 0; i < rc; i++)
-        {
-            for (int j = 0; j < cc; j++)
-            {
-                vm.SeatLayout[i, j] = (byte)(ls[i * cc + j] - '0');
-            }
-        }
-        vm.SeatLayout[row, col] = (byte)((vm.SeatLayout[row, col] + 1) % 4);
-        return View("Layout", vm);
-    }
 
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
@@ -153,16 +131,25 @@ public class HallController(
         var viewmodel = new UpdateHallViewModel();
         var seats = await hallService.GetSeatsByHall(id);
         byte[,] layout = new byte[dto.Rows, dto.Columns];
+        string ls = "";
         foreach (var seat in seats)
         {
             var r = seat.RowNum;
             var c = seat.SeatNum;
-            if (r < dto.Rows && c < dto.Columns) layout[r, c] = (byte)seat.SeatTypeId;
+            if (r < dto.Rows && c < dto.Columns)
+            {
+                layout[r, c] = (byte)seat.SeatTypeId;
+            }
+        }
+        foreach(var seattype in layout)
+        {
+            ls += seattype.ToString();
         }
 
         viewmodel.SeatLayout = layout;
         viewmodel.Id = dto.Id;
         viewmodel.Name = dto.Name;
+        viewmodel.Ls = ls;
         return View(viewmodel);
     }
 
@@ -175,13 +162,17 @@ public class HallController(
             Name = name,
             SeatLayout = new byte[r, c],
         };
+        string ls = "";
         for (int i = 0; i < r; i++)
         {
             for (int j = 0; j < c; j++)
             {
                 viewmodel.SeatLayout[i, j] = 1;
+                ls += "1";
             }
         }
+
+        viewmodel.Ls = ls;
 
         return View("Layout", viewmodel);
     }

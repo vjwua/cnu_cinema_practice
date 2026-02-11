@@ -23,7 +23,6 @@ namespace cnu_cinema_practice.Controllers
         {
             try
             {
-                if (sessionId == 0) sessionId = 1075;
                 var session = await sessionService.GetSessionByIdAsync(sessionId);
                 if (session == null)
                     return NotFound($"Session not found {sessionId}");
@@ -41,10 +40,6 @@ namespace cnu_cinema_practice.Controllers
                 viewModel.PosterUrl = movie.PosterUrl;
 
                 viewModel.HallData = await halLService.GetByIdAsync(viewModel.HallId);
-
-                // Get seats for this session
-                /*var seats = await seatService.GetBySessionIdAsync(sessionId);
-                var seatsList = seats.ToList();*/
 
                 // Create seat layout
                 viewModel.SeatLayout = await seatService.GetAvailableSeatsAsync(sessionId);
@@ -76,7 +71,6 @@ namespace cnu_cinema_practice.Controllers
             {
                 TempData["Error"] = $"Error loading booking page: {ex.Message}";
                 return NotFound(ex.Message);
-                return RedirectToAction("Index", "Home");
             }
         }
 
