@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
+using cnu_cinema_practice.Components.Pages.Account;
+using Microsoft.AspNetCore.Http.HttpResults;
+
 namespace cnu_cinema_practice.Controllers;
 
 public class AccountController(
@@ -15,29 +18,33 @@ public class AccountController(
     ILogger<AccountController> logger,
     IEmailService emailService) : Controller
 {
+    private IEnumerable<string> GetModalStateErrors()
+    {
+        return ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+    }
     [HttpGet]
     [AllowAnonymous]
-    public Task<IActionResult> Login(string? returnUrl = null)
+    public IResult Login(string? returnUrl = null)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return Task.FromResult<IActionResult>(RedirectToAction("Index", "Home", new { area = "" }));
+            return Results.Redirect(Url.Action("Index", "Home", new { area = "" })!);
         }
 
         ViewData["ReturnUrl"] = returnUrl;
-        return Task.FromResult<IActionResult>(View(new LoginViewModel { ReturnUrl = returnUrl }));
+        return new RazorComponentResult<Login>(new { Model = new LoginViewModel { ReturnUrl = returnUrl } });
     }
 
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
+    public async Task<IResult> Login(LoginViewModel model, string? returnUrl = null)
     {
         var url = returnUrl ?? model.ReturnUrl ?? Url.Content("~/");
         ViewData["ReturnUrl"] = url;
 
         if (!ModelState.IsValid)
-            return View(model);
+            return new RazorComponentResult<Login>(new { Model = model, Errors = GetModalStateErrors() });
 
         var result = await signInManager.PasswordSignInAsync(
             model.Email,
@@ -48,51 +55,51 @@ public class AccountController(
         if (result.Succeeded)
         {
             logger.LogInformation("User logged in successfully");
-            return RedirectToLocal(url);
+            return Results.Redirect(url);
         }
 
         if (result.IsLockedOut)
         {
             logger.LogWarning("User account locked out: {Email}", model.Email);
-            return RedirectToAction(nameof(Lockout), "Account", new { area = "" });
+            return Results.Redirect(Url.Action(nameof(Lockout), "Account", new { area = "" })!);
         }
 
         logger.LogWarning("Failed login attempt for email: {Email}", model.Email);
 
         ModelState.AddModelError(string.Empty, "Invalid email or password");
-        return View(model);
+        return new RazorComponentResult<Login>(new { Model = model, Errors = GetModalStateErrors() });
     }
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult Lockout()
+    public IResult Lockout()
     {
-        return View();
+        return new RazorComponentResult<Lockout>();
     }
 
     [HttpGet]
     [AllowAnonymous]
-    public Task<IActionResult> Register(string? returnUrl = null)
+    public IResult Register(string? returnUrl = null)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return Task.FromResult<IActionResult>(RedirectToAction("Index", "Home", new { area = "" }));
+            return Results.Redirect(Url.Action("Index", "Home", new { area = "" })!);
         }
 
         ViewData["ReturnUrl"] = returnUrl;
-        return Task.FromResult<IActionResult>(View(new RegisterViewModel()));
+        return new RazorComponentResult<Register>(new { Model = new RegisterViewModel { ReturnUrl = returnUrl } });
     }
 
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(RegisterViewModel model, string? returnUrl = null)
+    public async Task<IResult> Register(RegisterViewModel model, string? returnUrl = null)
     {
         var url = returnUrl ?? model.ReturnUrl ?? Url.Content("~/");
         ViewData["ReturnUrl"] = url;
 
         if (!ModelState.IsValid)
-            return View(model);
+            return new RazorComponentResult<Register>(new { Model = model, Errors = GetModalStateErrors() });
 
         var user = new ApplicationUser
         {
@@ -107,7 +114,7 @@ public class AccountController(
         {
             foreach (var error in result.Errors)
                 ModelState.AddModelError(string.Empty, error.Description);
-            return View(model);
+            return new RazorComponentResult<Register>(new { Model = model, Errors = GetModalStateErrors() });
         }
 
         await userManager.AddToRoleAsync(user, RoleNames.User);
@@ -115,7 +122,7 @@ public class AccountController(
         await signInManager.SignInAsync(user, isPersistent: false);
 
         logger.LogInformation("New user registered and signed in");
-        return RedirectToLocal(url);
+        return Results.Redirect(url);
     }
 
     [HttpPost]
@@ -130,25 +137,25 @@ public class AccountController(
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult AccessDenied()
+    public IResult AccessDenied()
     {
-        return View();
+        return new RazorComponentResult<AccessDenied>();
     }
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult ForgotPassword()
+    public IResult ForgotPassword()
     {
-        return View();
+        return new RazorComponentResult<ForgotPassword>(new { Model = new ForgotPasswordViewModel() });
     }
 
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    public async Task<IResult> ForgotPassword(ForgotPasswordViewModel model)
     {
         if (!ModelState.IsValid)
-            return View(model);
+            return new RazorComponentResult<ForgotPassword>(new { Model = model, Errors = GetModalStateErrors() });
 
         var user = await userManager.FindByEmailAsync(model.Email);
 
@@ -156,7 +163,7 @@ public class AccountController(
         {
             logger.LogWarning("Password reset requested for non-existent email: {Email}", model.Email);
             ModelState.AddModelError(string.Empty, "No account exists with this email address.");
-            return View(model);
+            return new RazorComponentResult<ForgotPassword>(new { Model = model, Errors = GetModalStateErrors() });
         }
 
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
@@ -175,26 +182,26 @@ public class AccountController(
         {
             logger.LogError(ex, "SMTP error sending email to {Email}", model.Email);
             ModelState.AddModelError(string.Empty, "Failed to send email. Please try again later.");
-            return View(model);
+            return new RazorComponentResult<ForgotPassword>(new { Model = model, Errors = GetModalStateErrors() });
         }
 
-        return RedirectToAction(nameof(ForgotPasswordConfirmation), "Account", new { area = "" });
+        return Results.Redirect(Url.Action(nameof(ForgotPasswordConfirmation), "Account", new { area = "" })!);
     }
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult ForgotPasswordConfirmation()
+    public IResult ForgotPasswordConfirmation()
     {
-        return View();
+        return new RazorComponentResult<ForgotPasswordConfirmation>();
     }
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult ResetPassword(string? email, string? token)
+    public IResult ResetPassword(string? email, string? token)
     {
         if (string.IsNullOrEmpty(token))
         {
-            return BadRequest("A token is required for password reset.");
+            return Results.BadRequest("A token is required for password reset.");
         }
 
         var model = new ResetPasswordViewModel
@@ -202,28 +209,28 @@ public class AccountController(
             Email = email ?? string.Empty,
             Token = token
         };
-        return View(model);
+        return new RazorComponentResult<ResetPassword>(new { Model = model });
     }
 
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    public async Task<IResult> ResetPassword(ResetPasswordViewModel model)
     {
         if (!ModelState.IsValid)
-            return View(model);
+            return new RazorComponentResult<ResetPassword>(new { Model = model, Errors = GetModalStateErrors() });
 
         var user = await userManager.FindByEmailAsync(model.Email);
         if (user == null)
         {
-            return RedirectToAction(nameof(ResetPasswordConfirmation), "Account", new { area = "" });
+            return Results.Redirect(Url.Action(nameof(ResetPasswordConfirmation), "Account", new { area = "" })!);
         }
 
         var result = await userManager.ResetPasswordAsync(user, model.Token, model.Password);
         if (result.Succeeded)
         {
             logger.LogInformation("Password reset successful for {Email}", model.Email);
-            return RedirectToAction(nameof(ResetPasswordConfirmation), "Account", new { area = "" });
+            return Results.Redirect(Url.Action(nameof(ResetPasswordConfirmation), "Account", new { area = "" })!);
         }
 
         foreach (var error in result.Errors)
@@ -231,20 +238,14 @@ public class AccountController(
             ModelState.AddModelError(string.Empty, error.Description);
         }
 
-        return View(model);
+        return new RazorComponentResult<ResetPassword>(new { Model = model, Errors = GetModalStateErrors() });
     }
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult ResetPasswordConfirmation()
+    public IResult ResetPasswordConfirmation()
     {
-        return View();
+        return new RazorComponentResult<ResetPasswordConfirmation>();
     }
 
-    private IActionResult RedirectToLocal(string? returnUrl)
-    {
-        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-            return Redirect(returnUrl);
-        return RedirectToAction("Index", "Home", new { area = "" });
-    }
 }
