@@ -1,0 +1,73 @@
+@layout AccountLayout
+@using cnu_cinema_practice.ViewModels.Account
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="account-page-container">
+    <div class="account-card">
+        <div class="account-header">
+            <div class="account-logo">
+                <span
+                    style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--cyan-400);">
+                    CNU<span style="color: #fff;">CINEMA</span>
+                </span>
+            </div>
+            <h1 class="account-title">Приєднуйтесь до нас!</h1>
+            <p class="account-subtitle">Створіть свій безкоштовний аккаунт</p>
+        </div>
+
+        <form action="/Account/Register" method="post" class="account-form">
+            <AntiforgeryToken />
+            @if (Errors != null && Errors.Any())
+            {
+                <div class="validation-summary">
+                    <ul>
+                        @foreach (var error in Errors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+
+            <div class="form-group">
+                <label class="account-label" for="Email">Електронна пошта</label>
+                <div class="account-input-wrapper">
+                    <input type="email" id="Email" name="Email" class="account-input" placeholder="name@example.com"
+                        value="@Model.Email" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="account-label" for="Password">Пароль</label>
+                <div class="account-input-wrapper">
+                    <input type="password" id="Password" name="Password" class="account-input" placeholder="••••••••"
+                        required />
+                </div>
+                <p style="font-size: 11px; color: var(--text-dark-slate); margin-top: 8px; line-height: 1.4;">
+                    Пароль повинен містити принаймні 8 символів, велику та малу літери, цифру та спеціальний символ.
+                </p>
+            </div>
+
+            <div class="form-group">
+                <label class="account-label" for="ConfirmPassword">Підтвердження пароля</label>
+                <div class="account-input-wrapper">
+                    <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="account-input"
+                        placeholder="••••••••" required />
+                </div>
+            </div>
+
+            <button type="submit" class="account-btn">ЗАРЕЄСТРУВАТИСЯ</button>
+
+            <div class="account-footer">
+                Вже маєте аккаунт? <a href="/Account/Login?returnUrl=@Model.ReturnUrl" class="account-link">Увійти</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@code {
+    [Parameter] public RegisterViewModel Model { get; set; } = new();
+    [Parameter] public IEnumerable<string>? Errors { get; set; }
+}

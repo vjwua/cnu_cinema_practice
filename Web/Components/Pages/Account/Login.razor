@@ -1,0 +1,76 @@
+@layout AccountLayout
+@using cnu_cinema_practice.ViewModels.Account
+@using Microsoft.AspNetCore.Components.Forms
+
+@* No @page directive because this is rendered by AccountController via RazorComponentResult *@
+
+<div class="account-page-container">
+    <div class="account-card">
+        <div class="account-header">
+            <div class="account-logo">
+                @* You can add a logo SVG or image here *@
+                <span style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--cyan-400);">
+                    CNU<span style="color: #fff;">CINEMA</span>
+                </span>
+            </div>
+            <h1 class="account-title">З поверненням!</h1>
+            <p class="account-subtitle">Будь ласка, увійдіть у свій аккаунт</p>
+        </div>
+
+        <form action="/Account/Login" method="post" class="account-form">
+            <AntiforgeryToken />
+
+            @* Validation Summary replacement (simple display if errors exist) *@
+            @* Note: In a real "dummy" component, we'd pass error messages via parameters *@
+            @if (Errors != null && Errors.Any())
+            {
+                    <div class="validation-summary">
+                        <ul>
+                        @foreach (var error in Errors)
+                        {
+                                    <li>@error</li>
+                        }
+                        </ul>
+                    </div>
+            }
+
+            <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+
+            <div class="form-group">
+                <label class="account-label" for="Email">Електронна пошта</label>
+                <div class="account-input-wrapper">
+                    <input type="email" id="Email" name="Email" class="account-input" 
+                           placeholder="name@example.com" value="@Model.Email" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="account-label" for="Password">Пароль</label>
+                <div class="account-input-wrapper">
+                    <input type="password" id="Password" name="Password" class="account-input" 
+                           placeholder="••••••••" required />
+                </div>
+            </div>
+
+            <div class="account-checkbox-group">
+                <input type="checkbox" id="RememberMe" name="RememberMe" class="account-checkbox" checked="@Model.RememberMe" value="true" />
+                <label class="account-subtitle" for="RememberMe" style="cursor: pointer; margin-bottom: 0;">Запам'ятати мене</label>
+            </div>
+
+            <button type="submit" class="account-btn">УВІЙТИ</button>
+
+            <div class="account-footer">
+                Немає аккаунту? <a href="/Account/Register?returnUrl=@Model.ReturnUrl" class="account-link">Зареєструватися</a>
+            </div>
+
+            <div class="account-footer" style="margin-top: 15px;">
+                <a href="/Account/ForgotPassword" class="account-link" style="font-size: 13px;">Забули пароль?</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@code {
+    [Parameter] public LoginViewModel Model { get; set; } = new();
+    [Parameter] public IEnumerable<string>? Errors { get; set; }
+}
