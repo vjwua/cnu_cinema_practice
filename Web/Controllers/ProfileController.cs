@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
+using cnu_cinema_practice.Components.Pages.Profile;
+using Microsoft.AspNetCore.Http.HttpResults;
+
 namespace cnu_cinema_practice.Controllers;
 
 [Authorize]
@@ -16,12 +19,12 @@ public class ProfileController(
     IOrderService orderService,
     IMapper mapper) : Controller
 {
-    public async Task<IActionResult> Index(DateTime? from, DateTime? to, OrderStatus? status)
+    public async Task<IResult> Index(DateTime? from, DateTime? to, OrderStatus? status)
     {
         var user = await userManager.GetUserAsync(User);
         if (user == null)
         {
-            return RedirectToAction("Login", "Account");
+            return Results.Redirect(Url.Action("Login", "Account")!);
         }
 
         var roles = await userManager.GetRolesAsync(user);
@@ -49,6 +52,6 @@ public class ProfileController(
             Orders = orderViewModels
         };
 
-        return View(viewModel);
+        return new RazorComponentResult<cnu_cinema_practice.Components.Pages.Profile.Profile>(new { Model = viewModel });
     }
 }
