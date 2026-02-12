@@ -233,7 +233,7 @@
                                                             @foreach (var ticket in order.Tickets)
                                                             {
                                                                 <span class="badge bg-light text-dark border px-3 py-2">
-                                                                    Seat @((char)('A' + ticket.RowNum))@(ticket.SeatNum + 1)
+                                                                    Seat @ticket.RowNum@ticket.SeatNum
                                                                     <span class="text-muted ms-1">• @ticket.SeatTypeName</span>
                                                                 </span>
                                                             }

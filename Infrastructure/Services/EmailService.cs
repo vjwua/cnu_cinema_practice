@@ -71,22 +71,31 @@ public class EmailService(
 
     public async Task SendPasswordResetEmailAsync(string toEmail, string resetLink)
     {
-        const string subject = "Reset your password";
+        const string subject = "Reset your password for CNU Cinema";
         var body = $"""
-
-                            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto;'>
-                                <h2>Password Reset</h2>
-                                <p>You requested a password reset.</p>
-                                <p>
-                                    <a href='{resetLink}'
-                                       style='display:inline-block;padding:10px 20px;
-                                              background:#0d6efd;color:#fff;
-                                              text-decoration:none;border-radius:4px;'>
-                                        Reset Password
-                                    </a>
-                                </p>
-                                <p>If you didn't request this, you can safely ignore this email.</p>
-                            </div>
+                    <!DOCTYPE html>
+                    <html>
+                    <body style="margin: 0; padding: 0; background-color: #f8f9fa; color: #333333; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+                    <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e5e7eb;">
+                    <div style="background-color: #000000; padding: 30px 0; text-align: center;">
+                        <h1 style="margin: 0; color: #ffffff; font-size: 24px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">CNU Cinema</h1>
+                    </div>
+                    <div style="padding: 40px; text-align: center;">
+                        <h2 style="color: #1a1a1a; margin-top: 0; font-size: 22px; font-weight: 600;">Reset Your Password</h2>
+                        <p style="font-size: 16px; line-height: 1.6; color: #4a4a4a; margin-bottom: 30px;">
+                            We received a request to reset your password. Click the button below to create a new one:
+                        </p>
+                        <a href="{resetLink}" style="display: inline-block; padding: 14px 28px; background-color: #000000; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">RESET PASSWORD</a>
+                        <p style="margin-top: 30px; font-size: 13px; color: #888888;">
+                            If you didn't request this change, you can safely ignore this email.
+                        </p>
+                    </div>
+                    <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb;">
+                        &copy; {DateTime.Now.Year} CNU Cinema. All rights reserved.
+                    </div>
+                    </div>
+                    </body>
+                    </html>
                     """;
 
         await SendEmailAsync(toEmail, subject, body);
@@ -104,17 +113,6 @@ public class EmailService(
 
         var subject = $"Your Tickets for {order.Session.Movie.Name}";
 
-        var ticketsHtml = new System.Text.StringBuilder();
-        foreach (var ticket in order.Tickets)
-        {
-            ticketsHtml.Append($"""
-                                    <div style='border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px;'>
-                                        <p><strong>Seat:</strong> Row {ticket.SeatReservation.Seat.RowNum}, Seat {ticket.SeatReservation.Seat.SeatNum}</p>
-                                        <img src="data:image/png;base64,{ticket.QrCodeBase64}" alt="QR Code" style="width: 150px; height: 150px;" />
-                                    </div>
-                                """);
-        }
-
         var body = $"""
                     <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto;'>
                          <h2>Your Tickets</h2>
@@ -126,9 +124,6 @@ public class EmailService(
                              <strong>Hall:</strong> {order.Session.Hall.Name}
                          </p>
                          <p>Order ID: {order.Id}</p>
-                         
-                         <h3>QR Codes</h3>
-                         {ticketsHtml}
                     </div>
                     """;
 

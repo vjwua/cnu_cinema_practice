@@ -11,7 +11,9 @@ public class OrderProfileViewModelMapping : Profile
     {
         CreateMap<TicketDTO, TicketViewModel>()
             .ForMember(dest => dest.SeatTypeName, opt => opt.MapFrom(src => src.SeatType))
-            .ForMember(dest => dest.QrCode, opt => opt.MapFrom(src => src.QrCode));
+            .ForMember(dest => dest.QrCode, opt => opt.MapFrom(src => src.QrCode))
+            .ForMember(dest => dest.SeatNum, opt => opt.MapFrom(src => src.SeatNum + 1))
+            .ForMember(dest => dest.RowNum, opt => opt.MapFrom(src => ((char)('A' + src.RowNum)).ToString()));
 
         CreateMap<OrderDTO, OrderViewModel>()
             .ForMember(dest => dest.MovieName, opt => opt.MapFrom(src => src.MovieTitle))
