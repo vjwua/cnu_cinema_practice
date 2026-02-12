@@ -334,8 +334,7 @@ a:hover {
     display: flex;
     align-items: center;
     padding-bottom: 5vh;
-    /* Lift content below fixed header */
-    padding-top: 73px;
+    /* No padding-top to allow backdrop to fill the area under the fixed header */
     overflow: hidden;
 }
 
