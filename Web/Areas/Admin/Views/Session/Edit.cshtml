@@ -142,9 +142,7 @@
                             <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-secondary">
                                 <i class="bi bi-x-circle"></i> Cancel
                             </a>
-                            <button type="button" class="btn btn-outline-info" onclick="checkConflict()">
-                                <i class="bi bi-search"></i> Check Conflicts
-                            </button>
+
                         </div>
                     </form>
                 </div>
@@ -182,7 +180,7 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted mb-3">
-                        Deleting this session cannot be undone. All associated bookings will be affected.
+                        Deleting this session cannot be undone.
                     </p>
                     <button type="button"
                             class="btn btn-danger w-100"
