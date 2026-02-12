@@ -60,23 +60,47 @@ namespace cnu_cinema_practice.Controllers
             {
                 var createPaymentDto = mapper.Map<CreatePaymentDTO>(paymentViewModel);
 
+                Console.WriteLine($"[DEBUG] Processing payment for OrderId: {paymentViewModel.OrderId}");
                 await paymentService.ProcessPaymentAsync(createPaymentDto);
 
+                Console.WriteLine($"[DEBUG] Updating order status to Paid for OrderId: {paymentViewModel.OrderId}");
                 await orderService.UpdateOrderStatusAsync(paymentViewModel.OrderId, OrderStatus.Paid);
-                await ticketService.GenerateQrCodesForOrderAsync(paymentViewModel.OrderId);
-                await emailService.SendTicketsAsync(paymentViewModel.OrderId);
+
+                try
+                {
+                    Console.WriteLine($"[DEBUG] Generating QR codes for OrderId: {paymentViewModel.OrderId}");
+                    await ticketService.GenerateQrCodesForOrderAsync(paymentViewModel.OrderId);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] QR code generation failed for OrderId: {paymentViewModel.OrderId}: {ex}");
+                    // We might still want to proceed if the order is marked as paid, 
+                    // or handle this as a critical failure. For now, let's just log.
+                }
+
+                try
+                {
+                    Console.WriteLine($"[DEBUG] Sending tickets for OrderId: {paymentViewModel.OrderId}");
+                    await emailService.SendTicketsAsync(paymentViewModel.OrderId);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR] Email sending failed for OrderId: {paymentViewModel.OrderId}: {ex}");
+                }
 
                 TempData["Success"] = "Payment successful! Your tickets have been sent to your email.";
                 return Results.Redirect(Url.Action("Details", "Order", new { id = paymentViewModel.OrderId, area = "" })!);
             }
             catch (InvalidOperationException ex)
             {
+                Console.WriteLine($"[ERROR] Payment processing failed (InvalidOperation): {ex}");
                 ModelState.AddModelError(string.Empty, ex.Message);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[ERROR] Unexpected error during payment processing: {ex}");
                 ModelState.AddModelError(string.Empty,
-                    $"An unexpected error occurred: {ex}");
+                    "An unexpected error occurred while processing your payment. Please contact support.");
             }
 
             paymentViewModel.AvailablePaymentMethods = GetAvailablePaymentMethods();
