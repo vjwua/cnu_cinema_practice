@@ -1,80 +1,103 @@
-DELETE
-FROM Tickets;
-DELETE
-FROM SeatReservations;
-DELETE
-FROM Payments;
-DELETE
-FROM Orders;
-DELETE
-FROM Sessions;
-DELETE
-FROM Seats;
-DELETE
-FROM Movies;
-DELETE
-FROM Halls;
-DELETE
-FROM SeatTypes;
+DELETE FROM Tickets;
+DELETE FROM SeatReservations;
+DELETE FROM Seats;
+DELETE FROM Payments;
+DELETE FROM Orders;
+DELETE FROM Sessions;
+DELETE FROM Movies;
+DELETE FROM Halls;
+DELETE FROM SeatTypes;
 
 -- Insert Movies (with sessions - now showing)
-INSERT INTO Movies (Name, DurationMinutes, AgeLimit, Genre, Description, ReleaseDate, ImdbRating, PosterUrl, Country)
-VALUES ('Dune: Part Two', 150, 12, 1, 'Epic continuation of the Dune saga', '2026-01-15', 8.5,
-        'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'USA'),
-       ('Avatar 3', 220, 12, 2, 'Return to Pandora for another adventure', '2026-01-10', 8.9,
-        'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'USA'),
-       ('The Grand Adventure', 142, 12, 0, 'An epic adventure across distant lands', '2026-01-20', 7.8,
-        'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'UK');
+INSERT INTO Movies (Name, DurationMinutes, AgeLimit, Genre, Description, ReleaseDate, ImdbRating, PosterUrl, TrailerUrl, Country)
+VALUES
+    ('Dune: Part Two', 150, 12, 1, 'Epic continuation of the Dune saga', '2026-01-15', 8.5,
+     'https://media.themoviedb.org/t/p/w300_and_h450_face/nYTnWYIZEtNImDs7N8gsq5xTYMx.jpg',
+     'https://youtu.be/aZSqdax1uC0', 'USA'),
+    ('Avatar 3', 220, 12, 2, 'Return to Pandora for another adventure', '2026-01-10', 8.9,
+     'https://www.themoviedb.org/t/p/w600_and_h900_face/w23g9sNNDxhzjUYWTZZYqa4cNiJ.jpg',
+     'https://youtu.be/os_CcXsSHPM', 'USA'),
+    ('Crime 101', 149, 18, 32, 'An elusive thief, eyeing his final score, encounters a disillusioned insurance broker at her own crossroads.', '2026-01-10', 8.9,
+     'https://www.themoviedb.org/t/p/w600_and_h900_face/iHvDXLdvvQ2iwjaztX4UpTta9jR.jpg',
+     'https://youtu.be/_o3eZhpOX6w', 'USA'),
+    ('Hamnet', 125, 13, 128, 'After losing their son Hamnet to plague, Agnes and William Shakespeare grapple with grief in 16th-century England.', '2026-01-10', 8.0,
+     'https://www.themoviedb.org/t/p/w600_and_h900_face/9SZAPeyDUpQdu41LdJaAeTcTYxw.jpg',
+     'https://youtu.be/pHiH5fI4hlk', 'USA'),
+    ('The Grand Adventure', 142, 12, 0, 'An epic adventure across distant lands', '2026-01-20', 7.8,
+     'https://www.themoviedb.org/t/p/w600_and_h900_face/tjk2Ig3I5bQvPUEH3A83aZebXEy.jpg',
+     'https://youtu.be/Isn23w4qc6s', 'UK');
 
 -- Insert Upcoming Movies (without sessions - coming soon)
-INSERT INTO Movies (Name, DurationMinutes, AgeLimit, Genre, Description, ReleaseDate, ImdbRating, PosterUrl, Country)
-VALUES ('Oppenheimer 2', 180, 16, 3, 'The story continues', '2026-02-20', 8.7,
-        'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'USA'),
-       ('Spider-Man: Beyond', 135, 12, 1, 'New adventures of Spider-Man', '2026-03-15', 8.2,
-        'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'USA'),
-       ('The Last Voyage', 155, 13, 2, 'A journey to the unknown', '2026-04-01', 7.9,
-        'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'UK'),
-       ('Interstellar II', 190, 12, 2, 'Return to the stars', '2026-03-25', 9.1,
-        'https://donaldthompson.com/wp-content/uploads/2024/10/placeholder-image-vertical.png', 'USA');
+INSERT INTO Movies (Name, DurationMinutes, AgeLimit, Genre, Description, ReleaseDate, ImdbRating, PosterUrl, TrailerUrl, Country)
+VALUES
+    ('Oppenheimer 2', 180, 16, 3, 'The story continues', '2026-02-20', 8.7,
+     'https://www.themoviedb.org/t/p/w600_and_h900_face/iAv3HAlrrIgjcf2yCFvedJzekXT.jpg',
+     'https://youtu.be/eZYD5NRum4A', 'USA'),
+    ('Spider-Man: Beyond', 135, 12, 1, 'New adventures of Spider-Man', '2026-03-15', 8.2,
+     'https://www.themoviedb.org/t/p/w600_and_h900_face/9PIhQqqI6Q4a5YjwMjxvzZcPJhf.jpg',
+     'https://www.youtube.com/watch?v=n8KD88gsjMc', 'USA'),
+    ('The Last Voyage', 155, 13, 2, 'A journey to the unknown', '2026-04-01', 7.9,
+     'https://www.themoviedb.org/t/p/w600_and_h900_face/a4hwHvo4KdaQK4fRjvFH5hkTXMn.jpg',
+     'https://youtu.be/ci46C7SeEw8', 'UK'),
+    ('Interstellar II', 190, 12, 2, 'Return to the stars', '2026-03-25', 9.1,
+     'https://www.themoviedb.org/t/p/w600_and_h900_face/9d1sCoMSGJZtghS2X9us1h9u8lW.jpg',
+     'https://youtu.be/_DQ-lqOhwIM', 'USA');
 
 -- Insert Halls (using raw SQL to bypass constructor)
 SET IDENTITY_INSERT Halls ON;
 INSERT INTO Halls (Id, Name, Rows, Columns)
-VALUES (1, 'Hall 1', 10, 12),
-       (2, 'Hall 2', 10, 12),
-       (3, 'Hall 3', 8, 10);
+VALUES
+    (1, 'Hall 1', 10, 12),
+    (2, 'Hall 2', 10, 12),
+    (3, 'Hall 3', 8, 10);
 SET IDENTITY_INSERT Halls OFF;
 
 -- Insert SeatTypes
 SET IDENTITY_INSERT SeatTypes ON;
 INSERT INTO SeatTypes (Id, Name, AddedPrice, IsActive)
-VALUES (0, 'Unavailable', 0, 1),
-       (1, 'Standard', 0, 1),
-       (2, 'Premium', 30, 1),
-       (3, 'VIP', 50, 1);
+VALUES
+    (0, 'Unavailable', 0, 1),
+    (1, 'Standard', 0, 1),
+    (2, 'Premium', 30, 1),
+    (3, 'VIP', 50, 1);
 SET IDENTITY_INSERT SeatTypes OFF;
 
 -- Insert Sessions
 INSERT INTO Sessions (MovieId, HallId, StartTime, BasePrice, MovieFormat)
 VALUES
 -- Today (Jan 27, 2026)
-((SELECT Id FROM Movies WHERE Name = 'Dune: Part Two'), 1, '2026-01-27 14:00:00', 150, 0),
-((SELECT Id FROM Movies WHERE Name = 'Avatar 3'), 2, '2026-01-27 18:00:00', 180, 1),
+((SELECT Id FROM Movies WHERE Name = 'Dune: Part Two'), 1, '2026-02-16 14:00:00', 150, 0),
+((SELECT Id FROM Movies WHERE Name = 'Avatar 3'), 2, '2026-02-16 18:00:00', 180, 1),
 
--- Hall 1 - Feb 4
-((SELECT Id FROM Movies WHERE Name = 'Dune: Part Two'), 1, '2026-02-04 10:30:00', 150, 0), -- Dune: Part Two, 2D
-((SELECT Id FROM Movies WHERE Name = 'The Grand Adventure'), 1, '2026-02-04 14:00:00', 120, 0),
-((SELECT Id FROM Movies WHERE Name = 'Avatar 3'), 1, '2026-02-04 18:30:00', 180, 1),       -- Avatar 3, 3D
+-- Hall 1 - Feb 17
+((SELECT Id FROM Movies WHERE Name = 'Dune: Part Two'), 1, '2026-02-17 10:30:00', 150, 0), -- Dune: Part Two, 2D
+((SELECT Id FROM Movies WHERE Name = 'The Grand Adventure'), 1, '2026-02-17 14:00:00', 120, 0),
+((SELECT Id FROM Movies WHERE Name = 'Avatar 3'), 1, '2026-02-17 18:30:00', 180, 1), -- Avatar 3, 3D
 
--- Hall 2 - Feb 4  
-((SELECT Id FROM Movies WHERE Name = 'Avatar 3'), 2, '2026-02-04 08:00:00', 220, 1),       -- Avatar 3, 3D (full - 120/120)
-((SELECT Id FROM Movies WHERE Name = 'Avatar 3'), 2, '2026-02-04 11:45:00', 220, 1),       -- Avatar 3, 3D (low - 5/120)
-((SELECT Id FROM Movies WHERE Name = 'Dune: Part Two'), 2, '2026-02-04 16:00:00', 150, 0),
+-- Hall 2 - Feb 17  
+((SELECT Id FROM Movies WHERE Name = 'Avatar 3'), 2, '2026-02-17 08:00:00', 220, 1), -- Avatar 3, 3D (full - 120/120)
+((SELECT Id FROM Movies WHERE Name = 'Avatar 3'), 2, '2026-02-17 11:45:00', 220, 1), -- Avatar 3, 3D (low - 5/120)
+((SELECT Id FROM Movies WHERE Name = 'Dune: Part Two'), 2, '2026-02-17 16:00:00', 150, 0),
 
--- Hall 3 - Feb 4
-((SELECT Id FROM Movies WHERE Name = 'The Grand Adventure'), 3, '2026-02-04 09:00:00', 120, 0),
-((SELECT Id FROM Movies WHERE Name = 'Dune: Part Two'), 3, '2026-02-04 13:00:00', 150, 0),
-((SELECT Id FROM Movies WHERE Name = 'Avatar 3'), 3, '2026-02-04 17:30:00', 200, 2),       -- IMAX
+-- Hall 3 - Feb 17
+((SELECT Id FROM Movies WHERE Name = 'The Grand Adventure'), 3, '2026-02-17 09:00:00', 120, 0),
+((SELECT Id FROM Movies WHERE Name = 'Dune: Part Two'), 3, '2026-02-17 13:00:00', 150, 0),
+((SELECT Id FROM Movies WHERE Name = 'Avatar 3'), 3, '2026-02-17 17:30:00', 200, 2), -- IMAX
+
+-- Hall 1 - Feb 18
+((SELECT Id FROM Movies WHERE Name = 'Crime 101'), 1, '2026-02-18 10:30:00', 150, 0), -- Dune: Part Two, 2D
+((SELECT Id FROM Movies WHERE Name = 'The Grand Adventure'), 1, '2026-02-18 14:00:00', 120, 0),
+((SELECT Id FROM Movies WHERE Name = 'Hamnet'), 1, '2026-02-18 18:30:00', 180, 1), -- Avatar 3, 3D
+
+-- Hall 2 - Feb 18 
+((SELECT Id FROM Movies WHERE Name = 'Hamnet'), 2, '2026-02-18 08:00:00', 220, 1), -- Avatar 3, 3D (full - 120/120)
+((SELECT Id FROM Movies WHERE Name = 'Crime 101'), 2, '2026-02-18 11:45:00', 220, 1), -- Avatar 3, 3D (low - 5/120)
+((SELECT Id FROM Movies WHERE Name = 'Dune: Part Two'), 2, '2026-02-18 16:00:00', 150, 0),
+
+-- Hall 3 - Feb 18
+((SELECT Id FROM Movies WHERE Name = 'Crime 101'), 3, '2026-02-18 09:00:00', 120, 0),
+((SELECT Id FROM Movies WHERE Name = 'Dune: Part Two'), 3, '2026-02-18 13:00:00', 150, 0),
+((SELECT Id FROM Movies WHERE Name = 'Avatar 3'), 3, '2026-02-18 17:30:00', 200, 2), -- IMAX
 
 -- Additional days for testing
 ((SELECT Id FROM Movies WHERE Name = 'Dune: Part Two'), 1, '2026-02-05 10:00:00', 150, 0),
@@ -98,12 +121,11 @@ WHILE @Row <= 10
             BEGIN
                 -- VIP: last 2 rows, Premium: middle rows, Standard: front rows
                 IF @Row >= 9
-                    SET @SeatTypeId = 2; -- VIP
+                    SET @SeatTypeId = 3; -- VIP
+                ELSE IF @Row >= 5
+                    SET @SeatTypeId = 2; -- Premium
                 ELSE
-                    IF @Row >= 5
-                        SET @SeatTypeId = 3; -- Premium
-                    ELSE
-                        SET @SeatTypeId = 1; -- Standard
+                    SET @SeatTypeId = 1; -- Standard
 
                 INSERT INTO Seats (HallId, RowNum, SeatNum, SeatTypeId)
                 VALUES (@HallId, @Row, @SeatNum, @SeatTypeId);
@@ -122,12 +144,11 @@ WHILE @Row <= 10
         WHILE @SeatNum <= 12
             BEGIN
                 IF @Row >= 9
+                    SET @SeatTypeId = 3;
+                ELSE IF @Row >= 5
                     SET @SeatTypeId = 2;
                 ELSE
-                    IF @Row >= 5
-                        SET @SeatTypeId = 3;
-                    ELSE
-                        SET @SeatTypeId = 1;
+                    SET @SeatTypeId = 1;
 
                 INSERT INTO Seats (HallId, RowNum, SeatNum, SeatTypeId)
                 VALUES (@HallId, @Row, @SeatNum, @SeatTypeId);
@@ -146,12 +167,11 @@ WHILE @Row <= 8
         WHILE @SeatNum <= 10
             BEGIN
                 IF @Row >= 7
+                    SET @SeatTypeId = 3;
+                ELSE IF @Row >= 4
                     SET @SeatTypeId = 2;
                 ELSE
-                    IF @Row >= 4
-                        SET @SeatTypeId = 3;
-                    ELSE
-                        SET @SeatTypeId = 1;
+                    SET @SeatTypeId = 1;
 
                 INSERT INTO Seats (HallId, RowNum, SeatNum, SeatTypeId)
                 VALUES (@HallId, @Row, @SeatNum, @SeatTypeId);
@@ -163,21 +183,15 @@ WHILE @Row <= 8
 
 -- Add some seat reservations to simulate occupancy
 -- For the first session in Hall 2 (Avatar 3 at 08:00) - make it almost full
-DECLARE @SessionId INT = (SELECT TOP 1 Id
-                          FROM Sessions
-                          WHERE HallId = 2
-                            AND StartTime = '2026-02-04 08:00:00');
-DECLARE @BasePrice DECIMAL(18, 2) = (SELECT BasePrice
-                                     FROM Sessions
-                                     WHERE Id = @SessionId);
+DECLARE @SessionId INT = (SELECT TOP 1 Id FROM Sessions WHERE HallId = 2 AND StartTime = '2026-02-17 08:00:00');
+DECLARE @BasePrice DECIMAL(18,2) = (SELECT BasePrice FROM Sessions WHERE Id = @SessionId);
 DECLARE @SeatId INT;
-DECLARE @SeatTypeAddedPrice DECIMAL(18, 2);
+DECLARE @SeatTypeAddedPrice DECIMAL(18,2);
 DECLARE @Counter INT = 0;
 
 DECLARE seat_cursor CURSOR FOR
-    SELECT s.Id, st.AddedPrice
-    FROM Seats s
-             JOIN SeatTypes st ON s.SeatTypeId = st.Id
+    SELECT s.Id, st.AddedPrice FROM Seats s
+                                        JOIN SeatTypes st ON s.SeatTypeId = st.Id
     WHERE s.HallId = 2;
 
 OPEN seat_cursor;
@@ -196,21 +210,14 @@ CLOSE seat_cursor;
 DEALLOCATE seat_cursor;
 
 -- For second session in Hall 2 (Avatar 3 at 11:45) - make it partially filled (5 seats available)
-SET @SessionId = (SELECT TOP 1 Id
-                  FROM Sessions
-                  WHERE HallId = 2
-                    AND StartTime = '2026-02-04 11:45:00');
-SET @BasePrice = (SELECT BasePrice
-                  FROM Sessions
-                  WHERE Id = @SessionId);
+SET @SessionId = (SELECT TOP 1 Id FROM Sessions WHERE HallId = 2 AND StartTime = '2026-02-17 11:45:00');
+SET @BasePrice = (SELECT BasePrice FROM Sessions WHERE Id = @SessionId);
 SET @Counter = 0;
 
 DECLARE seat_cursor2 CURSOR FOR
-    SELECT s.Id, st.AddedPrice
-    FROM Seats s
-             JOIN SeatTypes st ON s.SeatTypeId = st.Id
-    WHERE s.HallId = 2
-    ORDER BY s.Id;
+    SELECT s.Id, st.AddedPrice FROM Seats s
+                                        JOIN SeatTypes st ON s.SeatTypeId = st.Id
+    WHERE s.HallId = 2 ORDER BY s.Id;
 
 OPEN seat_cursor2;
 FETCH NEXT FROM seat_cursor2 INTO @SeatId, @SeatTypeAddedPrice;
@@ -228,21 +235,14 @@ CLOSE seat_cursor2;
 DEALLOCATE seat_cursor2;
 
 -- For session in Hall 1 (Dune at 10:30) - partially filled (45 out of 120)
-SET @SessionId = (SELECT TOP 1 Id
-                  FROM Sessions
-                  WHERE HallId = 1
-                    AND StartTime = '2026-02-04 10:30:00');
-SET @BasePrice = (SELECT BasePrice
-                  FROM Sessions
-                  WHERE Id = @SessionId);
+SET @SessionId = (SELECT TOP 1 Id FROM Sessions WHERE HallId = 1 AND StartTime = '2026-02-17 10:30:00');
+SET @BasePrice = (SELECT BasePrice FROM Sessions WHERE Id = @SessionId);
 SET @Counter = 0;
 
 DECLARE seat_cursor3 CURSOR FOR
-    SELECT s.Id, st.AddedPrice
-    FROM Seats s
-             JOIN SeatTypes st ON s.SeatTypeId = st.Id
-    WHERE s.HallId = 1
-    ORDER BY s.Id;
+    SELECT s.Id, st.AddedPrice FROM Seats s
+                                        JOIN SeatTypes st ON s.SeatTypeId = st.Id
+    WHERE s.HallId = 1 ORDER BY s.Id;
 
 OPEN seat_cursor3;
 FETCH NEXT FROM seat_cursor3 INTO @SeatId, @SeatTypeAddedPrice;
@@ -272,7 +272,7 @@ IF @AdminUserId IS NOT NULL
         DECLARE @AdminSessionId INT;
         SELECT @AdminSessionId = Id
         FROM Sessions
-        WHERE StartTime = '2026-02-04 10:30:00';
+        WHERE StartTime = '2026-02-17 10:30:00';
 
         -- Create Order
         DECLARE @OrderId INT;
@@ -309,7 +309,7 @@ IF @AdminUserId IS NOT NULL
         WHILE @@FETCH_STATUS = 0
             BEGIN
                 INSERT INTO SeatReservations
-                    (SessionId, SeatId, Status, Price, ReservedByUserId)
+                (SessionId, SeatId, Status, Price, ReservedByUserId)
                 VALUES (@AdminSessionId, @AdminSeatId, 1, @AdminSeatPrice, @AdminUserId);
 
                 SET @SeatReservationId = SCOPE_IDENTITY();

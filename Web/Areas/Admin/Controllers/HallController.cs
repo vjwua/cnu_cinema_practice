@@ -120,7 +120,14 @@ public class HallController(
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
-        await hallService.DeleteAsync(id);
+        try
+        {
+            await hallService.DeleteAsync(id);
+        }
+        catch (Exception ex)
+        {
+            
+        }
         return RedirectToAction("Index");
     }
 
