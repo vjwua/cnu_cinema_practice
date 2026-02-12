@@ -17,6 +17,7 @@ public class TicketService : ITicketService
     private readonly IOrderRepository _orderRepository;
     private readonly TicketSettings _settings;
     private readonly ITicketRepository _ticketRepository;
+    private readonly char[] rowChars = [ 'A' , 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
 
     public TicketService(IOrderRepository orderRepository, IOptions<TicketSettings> settings, ITicketRepository ticketRepository)
     {
@@ -103,12 +104,12 @@ public class TicketService : ITicketService
             var dt = order.Session.StartTime.ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture);
             DrawRow(gfx, "Start: ", dt, margin, ref y, labelFont, valueFont);
             DrawRow(gfx, "Hall: ", order.Session.Hall.Name, margin, ref y, labelFont, valueFont);
-
+            
             var rowNum = ticket.SeatReservation.Seat.RowNum;
             var seatNum = ticket.SeatReservation.Seat.SeatNum;
             var seatType = ticket.SeatReservation.Seat.SeatTypeId;
          
-            DrawRow(gfx, "Seat: ", $"{(char)('A' + rowNum)}{seatNum} • ({(ReservedSeatType)seatType})", margin, ref y, labelFont, valueFont);
+            DrawRow(gfx, "Seat: ", $"{rowChars[rowNum]} {seatNum + 1} • ({(ReservedSeatType)seatType})", margin, ref y, labelFont, valueFont);
             
             DrawRow(gfx, "Price: ", $"{ticket.Price.ToString("0.00", CultureInfo.InvariantCulture)} ₴", margin, ref y, labelFont, valueFont);
 

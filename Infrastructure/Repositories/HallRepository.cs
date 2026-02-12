@@ -155,9 +155,17 @@ public class HallRepository : IHallRepository
         var hall = await GetByIdAsync(id);
         if (hall != null)
         {
-            await RemoveAllSeatsAsync(id);
-            _halls.Remove(hall);
-            await _context.SaveChangesAsync();
+            var sessions = await _sessions.Where(s => s.HallId == hall.Id).ToListAsync();
+            if (sessions.Any())
+            {
+                throw new Exception();
+            }
+            else
+            {
+                await RemoveAllSeatsAsync(id);
+                _halls.Remove(hall);
+                await _context.SaveChangesAsync();    
+            }
         }
     }
 
