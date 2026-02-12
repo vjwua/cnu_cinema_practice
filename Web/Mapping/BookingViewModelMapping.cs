@@ -74,6 +74,8 @@ public class BookingViewModelMapping : Profile
                 opt => opt.Ignore());
 
         CreateMap<MovieDetailDTO, CheckoutViewModel>()
+            .ForMember(dest => dest.Id,
+                opt => opt.Ignore())
             .ForMember(dest => dest.Name,
                 opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.PosterUrl,

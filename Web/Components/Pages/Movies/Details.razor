@@ -31,15 +31,14 @@ else
 
     <NavBar />
 
-    <header class="top-nav">
-        <a href="/" class="back-link">
-            <span class="arrow">←</span> НАЗАД ДО АФІШІ
-        </a>
-    </header>
-
     <main class="movie-container">
-        <!-- Sidebar: Poster & Crew -->
         <aside class="movie-sidebar">
+            <header class="movie-top-nav" style="margin: 0 0 25px 0;">
+                <a href="/" class="back-link">
+                    <span class="arrow">←</span> НАЗАД ДО АФІШІ
+                </a>
+            </header>
+
             <div class="poster-wrapper">
                 <img src="@Model.PosterUrl" alt="@Model.Name" class="movie-poster">
                 <div class="poster-glow"></div>

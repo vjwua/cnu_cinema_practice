@@ -15,12 +15,58 @@
 <div class="bg-ambience"></div>
 
 <div class="order-details-container animate-fade-up">
-    <!-- Header with Breadcrumbs/Back -->
-    <div class="flex justify-between items-center">
-        <a href="/Profile" class="back-link">
-            <i class="bi bi-person-circle me-2"></i> Мій профіль
+    <!-- Scoped Styles for Navigation Header -->
+    <style>
+        .header-nav {
+            display: flex !important;
+            align-items: center !important;
+            gap: 15px !important;
+            margin-bottom: 25px !important;
+            padding: 10px 0;
+        }
+
+        .nav-back-link {
+            color: #cbd5e1 !important; /* var(--text-slate) fallback */
+            text-decoration: none !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+
+        .nav-back-link:hover {
+            color: #22d3ee !important; /* var(--cyan) fallback */
+            transform: translateX(-5px) !important;
+        }
+
+        .nav-separator {
+            color: rgba(255, 255, 255, 0.1) !important;
+            font-size: 18px !important;
+            font-weight: 300 !important;
+        }
+
+        .nav-current {
+            background: rgba(34, 211, 238, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #22d3ee !important;
+            padding: 6px 14px !important;
+            border-radius: 20px !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.1em !important;
+        }
+    </style>
+
+    <!-- Unified Header Navigation -->
+    <div class="header-nav animate-fade-up">
+        <a href="/Profile" class="nav-back-link">
+            <i class="bi bi-person-circle"></i> Мій профіль
         </a>
-        <div class="step-badge">Деталі замовлення</div>
+        <span class="nav-separator">/</span>
+        <span class="nav-current">Деталі замовлення</span>
     </div>
 
     <!-- Status Banner -->

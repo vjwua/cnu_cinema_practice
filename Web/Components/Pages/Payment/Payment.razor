@@ -93,7 +93,9 @@
                             <i class="bi bi-credit-card"
                                 style="position: absolute; left: 15px; top: 15px; color: var(--text-dark-slate);"></i>
                             <input type="text" class="form-control" name="CardNumber" id="CardNumber"
-                                placeholder="0000 0000 0000 0000" style="padding-left: 45px;" value="@Model.CardNumber" />
+                                placeholder="0000 0000 0000 0000"
+                                style="padding-left: 45px; color: rgb(112, 112, 112) !important; background-color: #1e293b !important;"
+                                value="@Model.CardNumber" />
                         </div>
                     </div>
 
@@ -101,19 +103,22 @@
                         <div class="form-group">
                             <label class="form-label" for="ExpiryDate">Термін (ММ/РР)</label>
                             <input type="text" class="form-control" name="ExpiryDate" id="ExpiryDate" placeholder="MM/YY"
-                                maxlength="5" value="@Model.ExpiryDate" />
+                                maxlength="5" @bind="Model.ExpiryDate" @bind:event="oninput" @onkeyup="HandleExpiryKeyUp"
+                                style="color: rgb(112, 112, 112) !important; background-color: #1e293b !important;" />
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="Cvv">CVV</label>
                             <input type="text" class="form-control" name="Cvv" id="Cvv" placeholder="123" maxlength="3"
-                                value="@Model.Cvv" />
+                                value="@Model.Cvv"
+                                style="color: rgb(112, 112, 112) !important; background-color: #1e293b !important;" />
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="CardholderName">Власник картки</label>
                         <input type="text" class="form-control" name="CardholderName" id="CardholderName"
-                            placeholder="IVAN IVANOV" value="@Model.CardholderName" style="text-transform: uppercase;" />
+                            placeholder="IVAN IVANOV" value="@Model.CardholderName"
+                            style="text-transform: uppercase; color: rgb(112, 112, 112) !important; background-color: #1e293b !important;" />
                     </div>
                 </div>
             }
@@ -143,6 +148,30 @@
     {
         Model.SelectedPaymentMethod = method;
         StateHasChanged();
+    }
+
+    private void HandleExpiryKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Backspace") return;
+
+        var val = Model.ExpiryDate ?? "";
+        // Remove non-digits
+        var digits = new string(val.Where(char.IsDigit).ToArray());
+
+        if (digits.Length >= 2)
+        {
+            Model.ExpiryDate = digits.Substring(0, 2) + "/" + digits.Substring(2);
+        }
+        else
+        {
+            Model.ExpiryDate = digits;
+        }
+
+        // Limit to 5 chars (MM/YY)
+        if (Model.ExpiryDate.Length > 5)
+        {
+            Model.ExpiryDate = Model.ExpiryDate.Substring(0, 5);
+        }
     }
 
     private string GetPaymentIcon(PaymentMethod method) => method switch
