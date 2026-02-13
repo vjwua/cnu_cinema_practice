@@ -155,7 +155,7 @@
                                         @foreach (var ticket in order.Tickets)
                                         {
                                             <span class="ticket-badge">
-                                                @((char)('A' + ticket.RowNum))@(ticket.SeatNum + 1)
+                                                @ticket.RowNum@ticket.SeatNum
                                             </span>
                                         }
                                     </div>
