@@ -126,7 +126,7 @@ public class HallController(
         }
         catch (Exception ex)
         {
-            
+            return View("DeleteError");
         }
         return RedirectToAction("Index");
     }

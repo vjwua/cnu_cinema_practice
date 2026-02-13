@@ -1,0 +1,26 @@
+﻿@using cnu_cinema_practice.ViewModels
+
+@section css {
+    <link rel="stylesheet" href="~/css/halls.css" />
+    <link rel="stylesheet" href="~/css/seats.css" />
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-5">Hall Management</h1>
+        <p class="text-muted">Configure your cinema's hall halls</p>
+    </div>
+</div>
+
+<form id="redirect"
+      asp-action="Index">
+    <button type="submit" style="display: none;"></button>
+</form>
+
+@section Scripts {
+    <script>
+        const form = document.getElementById("redirect")
+        alert("You may not delete a hall when sessions in the hall exist!")
+        form.submit()
+    </script>
+}
